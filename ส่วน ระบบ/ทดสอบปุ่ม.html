@@ -1,0 +1,232 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ทดสอบปุ่มแป้นเต้น</title>
+<style>
+:root{--bg:#10131a;--card:#1b2030;--fg:#e8ecf4;--mut:#9aa3b8;--ok:#3ddc84;--hit:#ffd23f;--bad:#ff5c5c;--line:#2b3247;--blue:#4da3ff}
+@media (prefers-color-scheme:light){:root{--bg:#f2f4f8;--card:#fff;--fg:#1a2030;--mut:#5a6478;--line:#d5dae6;--hit:#f5a800;--ok:#13a455}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.5 system-ui,"Segoe UI",Tahoma,sans-serif;padding:16px}
+.wrap{max-width:900px;margin:auto;display:grid;gap:14px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px}
+h1{font-size:1.35rem;margin:0}
+h2{font-size:.95rem;margin:0 0 10px;color:var(--mut);font-weight:600}
+header{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.badge{display:inline-flex;align-items:center;gap:8px;padding:6px 12px;border-radius:99px;border:1px solid var(--line)}
+.dot{width:12px;height:12px;border-radius:50%;background:var(--bad)}
+.badge.on .dot{background:var(--ok)}
+.now{font-size:1.5rem;font-weight:700;min-height:2.4em;display:flex;align-items:center;flex-wrap:wrap;gap:8px}
+.now .chip{background:var(--hit);color:#000;border-radius:8px;padding:2px 12px}
+.now .none{color:var(--mut);font-weight:400;font-size:1rem}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(92px,1fr));gap:10px}
+.btn{border:2px solid var(--line);border-radius:12px;padding:8px 6px;text-align:center;background:var(--bg);transition:transform .05s}
+.btn b{display:block;font-size:1.15rem}
+.btn small{display:block;color:var(--mut);font-size:.75rem;min-height:1.1em}
+.btn .n{font-size:.8rem;color:var(--mut)}
+.btn.on{background:var(--hit);color:#000;border-color:var(--hit);transform:scale(.95)}
+.btn.on small,.btn.on .n{color:#222}
+.btn.used{border-color:var(--ok)}
+.axis{display:grid;grid-template-columns:90px 1fr 70px;gap:10px;align-items:center;margin:6px 0;font-family:ui-monospace,Consolas,monospace;font-size:.88rem}
+.bar{height:14px;border-radius:99px;background:var(--line);position:relative;overflow:hidden}
+.bar i{position:absolute;top:0;bottom:0;background:var(--blue)}
+.bar::after{content:"";position:absolute;left:50%;top:0;bottom:0;width:2px;background:var(--mut);opacity:.6}
+.axis.on .bar i{background:var(--hit)}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+button.act{font:inherit;padding:9px 14px;border-radius:9px;border:1px solid var(--line);background:var(--card);color:var(--fg);cursor:pointer}
+button.pri{background:#2f6fed;border-color:#2f6fed;color:#fff}
+#hist{max-height:220px;overflow:auto;font-family:ui-monospace,Consolas,monospace;font-size:.85rem;color:var(--mut)}
+#hist div b{color:var(--fg)}
+a{color:var(--blue)}
+.wiz{display:grid;grid-template-columns:auto 1fr;gap:16px;align-items:center}
+.mini{display:grid;grid-template-columns:repeat(3,38px);gap:5px}
+.mini i{height:38px;border-radius:8px;background:var(--bg);border:2px solid var(--line)}
+.mini i.c{border:0;background:transparent}
+.mini i.t{background:#ff2b2b;border-color:#ff2b2b;animation:pl .7s infinite alternate}
+.mini i.d{background:var(--ok);border-color:var(--ok)}
+@keyframes pl{to{opacity:.35}}
+.wiz .big{font-size:1.4rem;font-weight:700}
+.wiz .sub{color:var(--mut);font-size:.92rem}
+button.big2{font-size:1.05rem;padding:12px 20px}
+.note{color:var(--mut);font-size:.9rem}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>🔘 ทดสอบปุ่มแป้นเต้น</h1>
+    <span class="badge" id="badge"><span class="dot"></span><b id="stText">ยังไม่พบแป้น</b></span>
+  </header>
+
+  <div class="card wiz">
+    <div class="mini" id="mini"></div>
+    <div>
+      <div class="big" id="wizMsg">ผูกปุ่มให้ครบ 8 แผ่น ใน 1 นาที</div>
+      <div class="sub" id="wizSub">กด "เริ่มผูกอัตโนมัติ" แล้วเหยียบแผ่นตามที่ระบบบอก ไม่ต้องแก้โค้ดหรือเลือกเอง</div>
+      <div class="row" style="margin-top:10px"><button class="act pri big2" id="wizGo">▶ เริ่มผูกอัตโนมัติ</button><button class="act" id="wizSkip" hidden>ข้ามแผ่นนี้</button><button class="act" id="wizStop" hidden>ยกเลิก</button></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>กำลังกดอยู่ตอนนี้</h2>
+    <div class="now" id="now"><span class="none">เสียบแป้นแล้วเหยียบ 1 ครั้งให้เบราว์เซอร์มองเห็น จากนั้นเหยียบทีละแผ่น</span></div>
+    <div class="note" id="info"></div>
+  </div>
+
+  <div class="card">
+    <h2>ปุ่มทั้งหมด (เหยียบแล้วช่องต้องสว่าง — กรอบเขียว = เคยกดแล้ว) — เลือกแผ่นใต้ปุ่มเพื่อผูก (ใช้กับหน้าหลักทันที)</h2>
+    <div class="grid" id="btns"></div>
+    <p class="note" id="mapSum" style="margin:10px 0 0"></p>
+  </div>
+
+  <div class="card">
+    <h2>แกน / ปุ่มลูกศร (Hat)</h2>
+    <div id="axes"><span class="note">ยังไม่มีข้อมูล</span></div>
+  </div>
+
+  <div class="card">
+    <h2>ประวัติการกด (ชุดปุ่มที่กดพร้อมกันต่อหนึ่งครั้งเหยียบ)</h2>
+    <div class="row" style="margin-bottom:8px">
+      <button class="act pri" id="btnClear">ล้างตัวนับและประวัติ</button>
+      <button class="act" id="btnCopy">คัดลอกผลทั้งหมด</button>
+      <a href="index.html">← กลับหน้าทดสอบแผ่นเต้น</a>
+    </div>
+    <div id="hist"></div>
+  </div>
+</div>
+
+<script>
+const $=id=>document.getElementById(id);
+const MAX_BTN=8, SHOW_AXES=false;   // แป้นนี้ใช้แค่ปุ่ม b0-b7
+document.querySelectorAll('.card')[2].hidden=true;   // ซ่อนการ์ดแกน
+// ผูกปุ่มกับแผ่น: เลือกจากเมนูใต้แต่ละปุ่ม → บันทึกลง 'dancepad-map-v6' ให้หน้าหลัก (index.html) ใช้ทันที (1 แผ่น = 1 ปุ่ม)
+const MAPKEY='dancepad-map-v6', IGNKEY='dancepad-ignore-v1';
+const PNAME={x:'ซ้ายบน (X)',u:'บน ↑',o:'ขวาบน (O)',l:'ซ้าย ←',r:'ขวา →',tri:'ซ้ายล่าง (▲)',d:'ล่าง ↓',sq:'ขวาล่าง (□)'};
+let padMap={}; try{padMap=JSON.parse(localStorage.getItem(MAPKEY)||'{}')||{};}catch(e){}
+const btnPanel=k=>Object.keys(padMap).find(id=>padMap[id]===k)||'';          // ปุ่ม → id แผ่น
+const saveMap=()=>{ try{localStorage.setItem(MAPKEY,JSON.stringify(padMap)); localStorage.removeItem(IGNKEY);}catch(e){} };
+function setBtn(k,id){
+  Object.keys(padMap).forEach(p=>{ if(padMap[p]===k) delete padMap[p]; });   // ปุ่มนี้เคยผูกแผ่นอื่น → ปลด
+  if(id){ padMap[id]=k; }                                                    // แผ่นนี้เคยผูกปุ่มอื่น → ถูกแทนที่
+  saveMap(); refreshSel(); showMapSummary();
+}
+function refreshSel(){ document.querySelectorAll('.btn select').forEach(s=>{ s.value=btnPanel(s.dataset.k); }); }
+function showMapSummary(){
+  const miss=Object.keys(PNAME).filter(id=>!padMap[id]);
+  $('mapSum').innerHTML=miss.length?('ยังไม่ได้ผูก: <b>'+miss.map(i=>PNAME[i]).join(', ')+'</b>'):'<b style="color:var(--ok)">ผูกครบทั้ง 8 แผ่นแล้ว ✔ — เปิดหน้าหลักใช้ได้เลย</b>';
+}
+const names={}; Object.keys(PNAME).forEach(id=>{ if(padMap[id]) names[padMap[id]]=PNAME[id]; });
+
+let gpId=null, counts={}, btnEls={}, nBtn=0, axEls=[], cur=new Set(), peak=new Set(), histN=0;
+const keyOf=(i)=>'b'+i;
+
+function build(gp){
+  nBtn=Math.min(gp.buttons.length,MAX_BTN); btnEls={}; $('btns').innerHTML='';
+  for(let i=0;i<nBtn;i++){
+    const d=document.createElement('div'); d.className='btn';
+    const opts=['<option value="">— ไม่ผูก —</option>'].concat(Object.keys(PNAME).map(id=>`<option value="${id}">${PNAME[id]}</option>`)).join('');
+    d.innerHTML=`<b>b${i}</b><select data-k="b${i}" style="width:100%;font:inherit;font-size:.78rem">${opts}</select><small></small><span class="n">×0</span>`;
+    const sel=d.querySelector('select'); sel.value=btnPanel('b'+i); sel.onchange=()=>setBtn('b'+i,sel.value);
+    $('btns').appendChild(d); btnEls[i]=d;
+  }
+  $('axes').innerHTML=''; axEls=[];
+  if(SHOW_AXES)gp.axes.forEach((v,i)=>{
+    const a=document.createElement('div'); a.className='axis';
+    a.innerHTML=`<span>แกน ${i}</span><div class="bar"><i></i></div><span class="val"></span>`;
+    $('axes').appendChild(a); axEls.push(a);
+  });
+}
+
+function label(k){ const id=btnPanel(k); return k+(id?' ('+PNAME[id]+')':''); }
+function addHist(set){
+  if(!set.size)return;
+  const keys=[...set].sort((a,b)=>a.localeCompare(b,undefined,{numeric:true}));
+  const d=document.createElement('div'); histN++;
+  d.innerHTML=`${new Date().toLocaleTimeString()}  <b>${keys.map(label).join(' + ')}</b>  (${keys.length} ปุ่ม)`;
+  $('hist').prepend(d); while($('hist').childElementCount>100)$('hist').lastChild.remove();
+}
+
+function loop(){
+  const gp=[...(navigator.getGamepads?navigator.getGamepads():[])].find(g=>g&&g.connected)||null;
+  const now=new Set();
+  if(gp){
+    if(gp.id!==gpId){ gpId=gp.id; build(gp);
+      $('badge').classList.add('on'); $('stText').textContent='พบแป้นแล้ว';
+      $('info').textContent=`${gp.id} — ${gp.buttons.length} ปุ่ม, ${gp.axes.length} แกน, mapping="${gp.mapping||'ไม่ระบุ'}"`; }
+    gp.buttons.forEach((b,i)=>{ if(i>=MAX_BTN)return; const on=b.pressed||b.value>0.5; const k=keyOf(i);
+      if(on){ now.add(k); if(!cur.has(k)){ counts[k]=(counts[k]||0)+1; btnEls[i].classList.add('used'); } }
+      btnEls[i].classList.toggle('on',on); btnEls[i].querySelector('.n').textContent='×'+(counts[k]||0); });
+    if(SHOW_AXES)gp.axes.forEach((v,i)=>{
+      // แกนปกติอยู่ที่ 0; hat (ปุ่มลูกศร) มักเป็นค่าเฉพาะ เช่น -1, -0.71, ... 1.29 (ค่า >1 = ไม่ได้กด)
+      const active=(v>1.01)?false:Math.abs(v)>0.5;
+      const k='a'+i+(v>0?'+':'-');
+      if(active){ now.add(k); if(!cur.has(k)) counts[k]=(counts[k]||0)+1; }
+      const el=axEls[i]; el.classList.toggle('on',active);
+      const w=Math.min(Math.abs(v),1)*50; const bar=el.querySelector('i');
+      bar.style.left=(v<0?50-w:50)+'%'; bar.style.width=w+'%';
+      el.querySelector('.val').textContent=v.toFixed(2);
+    });
+  }else if(gpId){ gpId=null; $('badge').classList.remove('on'); $('stText').textContent='ยังไม่พบแป้น'; }
+
+  // สรุปชุดที่กดพร้อมกัน: บันทึกประวัติเมื่อปล่อยครบทุกปุ่ม
+  now.forEach(k=>peak.add(k));
+  if(!now.size && peak.size){ addHist(peak); peak=new Set(); }
+  cur=now; wizTick(now,performance.now());
+  const keys=[...now].sort((a,b)=>a.localeCompare(b,undefined,{numeric:true}));
+  const h=keys.length?keys.map(k=>`<span class="chip">${label(k)}</span>`).join(''):'<span class="none">'+(gpId?'ยังไม่ได้กดอะไร':'ยังไม่พบแป้น — เสียบแล้วเหยียบ 1 ครั้ง')+'</span>';
+  if($('now').dataset.h!==h){ $('now').innerHTML=h; $('now').dataset.h=h; }
+  requestAnimationFrame(loop);
+}
+
+$('btnClear').onclick=()=>{ counts={}; peak=new Set(); $('hist').innerHTML=''; Object.values(btnEls).forEach(d=>{d.classList.remove('used');d.querySelector('.n').textContent='×0';}); };
+$('btnCopy').onclick=()=>{
+  const lines=['อุปกรณ์: '+(gpId||'-')].concat(Object.entries(counts).map(([k,c])=>label(k)+' กด '+c+' ครั้ง')).concat(['--- ประวัติ ---'],[...$('hist').children].reverse().map(d=>d.textContent));
+  navigator.clipboard.writeText(lines.join('\n')).then(()=>{$('btnCopy').textContent='คัดลอกแล้ว ✔';setTimeout(()=>$('btnCopy').textContent='คัดลอกผลทั้งหมด',1500);},()=>alert(lines.join('\n')));
+};
+// ---------- ผูกอัตโนมัติ ----------
+const ORDER=['x','u','o','l','r','tri','d','sq'], POS={x:0,u:1,o:2,l:3,r:5,tri:6,d:7,sq:8};
+let wiz=null;
+function drawMini(){
+  const t=wiz&&wiz.i<ORDER.length?ORDER[wiz.i]:null; let s='';
+  for(let p=0;p<9;p++){ const id=Object.keys(POS).find(k=>POS[k]===p);
+    s+=!id?'<i class="c"></i>':'<i class="'+(id===t?'t':(padMap[id]?'d':''))+'" title="'+PNAME[id]+'"></i>'; }
+  $('mini').innerHTML=s;
+}
+function wizShow(){
+  const run=!!wiz&&wiz.i<ORDER.length;
+  $('wizGo').hidden=run; $('wizSkip').hidden=!run; $('wizStop').hidden=!run;
+  if(run){ $('wizMsg').textContent='เหยียบแผ่น: '+PNAME[ORDER[wiz.i]]+'  ('+(wiz.i+1)+'/8)'; $('wizSub').textContent=wiz.wait?'ยกเท้าออกจากทุกแผ่นก่อน…':'เหยียบให้เต็มแผ่นค้างไว้ครู่หนึ่ง แล้วยกเท้าออก'; }
+  drawMini();
+}
+function wizEnd(done){
+  wiz=null; showMapSummary(); refreshSel(); wizShow();
+  const ok=Object.keys(PNAME).every(id=>padMap[id]);
+  $('wizMsg').textContent=ok?'✅ ผูกครบทั้ง 8 แผ่นแล้ว':(done?'ผูกเสร็จ แต่ยังเหลือบางแผ่น — เลือกเองจากเมนูใต้ปุ่มได้':'ยกเลิกแล้ว');
+  $('wizSub').textContent=ok?'เปิดหน้าหลักแล้วเหยียบทดสอบได้เลย (ค่าจะถูกใช้อัตโนมัติ)':'';
+}
+$('wizGo').onclick=()=>{ if(!gpId){ $('wizMsg').textContent='ยังไม่พบแป้น'; $('wizSub').textContent='เสียบแป้น แล้วเหยียบ 1 ครั้งให้เบราว์เซอร์มองเห็น จากนั้นกดอีกครั้ง'; return; }
+  padMap={}; saveMap(); wiz={i:0,cap:null,wait:true}; refreshSel(); wizShow(); };
+$('wizSkip').onclick=()=>{ if(!wiz)return; wiz.i++; wiz.cap=null; wiz.wait=true; if(wiz.i>=ORDER.length)wizEnd(true); else wizShow(); };
+$('wizStop').onclick=()=>wizEnd(false);
+function wizTick(now,t){
+  if(!wiz)return;
+  const used=new Set(Object.values(padMap));
+  const ks=[...now].filter(k=>k[0]==='b'&&!used.has(k));
+  if(wiz.wait){ if(now.size===0){ wiz.wait=false; wizShow(); } return; }
+  if(!wiz.cap&&ks.length) wiz.cap={t0:t,n:{}};
+  if(wiz.cap){
+    ks.forEach(k=>wiz.cap.n[k]=(wiz.cap.n[k]||0)+1);
+    if(t-wiz.cap.t0>=350){
+      const best=Object.keys(wiz.cap.n).sort((a,b)=>wiz.cap.n[b]-wiz.cap.n[a]||a.localeCompare(b,undefined,{numeric:true}))[0];
+      wiz.cap=null;
+      if(best){ setBtn(best,ORDER[wiz.i]); wiz.i++; wiz.wait=true; if(wiz.i>=ORDER.length) wizEnd(true); else wizShow(); }
+    }
+  }
+}
+
+showMapSummary(); drawMini();
+loop();
+</script>
+</body>
+</html>

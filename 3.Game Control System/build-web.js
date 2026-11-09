@@ -32,6 +32,7 @@ fs.writeFileSync(path.join(OUT, 'index.html'), html);
 
 // ---- ระบบ AI
 fs.cpSync(path.join(__dirname, 'ai'), path.join(OUT, 'ai'), { recursive: true });
+if (fs.existsSync(path.join(__dirname, 'dance'))) fs.cpSync(path.join(__dirname, 'dance'), path.join(OUT, 'dance'), { recursive: true }); // โหมดแผ่นเต้น
 
 // ---- เพลง
 const musicExt = /\.(mp3|ogg|wav|m4a|aac|flac|opus)$/i;

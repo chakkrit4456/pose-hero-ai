@@ -48,6 +48,32 @@ button:disabled{opacity:.5;cursor:not-allowed;transform:none;box-shadow:0 4px 0 
 .lv small{display:block;color:var(--mut);font-weight:400;font-size:14px}
 video.cam{width:100%;max-width:320px;border-radius:18px;border:3px solid var(--edge);box-shadow:var(--sh);background:#000;transform:scaleX(-1);display:block;margin:0 auto 10px}
 video.cam[hidden]{display:none}
+#m-dance{background:linear-gradient(180deg,#ffb3d1,#ff6b9d);color:#fff}#m-dance::before{content:"🕹️ "}
+main:has(#dance:not([hidden])){max-width:760px}
+.dpad[hidden],.d-hud[hidden],.d-progress[hidden],#d-playbar[hidden],#d-menu[hidden],#d-result[hidden]{display:none!important}
+.d-badge{display:inline-flex;align-items:center;gap:8px;padding:6px 12px;border:2px solid var(--line);border-radius:99px;font-size:14px}
+.d-badge i{width:12px;height:12px;border-radius:50%;background:#ff5c5c;display:inline-block}.d-badge.on i{background:#3ddc84}
+.d-badge small{color:var(--mut)}
+.d-hud{display:flex;gap:10px;justify-content:center;margin:8px 0}
+.d-hud div{border:3px solid var(--edge);border-radius:14px;padding:6px 14px;text-align:center;min-width:92px;background:var(--field)}
+.d-hud span{display:block;font-size:12px;color:var(--mut)}.d-hud b{font-size:24px}
+.d-progress{height:10px;background:var(--line);border-radius:6px;overflow:hidden;margin:6px 0}.d-progress i{display:block;height:100%;width:0;background:var(--acc2)}
+.dpad{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;width:min(100%,520px,calc(100vh - 340px));min-width:240px;margin:10px auto}
+.dcell{aspect-ratio:1;position:relative;border:3px solid var(--edge);border-radius:16px;background:#101418;display:flex;align-items:center;justify-content:center;overflow:hidden;cursor:pointer;touch-action:manipulation;user-select:none;-webkit-tap-highlight-color:transparent}
+.dcell img{max-width:80%;max-height:75%;object-fit:contain;pointer-events:none}
+.dcell .key{position:absolute;bottom:3px;right:7px;font-size:12px;color:#fff;opacity:.75}
+.dcell.down{border-color:var(--sun);box-shadow:0 0 18px var(--sun);transform:scale(.96)}
+.dcell.target{border-color:#ff2b2b;box-shadow:0 0 0 3px #000,0 0 26px 5px #ff2b2b}
+.dcell.target::after{content:"";position:absolute;inset:0;background:#ff2b2b;opacity:.3;pointer-events:none}
+.dcell .appr{position:absolute;inset:0;border:6px solid #fff;border-radius:16px;pointer-events:none;opacity:0}
+.dcell.center{background:transparent;border:none;cursor:default}
+.dring{width:94%;aspect-ratio:1;border-radius:50%;border:4px solid var(--acc2);display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:6px;font-size:14px}
+.dring b{font-size:24px}.dring small{color:var(--mut);font-size:12px}
+.j-perfect{color:#1e9e62}.j-great{color:#f5a800}.j-good{color:#4da3ff}.j-miss{color:#e0245e}
+.d-levels{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:10px 0}
+.d-levels button{padding:12px 8px;text-align:center;font-size:18px}.d-levels small{display:block;font-weight:400;color:var(--mut);font-size:12px}
+#d-detail{font-size:14px;color:var(--mut)}
+
 #m-stats{background:linear-gradient(180deg,#ffe08a,var(--sun))}#m-stats::before{content:"📊 "}
 main:has(#stats:not([hidden])){max-width:820px}
 #st-who{min-width:160px;max-width:260px}
@@ -64,7 +90,7 @@ main:has(#stats:not([hidden])){max-width:820px}
 
 .sharebox{margin-top:18px;border-top:2px dashed var(--line);padding-top:12px;text-align:center}
 .sharebox h3{margin:0 0 4px;font-size:19px}
-#sharecv{display:block;width:100%;max-width:440px;height:auto;margin:10px auto;border:3px solid var(--edge);border-radius:16px;box-shadow:var(--sh);background:#fff}
+#sharecv,#dr-cv{display:block;width:100%;max-width:440px;height:auto;margin:10px auto;border:3px solid var(--edge);border-radius:16px;box-shadow:var(--sh);background:#fff}
 .sharebox .f{max-width:420px;margin:0 auto}
 
 /* ---- หน้าเลือกท่า: การ์ดเรียงซ้าย->ขวา ---- */
@@ -210,6 +236,7 @@ main:has(#manage:not([hidden])){max-width:1200px}
   <div class="menu">
     <button id="m-start" class="p">เริ่ม</button>
     <button id="m-level">ระดับความยาก</button>
+    <button id="m-dance">โหมดแผ่นเต้น</button>
     <button id="m-stats">สถิติของฉัน</button>
     <button id="m-manage">จัดการท่า</button>
     <button id="m-set">ตั้งค่า</button>
@@ -311,6 +338,32 @@ main:has(#manage:not([hidden])){max-width:1200px}
   <div class="row" style="margin-top:14px"><button class="back">กลับ</button><button id="st-clear" type="button">ล้างประวัติทั้งหมด</button></div>
 </section>
 
+<section id="dance" class="card" hidden>
+  <h2>🕹️ โหมดแผ่นเต้น</h2>
+  <div style="text-align:center"><span class="d-badge" id="d-badge"><i></i><b id="d-st">ยังไม่พบแผ่นเต้น</b><small id="d-sub"></small></span></div>
+  <div class="d-hud" id="d-hud" hidden><div><span>คะแนน</span><b id="d-score">0</b></div><div><span>คอมโบ</span><b id="d-combo">0</b></div><div><span>แม่นยำ</span><b id="d-acc">0%</b></div></div>
+  <div class="d-progress" id="d-prog" hidden><i id="d-bar"></i></div>
+  <div class="dpad" id="dpad"></div>
+  <div id="d-menu">
+    <p class="c" id="d-hint" style="min-height:3em;margin:6px 0"></p>
+    <div class="d-levels" id="d-levels"></div>
+    <div class="f" id="d-musrow"><label for="d-mus">เล่นเพลงประกอบ (ไม่ซิงค์กับจังหวะเกม)</label><input type="checkbox" id="d-mus"></div>
+    <div class="row"><button id="d-map" type="button">ตั้งค่าแผ่น</button><button id="d-skip" type="button" hidden>ข้ามแผ่นนี้</button><button id="d-reset" type="button">ล้างค่า</button></div>
+    <p class="c" style="margin:8px 0"><a id="d-detail" href="dance/index.html" target="_blank" rel="noopener">เปิดหน้าตั้งค่า/ตรวจแผ่นแบบละเอียด ↗</a></p>
+    <div class="row"><button class="back">กลับ</button></div>
+  </div>
+  <div id="d-playbar" class="row" hidden><button id="d-quit" type="button">ออกจากเกม (Esc)</button></div>
+  <div id="d-result" hidden>
+    <div class="score-summary"><div class="score-total"><span class="score-num" id="dr-score">0</span><span>/100</span></div><div class="score-stars" id="dr-stars"></div><div class="score-grade" id="dr-grade"></div></div>
+    <div class="st-tiles" id="dr-tiles"></div>
+    <div class="sumlist" id="dr-advice"></div>
+    <div class="row" style="margin-top:10px"><button id="dr-again" class="p" type="button">เล่นอีกครั้ง</button><button id="dr-menu" type="button">เปลี่ยนระดับ</button><button id="dr-home" type="button">หน้าหลัก</button></div>
+    <div class="sharebox"><h3>🎉 การ์ดผลการเล่น — แชร์ให้เพื่อน</h3><canvas id="dr-cv" width="1080" height="1350"></canvas>
+      <div class="f"><label for="dr-name">ชื่อบนการ์ด (เว้นว่าง = ไม่แสดงชื่อ)</label><input type="text" id="dr-name" maxlength="24"></div>
+      <div class="row"><button id="dr-share" class="p" type="button">แชร์</button><button id="dr-save" type="button">บันทึกเป็นรูปภาพ</button><button id="dr-copy" type="button">คัดลอกข้อความ</button></div></div>
+  </div>
+</section>
+
 <section id="setup" class="card" hidden>
   <h2>เลือกท่าสำหรับผู้ที่เป็นออฟฟิศซินโดรม</h2>
   <div class="f" id="musbox" hidden><label for="mus">🎵 เพลงประกอบ</label><span class="row"><select id="mus"></select><button id="mus-prev" type="button">▶ ฟังตัวอย่าง</button></span></div>
@@ -367,6 +420,8 @@ main:has(#manage:not([hidden])){max-width:1200px}
 <script src="ai/sys2core.js"></script>
 <script src="ai/data/poses-data.js"></script>
 <script src="ai/sys2ui.js"></script>
+<script src="dance/images-data.js"></script>
+<script src="dance/dancepad.js"></script>
 <script>
 const __src={},__cache={};function require(p){const k=p.replace("./","").slice(0,3);if(__cache[k])return __cache[k].exports;const mod={exports:{}};__cache[k]=mod;__src[k](mod,mod.exports,require);return mod.exports}
 __src['2.1']=function(module,exports,require){// 2.1 ระบบเริ่มเกม — สร้างสถานะเกม, นับถอยหลัง, เริ่มเล่น
@@ -1490,6 +1545,233 @@ function headline(s) {
 module.exports = { players, summarize, calendar, headline, dayKey };
 
 };
+__src['8.1']=function(module,exports,require){// 8.1 โหมดแผ่นเต้น — สร้างลำดับแผ่นที่ต้องเหยียบ (chart) ตามระดับความยาก
+// id ของแผ่นตรงกับ dancepad.js: x u o / l r / tri d sq (ตาราง 3x3 กลางว่าง)
+'use strict';
+
+const PANELS = ['x', 'u', 'o', 'l', 'r', 'tri', 'd', 'sq'];
+
+// intervalMs = เวลาระหว่างก้าว · steps = จำนวนก้าว · multiChance = โอกาสที่ก้าวนั้นต้องเหยียบ 2 แผ่นพร้อมกัน
+const LEVELS = Object.freeze({
+  easy:   { label: 'ง่าย',     intervalMs: 1500, steps: 24, multiChance: 0,    note: 'ช้า เหยียบทีละแผ่น' },
+  normal: { label: 'ปานกลาง', intervalMs: 1000, steps: 36, multiChance: 0.15, note: 'จังหวะกลาง มีบางก้าวพร้อมกัน 2 แผ่น' },
+  hard:   { label: 'ยาก',      intervalMs: 750,  steps: 48, multiChance: 0.3,  note: 'เร็ว มีเหยียบพร้อมกัน 2 แผ่นบ่อย' },
+});
+
+const START_DELAY_MS = 1500; // ก้าวแรกเริ่มหลังนับถอยหลังจบ
+
+// ตัวสุ่มแบบกำหนด seed ได้ (ทดสอบให้ผลซ้ำได้)
+function rng(seed) {
+  let a = (seed >>> 0) || 1;
+  return () => {
+    a |= 0; a = (a + 0x6D2B79F5) | 0;
+    let t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+// คืน { level, intervalMs, notes:[{id, t, step}] }  t = เวลาที่ควรเหยียบ (ms นับจากเริ่มเกมจริง)
+// กติกา: ไม่ซ้ำแผ่นเดิมติดกัน · ก้าวคู่เลือก 2 แผ่นที่ต่างกัน และไม่ซ้ำกับแผ่นของก้าวก่อนหน้า
+function makeChart(levelKey, seed = Date.now()) {
+  const lv = LEVELS[levelKey];
+  if (!lv) throw new Error('ไม่มีระดับ: ' + levelKey);
+  const rand = rng(seed), notes = [];
+  let prev = [];
+  for (let i = 0; i < lv.steps; i++) {
+    const n = rand() < lv.multiChance ? 2 : 1;
+    const pool = PANELS.filter((p) => !prev.includes(p));
+    const picked = [];
+    while (picked.length < n) {
+      const c = pool.filter((p) => !picked.includes(p));
+      picked.push(c[Math.floor(rand() * c.length)]);
+    }
+    const t = START_DELAY_MS + i * lv.intervalMs;
+    picked.forEach((id) => notes.push({ id, t, step: i }));
+    prev = picked;
+  }
+  return { level: levelKey, intervalMs: lv.intervalMs, steps: lv.steps, notes };
+}
+
+module.exports = { PANELS, LEVELS, START_DELAY_MS, rng, makeChart };
+
+};
+__src['8.2']=function(module,exports,require){// 8.2 โหมดแผ่นเต้น — ตัดสินการเหยียบ (PERFECT/GREAT/GOOD/MISS) คอมโบ และคะแนน
+// เวลาทั้งหมดเป็น ms ในฐานเวลาเดียวกับ chart (t ของโน้ต) — ฟังก์ชันรับเวลาเข้ามา ไม่อ่านนาฬิกาเอง ทดสอบได้
+'use strict';
+
+const WINDOWS = Object.freeze({ perfect: 120, great: 220, good: 350 }); // ± ms จากเวลาที่ควรเหยียบ
+const EARLY_LIMIT = 450;   // เหยียบก่อนเวลาเกินนี้ = ยังไม่นับ (ถือว่าเหยียบมั่ว)
+const MISS_AFTER = 350;    // เลยเวลาเกินนี้แล้วยังไม่เหยียบ = MISS
+const POINTS = Object.freeze({ perfect: 100, great: 70, good: 40, miss: 0 });
+const WEIGHT = Object.freeze({ perfect: 1, great: 0.7, good: 0.4, miss: 0 }); // ใช้คิดความแม่นยำ
+
+const comboMultiplier = (combo) => Math.min(2, 1 + Math.floor(combo / 10) * 0.1);
+
+class DanceGame {
+  constructor(notes) {
+    this.notes = notes.map((n) => ({ ...n, done: false, result: null, delta: null }));
+    this.score = 0;
+    this.combo = 0;
+    this.maxCombo = 0;
+    this.counts = { perfect: 0, great: 0, good: 0, miss: 0 };
+    this.stray = 0;       // เหยียบแผ่นที่ไม่มีโน้ต (ไม่หักคะแนน แต่นับไว้)
+    this.deltas = [];     // ความต่างของเวลาของโน้ตที่โดน (ลบ = เร็ว)
+  }
+
+  _apply(note, result, delta) {
+    note.done = true; note.result = result; note.delta = delta;
+    this.counts[result]++;
+    if (result === 'miss') { this.combo = 0; return; }
+    this.combo++;
+    this.maxCombo = Math.max(this.maxCombo, this.combo);
+    this.score += Math.round(POINTS[result] * comboMultiplier(this.combo));
+    this.deltas.push(delta);
+  }
+
+  // เหยียบแผ่น id ที่เวลา now: คืน { result, delta, note } หรือ null ถ้าไม่มีโน้ตให้ตัดสิน
+  press(id, now) {
+    let best = null;
+    for (const n of this.notes) {
+      if (n.done || n.id !== id) continue;
+      const d = now - n.t;
+      if (d < -EARLY_LIMIT || d > MISS_AFTER) continue;
+      if (!best || Math.abs(d) < Math.abs(best.d)) best = { n, d };
+    }
+    if (!best) { this.stray++; return null; }
+    const a = Math.abs(best.d);
+    // เหยียบเร็วเกินหน้าต่าง GOOD (แต่ยังไม่เกิน EARLY_LIMIT): ไม่ตัดสินทิ้งโน้ต ให้เหยียบใหม่ได้ นับเป็นเหยียบมั่ว
+    if (a > WINDOWS.good) { this.stray++; return null; }
+    const result = a <= WINDOWS.perfect ? 'perfect' : a <= WINDOWS.great ? 'great' : 'good';
+    this._apply(best.n, result, best.d);
+    return { result, delta: best.d, note: best.n };
+  }
+
+  // เรียกทุกเฟรม: ตัดโน้ตที่เลยเวลาไปแล้วให้เป็น MISS คืนรายการโน้ตที่เพิ่งพลาด
+  tick(now) {
+    const missed = [];
+    for (const n of this.notes) {
+      if (!n.done && now > n.t + MISS_AFTER) { this._apply(n, 'miss', null); missed.push(n); }
+    }
+    return missed;
+  }
+
+  finished(now) { return this.notes.every((n) => n.done) || (this.notes.length > 0 && now > this.notes[this.notes.length - 1].t + MISS_AFTER + 400); }
+
+  get judged() { return this.notes.filter((n) => n.done).length; }
+
+  // ความแม่นยำ 0-100 (PERFECT = 1, GREAT = 0.7, GOOD = 0.4) ของโน้ตทั้งหมด (ที่ยังไม่ตัดสินนับเป็น MISS)
+  accuracy() {
+    const total = this.notes.length;
+    if (!total) return 0;
+    const sum = this.counts.perfect * WEIGHT.perfect + this.counts.great * WEIGHT.great + this.counts.good * WEIGHT.good;
+    return Math.round((sum / total) * 1000) / 10;
+  }
+
+  summary() {
+    const hits = this.deltas.length;
+    const avgAbs = hits ? Math.round(this.deltas.reduce((s, d) => s + Math.abs(d), 0) / hits) : null;
+    const bias = hits ? Math.round(this.deltas.reduce((s, d) => s + d, 0) / hits) : 0; // ลบ = เหยียบเร็วกว่าจังหวะ
+    return {
+      total: this.notes.length,
+      counts: { ...this.counts },
+      points: this.score,
+      accuracy: this.accuracy(),
+      maxCombo: this.maxCombo,
+      avgAbsMs: avgAbs,
+      biasMs: bias,
+      stray: this.stray,
+    };
+  }
+}
+
+module.exports = { WINDOWS, EARLY_LIMIT, MISS_AFTER, POINTS, comboMultiplier, DanceGame };
+
+};
+__src['8.3']=function(module,exports,require){// 8.3 โหมดแผ่นเต้น — สรุปผลรอบเล่น เกรด การ์ดแชร์ (ใช้วาดด้วย drawShareCard ของ 7.6) และคะแนนสูงสุดต่อระดับ
+// ไม่ require โมดูลของโฟลเดอร์อื่น (ระบบ build ฝังโดยใช้ 3 ตัวอักษรแรกของชื่อไฟล์เป็นตัวระบุ)
+'use strict';
+
+const MONTHS = ['ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'];
+const LEVEL_TH = { easy: 'ง่าย', normal: 'ปานกลาง', hard: 'ยาก' };
+const BEST_KEY = 'move-relieve-dance-best';
+
+// เกณฑ์เดียวกับโหมดท่าออกกำลังกาย: 85 / 70 / 50
+function gradeOf(score) {
+  return score >= 85 ? { letter: 'A', grade: 'ยอดเยี่ยม', stars: 3 }
+    : score >= 70 ? { letter: 'B', grade: 'ดี', stars: 2 }
+    : score >= 50 ? { letter: 'C', grade: 'พอใช้', stars: 1 }
+    : { letter: 'D', grade: 'ต้องปรับปรุง', stars: 0 };
+}
+
+// คะแนนรวม 0-100 = ความแม่นยำ
+function buildResult(level, summary) {
+  const score = Math.round(summary.accuracy);
+  return { level, levelTh: LEVEL_TH[level] || level, score, ...gradeOf(score), ...summary };
+}
+
+// คำแนะนำสั้น ๆ จากสถิติ
+function advice(r) {
+  const out = [];
+  if (r.counts.miss > r.total * 0.3) out.push('พลาดค่อนข้างเยอะ ลองเริ่มจากระดับง่ายกว่านี้ หรือเช็กว่าแผ่นตั้งค่าถูกต้อง');
+  if (r.avgAbsMs != null && r.biasMs <= -60) out.push(`เหยียบเร็วกว่าจังหวะเฉลี่ย ${Math.abs(r.biasMs)} ms รอให้แผ่นสว่างเต็มที่ค่อยก้าว`);
+  else if (r.avgAbsMs != null && r.biasMs >= 60) out.push(`เหยียบช้ากว่าจังหวะเฉลี่ย ${r.biasMs} ms ลองก้าวให้เร็วขึ้นเล็กน้อย`);
+  if (r.stray > r.total * 0.25) out.push('เหยียบแผ่นที่ไม่ได้สว่างบ่อย ดูให้ชัดก่อนก้าวทีละแผ่น');
+  if (r.score >= 85) out.push('ยอดเยี่ยม! ลองระดับที่ยากขึ้น');
+  if (!out.length) out.push('ทำได้ดี เล่นต่ออีกรอบเพื่อเก็บคอมโบให้ยาวขึ้น');
+  return out;
+}
+
+function thaiDate(d) { return `${d.getDate()} ${MONTHS[d.getMonth()]} ${d.getFullYear() + 543}`; }
+
+// การ์ดแชร์: โครงข้อมูลเดียวกับ buildShareCard ของ 7.6 (ส่งต่อให้ drawShareCard วาดได้เลย)
+function buildDanceCard(r, opts = {}) {
+  const name = String(opts.name !== undefined ? opts.name : '').trim().slice(0, 24);
+  const badges = [];
+  if (opts.isBest) badges.push('🏆 คะแนนสูงสุดใหม่!');
+  if (r.maxCombo >= 10) badges.push(`🔥 คอมโบสูงสุด ${r.maxCombo}`);
+  if (r.counts.miss === 0) badges.push('✨ ไม่พลาดเลย!');
+  const card = {
+    app: 'MOVE & RELIEVE',
+    tagline: 'โหมดแผ่นเต้น',
+    name,
+    date: thaiDate(new Date(opts.now || Date.now())),
+    score: r.score,
+    letter: r.letter,
+    grade: r.grade,
+    stars: r.stars,
+    quit: false,
+    tiles: [
+      { label: 'ความแม่นยำ', value: `${r.accuracy}%` },
+      { label: 'คอมโบสูงสุด', value: String(r.maxCombo) },
+      { label: 'PERFECT', value: `${r.counts.perfect}/${r.total}` },
+    ],
+    highlight: `ระดับ${r.levelTh}${r.avgAbsMs != null ? ` · เฉลี่ยคลาด ${r.avgAbsMs} ms` : ''}`,
+    badges: badges.slice(0, 2),
+  };
+  const who = name ? `${name}: ` : '';
+  card.text = `${who}ฉันเล่นโหมดแผ่นเต้นของ Move & Relieve ระดับ${r.levelTh} ได้ ${r.score}/100 (เกรด ${r.letter}) คอมโบสูงสุด ${r.maxCombo} PERFECT ${r.counts.perfect}/${r.total} #MoveAndRelieve`;
+  return card;
+}
+
+// ---------------------------------------------------------------- คะแนนสูงสุดต่อระดับ (localStorage)
+function loadBest(storage) {
+  try { const o = JSON.parse(storage.getItem(BEST_KEY) || '{}'); return o && typeof o === 'object' ? o : {}; } catch (e) { return {}; }
+}
+// บันทึกถ้าสูงกว่าเดิม คืน { isBest, best } (รอบแรกของระดับนั้นไม่นับเป็น "สถิติใหม่" แต่ถูกบันทึก)
+function recordBest(storage, level, score) {
+  const all = loadBest(storage), prev = all[level];
+  const isBest = typeof prev === 'number' && score > prev;
+  if (typeof prev !== 'number' || score > prev) {
+    all[level] = score;
+    try { storage.setItem(BEST_KEY, JSON.stringify(all)); } catch (e) { /* เก็บไม่ได้ ข้ามไป */ }
+  }
+  return { isBest, best: Math.max(prev || 0, score) };
+}
+
+module.exports = { LEVEL_TH, BEST_KEY, gradeOf, buildResult, advice, buildDanceCard, loadBest, recordBest, thaiDate };
+
+};
 __src['6.1']=function(module,exports,require){// 6.1 ระบบแจ้งเตือนท่าผิด — ดูข้อความติเตียนสดจาก AI (1.5 live_feedback) แล้วเตือนเมื่อผิดต่อเนื่อง
 // กันการเตือนถี่/กะพริบ: ต้องผิดเรื่องเดิมนานเกิน holdMs และเตือนเรื่องเดิมซ้ำได้หลัง cooldownMs
 'use strict';
@@ -1643,11 +1925,11 @@ module.exports = { describeEvent, attachStatusNotifier };
 
 };
 
-const G=require('./2.1'),S=require('./2.2'),P=require('./2.3'),E=require('./2.4'),C=require('./2.5'),Sm=require('./7.4'),H=require('./7.5'),Sc=require('./7.6'),St=require('./7.7'),N1=require('./6.1'),N2=require('./6.2'),N3=require('./6.3'),N4=require('./6.4');
-var toastT=0;
+const G=require('./2.1'),S=require('./2.2'),P=require('./2.3'),E=require('./2.4'),C=require('./2.5'),Sm=require('./7.4'),H=require('./7.5'),Sc=require('./7.6'),St=require('./7.7'),DC=require('./8.1'),DJ=require('./8.2'),DR=require('./8.3'),N1=require('./6.1'),N2=require('./6.2'),N3=require('./6.3'),N4=require('./6.4');
+var toastT=0,dActive=false;
 const $=id=>document.getElementById(id);
-const PAGES=['home','level','settings','setup','play','done','manage','stats'];
-const show=n=>{PAGES.forEach(k=>$(k).hidden=k!==n);$('mascot').hidden=n!=='home';};
+const PAGES=['home','level','settings','setup','play','done','manage','stats','dance'];
+const show=n=>{if(n!=='dance'&&dActive)danceLeave();PAGES.forEach(k=>$(k).hidden=k!==n);$('mascot').hidden=n!=='home';};
 function go(page){
   if(page==='setup')renderList();
   if(page==='level')renderLevels();
@@ -1660,7 +1942,7 @@ function go(page){
 
 // ---- การตั้งค่า (เก็บใน localStorage ถ้าใช้ได้) ----
 const KEY='move-relieve-settings';
-let cfg={playerName:'ผู้เล่น',countdownSec:3,restSec:5,difficulty:'normal',volume:60,muted:false,theme:'auto',autoCam:true,musicChoice:'auto',ai:true,showAngles:false,readSteps:true,cameraId:'',demoSec:8};
+let cfg={playerName:'ผู้เล่น',countdownSec:3,restSec:5,difficulty:'normal',volume:60,muted:false,theme:'auto',autoCam:true,musicChoice:'auto',ai:true,showAngles:false,danceMusic:false,readSteps:true,cameraId:'',demoSec:8};
 try{Object.assign(cfg,JSON.parse(localStorage.getItem(KEY)||'{}'))}catch(e){}
 const saveCfg=()=>{try{localStorage.setItem(KEY,JSON.stringify(cfg))}catch(e){}};
 
@@ -2229,6 +2511,182 @@ function renderStats(){
 $('m-stats').onclick=()=>{renderStats();show('stats')};
 $('st-who').onchange=renderStats;
 $('st-clear').onclick=()=>{if(confirm('ล้างประวัติการเล่นทั้งหมดในเครื่องนี้? ย้อนกลับไม่ได้')){H.clear(localStorage);renderStats()}};
+
+// ---- โหมดแผ่นเต้น (โฟลเดอร์ 6.Dance Game + dance/dancepad.js จาก "ส่วน ระบบ") — แยกจากโหมดท่าออกกำลังกาย ----
+const DPAD=window.DancePad?DancePad.create({buttons:8,axes:false,single:true}):null;
+const DPOS={x:0,u:1,o:2,l:3,r:5,tri:6,d:7,sq:8};
+const DIMG={x:{img:'ซ้ายบน.jpg'},u:{img:'ซ้าย.jpg',fx:'filter:hue-rotate(-110deg)'},o:{img:'ขวาบน.jpg'},l:{img:'ลง.jpg',fx:'filter:hue-rotate(110deg)'},
+  r:{img:'ขึ้น.jpg',fx:'filter:hue-rotate(110deg)'},tri:{img:'ซ้ายล่าง.jpg',fx:'transform:rotate(-90deg);max-width:70%'},d:{img:'ขวา.jpg',fx:'filter:hue-rotate(-110deg)'},sq:{img:'ขวาล่าง.jpg'}};
+const DKEYS={x:'Q',u:'↑',o:'E',l:'←',r:'→',tri:'Z',d:'↓',sq:'C'};
+const DJTEXT={perfect:'PERFECT!',great:'GREAT',good:'GOOD',miss:'MISS'};
+const D_LEAD=900;
+let dCells={},dPhase='menu',dGame=null,dT0=0,dRaf=0,dLevel='normal',dTick=-1,dChart=null,dRes=null,dBest=null,dJT=0,dCountSaid=-1,dCardTok=0;
+function buildDpad(){
+  const box=$('dpad');if(box.childElementCount)return;
+  const ids=Object.keys(DPOS);
+  for(let i=0;i<9;i++){
+    const id=ids.find(k=>DPOS[k]===i),c=document.createElement('div');
+    if(!id){c.className='dcell center';c.innerHTML='<div class="dring"><b id="d-center">ยืนตรงนี้</b><small id="d-centersub">แล้วก้าวไปเหยียบแผ่นที่สว่าง</small></div>';}
+    else{
+      const m=DIMG[id],u=(window.PAD_IMAGES&&window.PAD_IMAGES[m.img])||'';
+      c.className='dcell';c.dataset.id=id;
+      c.innerHTML=`<img src="${u}" alt="${id}" style="${m.fx||''}"><div class="appr"></div><span class="key">${DKEYS[id]}</span>`;
+      c.addEventListener('pointerdown',ev=>{ev.preventDefault();danceHit(id)});
+      dCells[id]=c;
+    }
+    box.appendChild(c);
+  }
+}
+const flashCell=id=>{const c=dCells[id];if(!c)return;c.classList.add('down');setTimeout(()=>{if(!(DPAD&&DPAD.isDown(id)))c.classList.remove('down')},110)};
+function dJudgeShow(res){
+  const b=$('d-center');if(!b)return;
+  b.textContent=DJTEXT[res]||'';b.className='j-'+res;
+  clearTimeout(dJT);dJT=setTimeout(()=>{b.textContent=dPhase==='play'?'ยืนตรงนี้':'ยืนตรงนี้';b.className=''},650);
+}
+const dSfx=res=>res==='perfect'?beep(1318,90):res==='great'?beep(1046,90):res==='good'?beep(784,90):beep(196,150,'sawtooth');
+function dHud(){
+  const s=dGame.summary();
+  $('d-score').textContent=s.points;$('d-combo').textContent=dGame.combo;
+  const j=dGame.judged,c=dGame.counts;$('d-acc').textContent=j?Math.round((c.perfect+c.great*0.7+c.good*0.4)/j*1000)/10+'%':'0%'; // ความแม่นยำจากโน้ตที่ตัดสินแล้ว
+  $('d-bar').style.width=Math.round(j/dGame.notes.length*100)+'%';
+}
+function danceHit(id){
+  flashCell(id);
+  if(dPhase!=='play'||!dGame)return;
+  const now=performance.now()-dT0;if(now<-200)return;
+  const r=dGame.press(id,now);
+  if(r){dJudgeShow(r.result);dSfx(r.result);dHud();}
+}
+function paintDanceTargets(now){
+  Object.keys(dCells).forEach(id=>{
+    const c=dCells[id];let near=null;
+    for(const n of dGame.notes){if(n.done||n.id!==id)continue;const d=n.t-now;if(d<=D_LEAD&&(near==null||d<near))near=d;}
+    const on=near!=null;c.classList.toggle('target',on);
+    const ring=c.querySelector('.appr');
+    if(on){const f=Math.max(0,near)/D_LEAD;ring.style.opacity=String(0.95-f*0.6);ring.style.transform='scale('+(1+f*1.0)+')';}
+    else ring.style.opacity='0';
+  });
+}
+function danceLoop(){
+  if(dPhase!=='play')return;
+  const now=performance.now()-dT0,ctr=$('d-center');
+  if(now<0){
+    const n=Math.ceil(-now/1000);ctr.textContent=n;ctr.className='';
+    if(n!==dCountSaid){dCountSaid=n;beep(660,100);}
+  }else{
+    if(dCountSaid!==0){dCountSaid=0;ctr.textContent='เริ่ม!';setTimeout(()=>{if(dPhase==='play')ctr.textContent='ยืนตรงนี้'},500);beep(990,260);}
+    const k=Math.floor((now-DC.START_DELAY_MS)/dChart.intervalMs);
+    if(k>=0&&k<dChart.steps&&k!==dTick){dTick=k;beep(740,35);} // จังหวะ (เมโทรนอม) ตรงเวลาที่ต้องก้าว
+    const missed=dGame.tick(now);
+    if(missed.length){dJudgeShow('miss');dSfx('miss');dHud();}
+  }
+  paintDanceTargets(now);
+  if(dGame.finished(now))return danceFinish();
+  dRaf=requestAnimationFrame(danceLoop);
+}
+function danceStart(level){
+  if(!DPAD)return;
+  dLevel=level;dChart=DC.makeChart(level);dGame=new DJ.DanceGame(dChart.notes);
+  dPhase='play';dTick=-1;dCountSaid=-1;dT0=performance.now()+3000;
+  $('d-menu').hidden=true;$('d-result').hidden=true;$('d-playbar').hidden=false;$('d-hud').hidden=false;$('d-prog').hidden=false;$('dpad').hidden=false;
+  $('d-score').textContent='0';$('d-combo').textContent='0';$('d-acc').textContent='0%';$('d-bar').style.width='0';
+  if(cfg.danceMusic)musicStart();
+  cancelAnimationFrame(dRaf);dRaf=requestAnimationFrame(danceLoop);
+}
+function danceQuit(){
+  cancelAnimationFrame(dRaf);dPhase='menu';dGame=null;musicStop();
+  Object.values(dCells).forEach(c=>{c.classList.remove('target');c.querySelector('.appr').style.opacity='0'});
+  $('d-playbar').hidden=true;$('d-hud').hidden=true;$('d-prog').hidden=true;$('d-result').hidden=true;$('dpad').hidden=false;$('d-menu').hidden=false;
+  const ctr=$('d-center');if(ctr){ctr.textContent='ยืนตรงนี้';ctr.className=''}
+  renderDanceMenu();
+}
+function danceFinish(){
+  cancelAnimationFrame(dRaf);dPhase='result';musicStop();
+  Object.values(dCells).forEach(c=>{c.classList.remove('target');c.querySelector('.appr').style.opacity='0'});
+  const res=DR.buildResult(dLevel,dGame.summary());dRes=res;
+  try{dBest=DR.recordBest(localStorage,dLevel,res.score)}catch(e){dBest={isBest:false,best:res.score}}
+  $('d-playbar').hidden=true;$('d-hud').hidden=true;$('d-prog').hidden=true;$('dpad').hidden=true;$('d-result').hidden=false;
+  $('dr-score').textContent=res.score;$('dr-stars').textContent='★'.repeat(res.stars)+'☆'.repeat(3-res.stars);
+  $('dr-grade').textContent=`เกรด ${res.letter} · ${res.grade} · ระดับ${res.levelTh}`+(dBest.isBest?' · 🏆 สถิติใหม่!':'');
+  const tile=(v,l)=>`<div class="st-tile"><b>${v}</b><span>${l}</span></div>`,c=res.counts;
+  $('dr-tiles').innerHTML=tile(res.accuracy+'%','ความแม่นยำ')+tile(res.maxCombo,'คอมโบสูงสุด')+tile(c.perfect,'PERFECT')+tile(c.great,'GREAT')+tile(c.good,'GOOD')+tile(c.miss,'MISS')+tile(res.avgAbsMs==null?'-':res.avgAbsMs+' ms','คลาดเฉลี่ย');
+  $('dr-advice').innerHTML='<b>คำแนะนำ</b>'+DR.advice(res).map(x=>`<div>• ${String(x).replace(/</g,'&lt;')}</div>`).join('');
+  $('dr-name').value=cfg.playerName==='ผู้เล่น'?'':cfg.playerName;
+  if(res.stars===3)[0,140,280,420].forEach((d,i)=>setTimeout(()=>beep([784,988,1175,1568][i],i===3?420:120),d));
+  renderDanceCard();
+}
+async function renderDanceCard(){
+  if(!dRes)return;const tok=++dCardTok;
+  const card=DR.buildDanceCard(dRes,{name:$('dr-name').value,isBest:dBest&&dBest.isBest});dCard=card;
+  try{await Promise.race([document.fonts.load('700 40px Prompt'),new Promise(r=>setTimeout(r,900))]);}catch(e){}
+  if(tok!==dCardTok)return;
+  const cv=$('dr-cv');Sc.drawShareCard(cv.getContext('2d'),card,cv.width,cv.height);
+}
+let dCard=null,dNameT=0;
+const dFile=()=>'move-relieve-dance-'+new Date().toISOString().slice(0,10)+'.png';
+const dBlob=()=>new Promise(r=>$('dr-cv').toBlob(r,'image/png'));
+$('dr-name').oninput=()=>{clearTimeout(dNameT);dNameT=setTimeout(renderDanceCard,250)};
+$('dr-save').onclick=async()=>{await renderDanceCard();const b=await dBlob();if(b){downloadBlob(b,dFile());notify('บันทึกรูปแล้ว','good',true)}};
+$('dr-copy').onclick=async()=>{if(dCard)notify(await copyText(dCard.text)?'คัดลอกข้อความแล้ว':'คัดลอกไม่สำเร็จ','info',true)};
+$('dr-share').onclick=async()=>{
+  await renderDanceCard();if(!dCard)return;const blob=await dBlob();if(!blob)return;
+  const file=new File([blob],dFile(),{type:'image/png'});
+  try{if(navigator.canShare&&navigator.canShare({files:[file]})){await navigator.share({files:[file],title:'Move & Relieve',text:dCard.text});return}}catch(e){if(e&&e.name==='AbortError')return}
+  downloadBlob(blob,dFile());const ok=await copyText(dCard.text);
+  notify(ok?'บันทึกรูปแล้ว และคัดลอกข้อความให้พร้อมแปะ':'บันทึกรูปแล้ว นำไปโพสต์ได้เลย','good',true);
+};
+$('dr-again').onclick=()=>danceStart(dLevel);
+$('dr-menu').onclick=()=>danceQuit();
+$('dr-home').onclick=()=>{renderHome();show('home')};
+$('d-quit').onclick=danceQuit;
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&dActive&&dPhase==='play'){e.preventDefault();danceQuit()}});
+
+function danceHint(){
+  if(!DPAD)return 'ไม่พบโมดูลแผ่นเต้น — รัน build ก่อน: node "3.Game Control System/build.js"';
+  if(!DPAD.gamepad)return 'ยังไม่พบแผ่นเต้น — เสียบแผ่นแล้วเหยียบ 1 ครั้ง หรือเล่นด้วยคีย์บอร์ด (Q ↑ E ← → Z ↓ C) หรือแตะแผ่นบนจอได้เลย';
+  if(!DPAD.isMapped)return 'พบแผ่นเต้นแล้ว — กด "ตั้งค่าแผ่น" ก่อนเล่น (ทำครั้งเดียว ค่าจะถูกจำไว้)';
+  return 'พร้อมเล่น — เลือกระดับเพื่อเริ่ม ก้าวเหยียบแผ่นที่สว่างเป็นสีแดงให้ตรงจังหวะ';
+}
+function renderDanceMenu(){
+  $('d-hint').textContent=danceHint();
+  let best={};try{best=DR.loadBest(localStorage)}catch(e){}
+  const L=$('d-levels');L.innerHTML='';
+  Object.entries(DC.LEVELS).forEach(([k,v])=>{
+    const b=document.createElement('button');b.className=k===dLevel?'p':'';
+    b.innerHTML=`${v.label}<small>${v.note}</small><small>${typeof best[k]==='number'?'สถิติ '+best[k]:'ยังไม่เคยเล่น'}</small>`;
+    b.onclick=()=>danceStart(k);b.disabled=!!(DPAD&&(DPAD.mode==='map'||DPAD.mode==='center'));L.appendChild(b);
+  });
+  $('d-musrow').hidden=!musicList.length;$('d-mus').checked=!!cfg.danceMusic;
+  const mapping=!!DPAD&&(DPAD.mode==='map'||DPAD.mode==='center');
+  $('d-skip').hidden=!(DPAD&&DPAD.mode==='map');$('d-map').disabled=!DPAD||mapping;$('d-reset').disabled=!DPAD||DPAD.mode==='center';
+}
+function paintPadState(){
+  if(!DPAD)return;
+  Object.keys(dCells).forEach(id=>{if(dPhase!=='play'||!DPAD.isDown(id))dCells[id].classList.toggle('down',DPAD.isDown(id));else dCells[id].classList.add('down')});
+  if(dPhase==='menu')renderDanceMenu();
+}
+if(DPAD){
+  DPAD.on('press',e=>danceHit(e.id));
+  DPAD.on('change',paintPadState);
+  DPAD.on('status',st2=>{$('d-badge').classList.toggle('on',st2.connected);$('d-st').textContent=st2.connected?'พบแผ่นเต้นแล้ว':'ยังไม่พบแผ่นเต้น';$('d-sub').textContent=st2.connected?(st2.id.length>30?st2.id.slice(0,30)+'…':st2.id):'';if(dPhase==='menu')renderDanceMenu()});
+  DPAD.on('prompt',m=>{if(dPhase==='menu'){$('d-hint').textContent=m.text;if(m.step==='done'||m.step==='cancel'||m.step==='bound-one')setTimeout(()=>{if(dPhase==='menu')renderDanceMenu()},3500)}});
+  $('d-map').onclick=()=>DPAD.bindAll();
+  $('d-skip').onclick=()=>DPAD.skip();
+  $('d-reset').onclick=()=>{if(confirm('ล้างค่าแผ่นที่ตั้งไว้ทั้งหมดและตั้งค่าใหม่?'))DPAD.resetAll()};
+}
+$('d-mus').onchange=()=>{cfg.danceMusic=$('d-mus').checked;saveCfg()};
+function danceEnter(){
+  buildDpad();dActive=true;dPhase='menu';
+  if(DPAD)DPAD.start();
+  show('dance');
+  $('d-menu').hidden=false;$('d-result').hidden=true;$('d-playbar').hidden=true;$('d-hud').hidden=true;$('d-prog').hidden=true;$('dpad').hidden=false;
+  renderDanceMenu();
+}
+function danceLeave(){
+  dActive=false;cancelAnimationFrame(dRaf);dPhase='menu';dGame=null;
+  if(DPAD)DPAD.stop();musicStop();
+}
+$('m-dance').onclick=danceEnter;
 
 // ---- ปุ่มหน้าสรุป: ฝึกท่าที่อ่อนซ้ำ / บันทึกไฟล์ / พิมพ์ ----
 $('weak').onclick=()=>{

@@ -122,6 +122,9 @@ const S4 = R('5.Game Results Summary', '7.4 Gameplay Summary.js');
 const S5 = R('5.Game Results Summary', '7.5 Play History.js');
 const S6 = R('5.Game Results Summary', '7.6 Share Card.js');
 const S7 = R('5.Game Results Summary', '7.7 Stats View.js');
+const D1 = R('6.Dance Game', '8.1 Dance Chart.js');
+const D2 = R('6.Dance Game', '8.2 Dance Judge.js');
+const D3 = R('6.Dance Game', '8.3 Dance Result.js');
 
 const res = (o) => ({ id: 'a', name: 'ท่า', targetReps: 10, repsDone: 10, targetDurationSec: 60, elapsedMs: 60000, completed: true, reason: 'timeout', ...o });
 
@@ -231,6 +234,101 @@ test('7.5 ล้างประวัติ', () => {
   assert.strictEqual(S5.clear({ removeItem() { throw new Error('x'); } }), false);
 });
 
+group('โหมดแผ่นเต้น 8.1-8.3');
+test('8.1 สร้างลำดับแผ่น: จำนวนก้าว เวลา และผลซ้ำได้เมื่อ seed เดียวกัน', () => {
+  for (const k of Object.keys(D1.LEVELS)) {
+    const c = D1.makeChart(k, 7), again = D1.makeChart(k, 7);
+    assert.deepStrictEqual(c.notes, again.notes);
+    assert.strictEqual(c.steps, D1.LEVELS[k].steps);
+    assert.strictEqual(c.notes[0].t, D1.START_DELAY_MS);
+    assert.ok(c.notes.every((n) => D1.PANELS.includes(n.id)));
+    assert.ok(c.notes.every((n, i) => i === 0 || n.t >= c.notes[i - 1].t));
+  }
+  assert.throws(() => D1.makeChart('ไม่มี'), /ไม่มีระดับ/);
+});
+test('8.1 ไม่เหยียบแผ่นเดิมซ้ำติดกัน, ระดับง่ายไม่มีก้าวคู่, ระดับยากมีก้าวคู่, ก้าวคู่เป็นแผ่นต่างกัน', () => {
+  const noRepeat = (c) => { const by = {}; c.notes.forEach((n) => (by[n.step] = by[n.step] || []).push(n.id)); const s = Object.keys(by).map(Number).sort((a, b) => a - b); return s.every((k, i) => i === 0 || !by[k].some((id) => by[s[i - 1]].includes(id))) && s.every((k) => new Set(by[k]).size === by[k].length); };
+  let multiHard = 0;
+  for (let seed = 1; seed <= 40; seed++) {
+    assert.ok(noRepeat(D1.makeChart('easy', seed)) && noRepeat(D1.makeChart('hard', seed)));
+    const e = D1.makeChart('easy', seed); assert.strictEqual(e.notes.length, e.steps);
+    const h = D1.makeChart('hard', seed); multiHard += h.notes.length - h.steps;
+  }
+  assert.ok(multiHard > 0);
+});
+const mkNotes = () => [{ id: 'u', t: 1000, step: 0 }, { id: 'd', t: 2000, step: 1 }, { id: 'l', t: 3000, step: 2 }];
+test('8.2 ตัดสินตามหน้าต่างเวลา PERFECT/GREAT/GOOD', () => {
+  const g = new D2.DanceGame(mkNotes());
+  assert.strictEqual(g.press('u', 1100).result, 'perfect');
+  assert.strictEqual(g.press('d', 2200).result, 'great');
+  assert.strictEqual(g.press('l', 3300).result, 'good');
+  assert.deepStrictEqual(g.counts, { perfect: 1, great: 1, good: 1, miss: 0 });
+});
+test('8.2 เหยียบมั่ว: แผ่นผิด / เร็วเกิน ไม่ตัดสินทิ้งโน้ต (ให้เหยียบใหม่ได้) แต่นับ stray', () => {
+  const g = new D2.DanceGame(mkNotes());
+  assert.strictEqual(g.press('r', 1000), null);
+  assert.strictEqual(g.press('u', 1000 - 400), null);
+  assert.strictEqual(g.press('u', 1000 - 900), null);
+  assert.strictEqual(g.stray, 3); assert.strictEqual(g.notes[0].done, false);
+  assert.strictEqual(g.press('u', 1010).result, 'perfect');
+});
+test('8.2 tick: โน้ตที่เลยเวลาเป็น MISS ตัดคอมโบ, เหยียบซ้ำโน้ตเดิมไม่ได้คะแนนซ้ำ', () => {
+  const g = new D2.DanceGame(mkNotes());
+  g.press('u', 1000);
+  assert.strictEqual(g.press('u', 1010), null);
+  assert.strictEqual(g.combo, 1);
+  assert.strictEqual(g.tick(2000).length, 0);
+  assert.strictEqual(g.tick(2400).length, 1);
+  assert.strictEqual(g.combo, 0); assert.strictEqual(g.counts.miss, 1);
+  assert.strictEqual(g.tick(2400).length, 0);
+});
+test('8.2 คอมโบคูณคะแนน (สูงสุด x2) และความแม่นยำ', () => {
+  assert.strictEqual(D2.comboMultiplier(0), 1); assert.strictEqual(D2.comboMultiplier(10), 1.1); assert.strictEqual(D2.comboMultiplier(999), 2);
+  const notes = Array.from({ length: 20 }, (_, i) => ({ id: 'u', t: 1000 + i * 1000, step: i }));
+  const g = new D2.DanceGame(notes);
+  notes.forEach((n) => g.press('u', n.t));
+  const s = g.summary();
+  assert.strictEqual(s.accuracy, 100); assert.strictEqual(s.maxCombo, 20);
+  assert.ok(s.points > 20 * 100); assert.strictEqual(s.avgAbsMs, 0);
+});
+test('8.2 จบเกมเมื่อโน้ตตัดสินครบ หรือเลยเวลาโน้ตสุดท้าย', () => {
+  const g = new D2.DanceGame(mkNotes());
+  assert.strictEqual(g.finished(0), false);
+  assert.strictEqual(g.finished(99999), true);
+  const g2 = new D2.DanceGame(mkNotes()); g2.press('u', 1000); g2.press('d', 2000); g2.press('l', 3000);
+  assert.strictEqual(g2.finished(3000), true);
+  assert.strictEqual(new D2.DanceGame([]).accuracy(), 0);
+});
+test('8.2 เหยียบเร็ว/ช้าเฉลี่ย (bias) บอกทิศทางถูก', () => {
+  const g = new D2.DanceGame(mkNotes()); g.press('u', 900); g.press('d', 1900); g.press('l', 2900);
+  assert.ok(g.summary().biasMs <= -90);
+  assert.ok(D3.advice(D3.buildResult('easy', g.summary())).some((x) => x.includes('เร็วกว่าจังหวะ')));
+});
+test('8.3 เกรดตามเกณฑ์เดียวกับโหมดท่า (85/70/50) และสรุปผล', () => {
+  assert.strictEqual(D3.gradeOf(85).letter, 'A'); assert.strictEqual(D3.gradeOf(70).letter, 'B'); assert.strictEqual(D3.gradeOf(50).letter, 'C'); assert.strictEqual(D3.gradeOf(49).letter, 'D');
+  const g = new D2.DanceGame(mkNotes()); g.press('u', 1000); g.press('d', 2000);
+  const r = D3.buildResult('normal', g.summary());
+  assert.strictEqual(r.levelTh, 'ปานกลาง'); assert.strictEqual(r.score, Math.round(r.accuracy));
+});
+test('8.3 การ์ดแชร์ของโหมดแผ่นเต้นวาดด้วย drawShareCard ของ 7.6 ได้', () => {
+  const g = new D2.DanceGame(mkNotes()); mkNotes().forEach((n) => g.press(n.id, n.t));
+  const r = D3.buildResult('hard', g.summary());
+  const card = D3.buildDanceCard(r, { name: '  เจ  ', isBest: true, now: Date.UTC(2026, 10, 9, 5) });
+  assert.strictEqual(card.name, 'เจ'); assert.ok(card.badges[0].includes('คะแนนสูงสุด'));
+  assert.ok(card.text.includes('#MoveAndRelieve') && card.text.includes('ระดับยาก'));
+  const ctx = stubCtx(); S6.drawShareCard(ctx, card, 1080, 1350);
+  assert.ok(ctx.texts.includes('โหมดแผ่นเต้น') && ctx.texts.includes(String(r.score)));
+  assert.strictEqual(D3.buildDanceCard(r, { name: '' }).name, '');
+});
+test('8.3 คะแนนสูงสุดต่อระดับ: รอบแรกไม่นับสถิติใหม่ รอบต่อไปที่สูงกว่านับ', () => {
+  const m = { d: {}, getItem(k) { return this.d[k] ?? null; }, setItem(k, v) { this.d[k] = v; } };
+  assert.strictEqual(D3.recordBest(m, 'easy', 60).isBest, false);
+  assert.strictEqual(D3.recordBest(m, 'easy', 50).isBest, false);
+  const r = D3.recordBest(m, 'easy', 75); assert.ok(r.isBest); assert.strictEqual(r.best, 75);
+  assert.strictEqual(D3.loadBest(m).easy, 75); assert.strictEqual(D3.loadBest(m).hard, undefined);
+  assert.doesNotThrow(() => D3.recordBest({ getItem() { throw new Error('x'); }, setItem() { throw new Error('x'); } }, 'easy', 10));
+});
+
 const mem = () => ({ d: {}, getItem(k) { return this.d[k] ?? null; }, setItem(k, v) { this.d[k] = v; } });
 const sum = (score, player = 'เจ') => ({ stats: { playerName: player, difficulty: 'normal', totalReps: 5, totalTimeSec: 10, completedExercises: 1, totalExercises: 1 },
   scores: { perExercise: [1], totalScore: score }, assessment: { grade: 'ดี' } });
@@ -299,7 +397,19 @@ test('สคริปต์ในหน้าเกมไม่มี syntax err
   scripts.forEach((m) => new Function(m[1]));
 });
 test('ฝังโมดูล 6.x และ 7.x ครบ', () => {
-  for (const k of ['6.1', '6.2', '6.3', '6.4', '7.1', '7.2', '7.3', '7.4', '7.5', '7.6', '7.7']) assert.ok(html.includes(`__src['${k}']`), 'ขาด ' + k);
+  for (const k of ['6.1', '6.2', '6.3', '6.4', '7.1', '7.2', '7.3', '7.4', '7.5', '7.6', '7.7', '8.1', '8.2', '8.3']) assert.ok(html.includes(`__src['${k}']`), 'ขาด ' + k);
+});
+test('โหมดแผ่นเต้น: dancepad.js มีแผ่นครบ 8 id ตรงกับ 8.1 และไฟล์ dance/ ซิงก์จาก "ส่วน ระบบ" แล้ว', () => {
+  const src = path.join(root, 'ส่วน ระบบ', 'dancepad.js');
+  if (!fs.existsSync(src)) return;
+  const copy = path.join(root, '3.Game Control System', 'dance', 'dancepad.js');
+  assert.ok(fs.existsSync(copy), 'ไม่พบ dance/dancepad.js — รัน build');
+  assert.ok(fs.readFileSync(src).equals(fs.readFileSync(copy)), 'dance/dancepad.js ไม่ตรงกับต้นฉบับ — รัน build');
+  const code = fs.readFileSync(src, 'utf8');
+  const ids = [...code.matchAll(/\{ id: '(\w+)',\s+name:[^}]*pos: (\d)/g)].map((m) => m[1]).sort();
+  assert.deepStrictEqual(ids, [...D1.PANELS].sort());
+  const imgs = fs.readFileSync(path.join(root, '3.Game Control System', 'dance', 'images-data.js'), 'utf8');
+  ['ซ้ายบน.jpg', 'ซ้าย.jpg', 'ขวาบน.jpg', 'ลง.jpg', 'ขึ้น.jpg', 'ซ้ายล่าง.jpg', 'ขวา.jpg', 'ขวาล่าง.jpg'].forEach((f) => assert.ok(imgs.includes('"' + f + '"'), 'ไม่มีรูป ' + f));
 });
 test('ไม่มีฟังก์ชัน speak ซ้ำ (ตัวหลังจะทับตัวแรก)', () => {
   assert.strictEqual((html.match(/function speak\(/g) || []).length, 1);
