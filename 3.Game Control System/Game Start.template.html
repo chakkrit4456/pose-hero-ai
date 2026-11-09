@@ -278,6 +278,7 @@ main:has(#manage:not([hidden])){max-width:1200px}
     </span></div>
   <div class="f"><label for="s-cam">เปิดกล้องอัตโนมัติเมื่อเริ่มเกม</label><input type="checkbox" id="s-cam"></div>
   <div class="f"><label for="s-camid">เลือกกล้อง</label><select id="s-camid" style="width:100%;max-width:300px;padding:6px 8px"><option value="">กล้องเริ่มต้น</option></select></div>
+  <div class="f"><label for="s-read">อ่านขั้นตอนท่าออกเสียงตอนดูตัวอย่าง (เพลงจะเบาลงให้ได้ยินชัด)</label><input type="checkbox" id="s-read"></div>
   <div class="f"><label for="s-ang">แสดงค่ามุมสดตอนเล่น (ไว้ปรับท่า)</label><input type="checkbox" id="s-ang"></div>
   <div class="f"><label for="s-ai">ใช้ AI จับท่าทาง (โครงกระดูก + ให้คะแนน)</label><input type="checkbox" id="s-ai"></div>
   <div class="row" style="margin:4px 0"><button id="s-camtest" type="button">ทดสอบกล้อง</button></div>
@@ -376,7 +377,7 @@ const show=n=>{PAGES.forEach(k=>$(k).hidden=k!==n);$('mascot').hidden=n!=='home'
 function go(page){
   if(page==='setup')renderList();
   if(page==='level')renderLevels();
-  if(page==='settings'){$('s-name').value=cfg.playerName;$('s-cd').value=cfg.countdownSec;$('s-rest').value=cfg.restSec;$('s-demo').value=cfg.demoSec;$('s-err').textContent='';syncVol();$('s-cam').checked=cfg.autoCam;$('s-ai').checked=cfg.ai;$('s-ang').checked=cfg.showAngles;fillCameras();}
+  if(page==='settings'){$('s-name').value=cfg.playerName;$('s-cd').value=cfg.countdownSec;$('s-rest').value=cfg.restSec;$('s-demo').value=cfg.demoSec;$('s-err').textContent='';syncVol();$('s-cam').checked=cfg.autoCam;$('s-ai').checked=cfg.ai;$('s-ang').checked=cfg.showAngles;$('s-read').checked=cfg.readSteps;fillCameras();}
   if(page!=='settings'){C.stopCamera($('s-prev'));$('s-prev').hidden=true;$('s-camtest').textContent='ทดสอบกล้อง';}
   if(page==='home')renderHome();
   if(st.status==='finished')E.resetGame(st);
@@ -385,7 +386,7 @@ function go(page){
 
 // ---- การตั้งค่า (เก็บใน localStorage ถ้าใช้ได้) ----
 const KEY='move-relieve-settings';
-let cfg={playerName:'ผู้เล่น',countdownSec:3,restSec:5,difficulty:'normal',volume:60,muted:false,theme:'auto',autoCam:true,musicChoice:'auto',ai:true,showAngles:false,cameraId:'',demoSec:8};
+let cfg={playerName:'ผู้เล่น',countdownSec:3,restSec:5,difficulty:'normal',volume:60,muted:false,theme:'auto',autoCam:true,musicChoice:'auto',ai:true,showAngles:false,readSteps:true,cameraId:'',demoSec:8};
 try{Object.assign(cfg,JSON.parse(localStorage.getItem(KEY)||'{}'))}catch(e){}
 const saveCfg=()=>{try{localStorage.setItem(KEY,JSON.stringify(cfg))}catch(e){}};
 
@@ -436,13 +437,24 @@ function beep(freq,ms=120,type='sine'){
 }
 // เสียงพูดนับถอยหลัง (SpeechSynthesis ภาษาไทย) ถ้าเบราว์เซอร์ไม่รองรับจะใช้เสียงบี๊บแทน
 const TH_NUM=['ศูนย์','หนึ่ง','สอง','สาม','สี่','ห้า','หก','เจ็ด','แปด','เก้า','สิบ'];
-function speak(text,fallbackHz){
+let activeUtt=null,duckSpeech=false,duckDemo=false,duckTimer=0,duckFail=0;
+function setSpeechDuck(on){duckSpeech=on;applyMusicVol()}
+function stopSpeech(){try{if('speechSynthesis' in window)speechSynthesis.cancel()}catch(e){}activeUtt=null;clearTimeout(duckFail);setSpeechDuck(false)}
+// opts.steps = เสียงอ่านขั้นตอนท่า (ไม่ถูกคำแจ้งเตือนอื่นตัดกลางคัน)  opts.rate = ความเร็วพูด
+function speak(text,fallbackHz,opts){
   if(cfg.muted||cfg.volume<=0)return;
+  opts=opts||{};
   try{
     if(!('speechSynthesis' in window))throw 0;
     const u=new SpeechSynthesisUtterance(text);
-    u.lang='th-TH';u.volume=cfg.volume/100;u.rate=1.1;
-    speechSynthesis.cancel();speechSynthesis.speak(u);
+    u.lang='th-TH';u.volume=cfg.volume/100;u.rate=opts.rate||1.1;u.isSteps=!!opts.steps;
+    speechSynthesis.cancel();
+    activeUtt=u;
+    const done=()=>{if(activeUtt===u){activeUtt=null;clearTimeout(duckFail);setSpeechDuck(false)}};
+    u.onstart=()=>{if(activeUtt===u)setSpeechDuck(true)};
+    u.onend=done;u.onerror=done;
+    clearTimeout(duckFail);duckFail=setTimeout(done,Math.min(60000,6000+text.length*180)); // กันเพลงเบาค้างถ้าเบราว์เซอร์ไม่ส่งสัญญาณจบ
+    speechSynthesis.speak(u);
   }catch(e){beep(fallbackHz)}
 }
 const sayCount=n=>{beep(660,100);speak(TH_NUM[n]??String(n),660)};
@@ -479,8 +491,19 @@ function nowPlaying(){
   $('nowp').textContent=on&&mCur?'♪ '+trackName(mCur):'';
   $('mnext').hidden=!(musicOn()&&musicChoice()!=='' &&!musicUrls.includes(musicChoice())&&mPool.length>1);
 }
+// ระดับเสียงเพลง: ปกติ = 35% ของระดับเสียงที่ตั้ง  ระหว่างมีเสียงพูดหรือช่วงดูท่าตัวอย่าง หรี่เหลือ 18% ของค่านั้น
+const musicTarget=()=>Math.min(1,cfg.volume/100*0.35)*((duckSpeech||duckDemo)?0.18:1);
+function applyMusicVol(){
+  if(!mAudio)return;
+  clearInterval(duckTimer);
+  duckTimer=setInterval(()=>{ // ค่อย ๆ ปรับ ไม่ให้เสียงสะดุ้ง
+    const t=musicTarget(),c=mAudio.volume,d=t-c;
+    if(Math.abs(d)<0.01){mAudio.volume=Math.max(0,Math.min(1,t));clearInterval(duckTimer);return}
+    mAudio.volume=Math.max(0,Math.min(1,c+d*0.35));
+  },40);
+}
 function musicPlay(){
-  mAudio.volume=Math.min(1,cfg.volume/100*0.35);
+  mAudio.volume=musicTarget();
   const pr=mAudio.play();if(pr&&pr.catch)pr.catch(()=>{});
   nowPlaying();
 }
@@ -593,7 +616,7 @@ $('s-save').onclick=()=>{
   const cd=+$('s-cd').value,rest=+$('s-rest').value,name=$('s-name').value.trim();
   if(!Number.isInteger(cd)||cd<0||cd>10)return $('s-err').textContent='นับถอยหลังต้องเป็นจำนวนเต็ม 0-10';
   if(!Number.isInteger(rest)||rest<1||rest>60)return $('s-err').textContent='เวลาพักต้องเป็นจำนวนเต็ม 1-60';
-  cfg.autoCam=$('s-cam').checked;cfg.ai=$('s-ai').checked;cfg.showAngles=$('s-ang').checked;cfg.cameraId=$('s-camid').value;C.stopCamera($('s-prev'));$('s-prev').hidden=true;$('s-camtest').textContent='ทดสอบกล้อง';
+  cfg.autoCam=$('s-cam').checked;cfg.ai=$('s-ai').checked;cfg.showAngles=$('s-ang').checked;cfg.readSteps=$('s-read').checked;if(!cfg.readSteps&&activeUtt&&activeUtt.isSteps)stopSpeech();cfg.cameraId=$('s-camid').value;C.stopCamera($('s-prev'));$('s-prev').hidden=true;$('s-camtest').textContent='ทดสอบกล้อง';
   const dm=+$('s-demo').value;if(!Number.isInteger(dm)||dm<0||dm>30)return $('s-err').textContent='เวลาท่าตัวอย่างต้องเป็นจำนวนเต็ม 0-30';
   cfg.demoSec=dm;cfg.playerName=name||'ผู้เล่น';cfg.countdownSec=cd;cfg.restSec=rest;saveCfg();
   st.playerName=cfg.playerName;st.countdownSec=cd;st.restSec=rest;
@@ -706,7 +729,7 @@ function loop(now){
 function notify(msg,level,silent){
   const t=$('toast');t.textContent=msg;t.className='toast '+(level||'info');t.hidden=false;
   clearTimeout(toastT);toastT=setTimeout(()=>{t.hidden=true},2800);
-  if(!silent)speak(msg,600);
+  if(!silent&&!(activeUtt&&activeUtt.isSteps))speak(msg,600);
 }
 const poseAlert=N1.createPoseAlert(),countAlerts=N3.createCountAlerts();
 
@@ -717,11 +740,17 @@ const DESK={
 let poseStore=null,demoIdx=-2,previewIdx=-2,previewMs=0,demoLeft=0,demoShown=null;
 const demoSecs=()=>Math.max(0,Math.min(30,+cfg.demoSec||0));
 function demoInfo(ex){
-  const id=ex.id;
-  if(AI&&aiEx[id]){const a=aiEx[id];return{steps:(a.steps||[a.description||'']).map((t,i)=>(i+1)+'. '+t).join('\n'),pc:(a.precautions&&a.precautions.length)?'ข้อควรระวัง: '+a.precautions.join(' / '):''};}
-  if(id.startsWith('pose:')&&poseStore){const p=poseStore.get(id.slice(5));if(p){const l=p.description.split(/\r?\n/).map(x=>x.trim()).filter(Boolean);return{steps:l.map((t,i)=>(i+1)+'. '+t).join('\n')||'(ยังไม่มีคำอธิบาย)',pc:''};}}
-  if(DESK[id])return{steps:DESK[id].steps.map((t,i)=>(i+1)+'. '+t).join('\n'),pc:'ข้อควรระวัง: '+DESK[id].pc};
-  return{steps:'เป้าหมาย: '+(ex.target||''),pc:'ท่านี้ยังไม่มีแอนิเมชันตัวอย่าง'};
+  const id=ex.id,num=l=>l.map((t,i)=>(i+1)+'. '+t).join('\n');
+  if(AI&&aiEx[id]){const a=aiEx[id],l=a.steps||[a.description||''];return{list:l,steps:num(l),pc:(a.precautions&&a.precautions.length)?'ข้อควรระวัง: '+a.precautions.join(' / '):''};}
+  if(id.startsWith('pose:')&&poseStore){const p=poseStore.get(id.slice(5));if(p){const l=p.description.split(/\r?\n/).map(x=>x.trim()).filter(Boolean);return{list:l,steps:num(l)||'(ยังไม่มีคำอธิบาย)',pc:''};}}
+  if(DESK[id])return{list:DESK[id].steps,steps:num(DESK[id].steps),pc:'ข้อควรระวัง: '+DESK[id].pc};
+  return{list:[],steps:'เป้าหมาย: '+(ex.target||''),pc:'ท่านี้ยังไม่มีแอนิเมชันตัวอย่าง'};
+}
+// อ่านชื่อท่าและขั้นตอนออกเสียง (ระหว่างนี้เพลงจะหรี่เสียงลงอัตโนมัติ)
+function speakSteps(ex,inf){
+  if(!cfg.readSteps)return;
+  const txt='ท่า '+ex.name+'. '+inf.list.map((t,i)=>'ขั้นที่ '+(i+1)+' '+t).join('. ');
+  speak(txt,0,{steps:true,rate:1});
 }
 function drawDemoCanvas(ex){
   const cv=$('demo-cv'),t=performance.now()/1000,id=ex.id;
@@ -751,10 +780,15 @@ function drawDemoCanvas(ex){
 function showDemo(on,ex,pause,leftMs){
   const wrap=document.querySelector('.camwrap');
   $('demo-info').hidden=!on;
-  if(!on){$('demo').hidden=true;wrap.style.display='';$('mbar').style.display='';demoShown=null;return;}
+  if(!on){
+    $('demo').hidden=true;wrap.style.display='';$('mbar').style.display='';
+    if(demoShown!==null){demoShown=null;if(activeUtt&&activeUtt.isSteps)stopSpeech();if(duckDemo){duckDemo=false;applyMusicVol()}}
+    return;
+  }
+  if(!duckDemo){duckDemo=true;applyMusicVol()}
   wrap.style.display='none';$('mbar').style.display='none';
   const has=drawDemoCanvas(ex);$('demo').hidden=!has;
-  if(demoShown!==ex.id){demoShown=ex.id;const inf=demoInfo(ex);$('demo-title').textContent='ดูท่าตัวอย่าง: '+ex.name;$('demo-steps').textContent=inf.steps;$('demo-pc').textContent=inf.pc;}
+  if(demoShown!==ex.id){demoShown=ex.id;const inf=demoInfo(ex);$('demo-title').textContent='ดูท่าตัวอย่าง: '+ex.name;$('demo-steps').textContent=inf.steps;$('demo-pc').textContent=inf.pc;speakSteps(ex,inf);}
   $('demo-cd').textContent=pause?'เริ่มใน '+Math.ceil(leftMs/1000)+' วินาที':'พักก่อน — เตรียมท่าถัดไปนี้';
   $('demoskip').hidden=!pause;
 }
@@ -816,7 +850,7 @@ async function startPlayCam(){
 }
 $('camtog').onclick=()=>{if(aiOn||C.isCameraOn())stopCam();else startPlayCam()};
 function finish(){
-  cancelAnimationFrame(raf);stopCam();showDemo(false);const s=E.getEndSummary(st);
+  cancelAnimationFrame(raf);stopCam();showDemo(false);stopSpeech();const s=E.getEndSummary(st);
   $('sum').innerHTML=`<p>${st.playerName} ทำสำเร็จ ${s.completedExercises}/${s.totalExercises} ท่า · รวม ${s.totalReps} ครั้ง · ${s.totalTimeSec} วินาที</p>`+
    (()=>{
      const esc=x=>String(x).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
