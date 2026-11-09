@@ -1,0 +1,323 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ทดสอบแผ่นเต้น</title>
+<style>
+:root{--bg:#10131a;--card:#1b2030;--fg:#e8ecf4;--mut:#9aa3b8;--ok:#3ddc84;--hit:#ffd23f;--bad:#ff5c5c;--line:#2b3247;--blue:#4da3ff;--pri:#2f6fed}
+@media (prefers-color-scheme:light){:root{--bg:#f2f4f8;--card:#fff;--fg:#1a2030;--mut:#5a6478;--line:#d5dae6;--hit:#f5a800;--ok:#13a455}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.5 system-ui,"Segoe UI",Tahoma,sans-serif;padding:16px}
+.wrap{max-width:900px;margin:auto;display:grid;gap:14px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px}
+header{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+h1{font-size:1.35rem;margin:0}
+.badge{display:inline-flex;align-items:center;gap:8px;padding:6px 12px;border-radius:99px;border:1px solid var(--line);background:var(--card);font-size:.9rem}
+.dot{width:12px;height:12px;border-radius:50%;background:var(--bad)}
+.badge.on .dot{background:var(--ok)}
+.badge small{color:var(--mut)}
+
+/* คำแนะนำ "ตอนนี้ให้ทำอะไร" */
+.hint{border-left:6px solid var(--blue);font-size:1.2rem;font-weight:600;min-height:4.2em;display:flex;flex-direction:column;justify-content:center}
+.hint small{font-weight:400;color:var(--mut);font-size:.9rem}
+.hint.warn{border-color:var(--hit)}
+.hint.good{border-color:var(--ok)}
+
+.main{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);gap:14px}
+@media (max-width:720px){.main{grid-template-columns:1fr}}
+.pad{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;max-width:460px;margin:auto}
+.cell{aspect-ratio:1;border:3px solid var(--line);border-radius:14px;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#000;position:relative;overflow:hidden;transition:transform .05s;cursor:pointer}
+.cell img{max-width:80%;max-height:70%;object-fit:contain;transition:filter .05s}
+.cell .lbl{position:absolute;bottom:4px;font-size:.78rem;color:#fff;text-shadow:0 0 4px #000}
+.cell .cnt{position:absolute;top:4px;right:8px;color:#fff;font-size:.85rem}
+.cell .tick{position:absolute;top:2px;left:6px;color:var(--ok);font-size:1.1rem;display:none}
+.cell.tested{border-color:var(--ok)}
+.cell.tested .tick{display:block}
+.cell.down{border-color:var(--hit);transform:scale(.95);box-shadow:0 0 22px var(--hit)}
+.cell.down img{filter:brightness(1.35) saturate(1.3) drop-shadow(0 0 12px var(--hit))}
+.cell.target{border:6px solid #ff2b2b;outline:3px solid #fff;outline-offset:-3px;box-shadow:0 0 0 3px #000,0 0 30px 6px #ff2b2b;animation:pulse .7s infinite alternate;z-index:1}
+.cell.target::after{content:"";position:absolute;inset:0;background:#ff2b2b;opacity:.38;pointer-events:none;animation:flash .7s infinite alternate}
+.cell.target[data-foot]::before{content:attr(data-foot);position:absolute;top:8px;left:50%;transform:translateX(-50%);z-index:2;padding:4px 14px;border-radius:20px;background:#fff;color:#c00;font-weight:800;font-size:1.15rem;border:3px solid #ff2b2b;white-space:nowrap}
+@keyframes pulse{to{box-shadow:0 0 0 3px #000,0 0 8px 2px #ff2b2b}}
+@keyframes flash{to{opacity:.15}}
+.cell.center{background:transparent;border:none}
+.ring{width:92%;aspect-ratio:1;border-radius:50%;border:4px solid var(--blue);background:radial-gradient(circle,#4da3ff33,#0000 70%);display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:6px;color:var(--fg);font-size:.9rem}
+.ring small{color:var(--mut);font-size:.72rem}
+
+.side{display:grid;gap:12px;align-content:start}
+.progress{height:14px;border-radius:99px;background:var(--line);overflow:hidden}
+.progress i{display:block;height:100%;width:0;background:var(--ok);transition:width .2s}
+.score{font-size:2rem;font-weight:700;line-height:1.1}
+.score small{font-size:1rem;color:var(--mut);font-weight:400}
+.verdict{font-weight:600}
+.pass{color:var(--ok)}.fail{color:var(--bad)}
+ul.check{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:1fr 1fr;gap:4px 12px;font-size:.92rem}
+ul.check li{color:var(--mut)}
+ul.check li.ok{color:var(--ok)}
+ul.check li::before{content:"○ "}
+ul.check li.ok::before{content:"✔ "}
+
+ul.diag{list-style:none;margin:0;padding:0;display:grid;gap:6px;font-size:.9rem}
+ul.diag li{padding:6px 10px;border-radius:8px;border-left:5px solid var(--ok);background:var(--bg)}
+ul.diag li.warn{border-color:var(--hit)}
+ul.diag li.error{border-color:var(--bad)}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+select,button{font:inherit;padding:9px 14px;border-radius:9px;border:1px solid var(--line);background:var(--card);color:var(--fg);cursor:pointer}
+button.pri{background:var(--pri);border-color:var(--pri);color:#fff}
+button:disabled{opacity:.5;cursor:default}
+h2{font-size:.95rem;margin:0 0 8px;color:var(--mut);font-weight:600}
+.result{font-weight:600;min-height:1.6em}
+
+details{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px 16px}
+summary{cursor:pointer;font-weight:600;color:var(--mut)}
+details[open] summary{margin-bottom:10px}
+.raw{font-family:ui-monospace,Consolas,monospace;font-size:.85rem;display:flex;flex-wrap:wrap;gap:6px}
+.raw span{padding:2px 8px;border-radius:6px;border:1px solid var(--line)}
+.raw span.on{background:var(--hit);color:#000;border-color:var(--hit)}
+#log{max-height:150px;overflow:auto;font-family:ui-monospace,Consolas,monospace;font-size:.85rem;color:var(--mut);margin-top:8px}
+pre{background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:10px;overflow:auto;font-size:.82rem;margin:6px 0}
+details p{margin:6px 0;font-size:.92rem}
+.live{font-family:ui-monospace,Consolas,monospace;font-size:.85rem;color:var(--mut)}
+
+/* โหมดฝังในระบบอื่น: index.html?embed=1 */
+body.embed{padding:8px}
+body.embed header,body.embed details,body.embed #cardPlay,body.embed #cardHint{display:none}
+</style>
+<style id="mr-design-system">
+@import url('https://fonts.googleapis.com/css2?family=Anuphan:wght@400;500;600;700&display=swap');
+:root{--bg:#F8FAFC;--card:#FFFFFF;--fg:#0F172A;--mut:#56657A;--ok:#15803D;--hit:#B45309;--bad:#DC2626;--line:#E2E8F0;--blue:#2563EB;--pri:#2563EB}
+@media(prefers-color-scheme:dark){:root{--bg:#0B1220;--card:#111C2E;--fg:#F8FAFC;--mut:#A3B1C6;--ok:#4ADE80;--hit:#FBBF24;--bad:#F87171;--line:#2A3A52;--blue:#60A5FA;--pri:#2563EB}}
+body{font-family:Anuphan,Prompt,"Noto Sans Thai",system-ui,sans-serif;line-height:1.65;-webkit-font-smoothing:antialiased}
+.card{border-radius:22px;box-shadow:0 1px 3px rgba(15,23,42,.06)}
+button{min-height:44px;border-radius:12px;font-family:inherit;transition:background .16s,border-color .16s,transform .16s}
+button:active:not(:disabled){transform:scale(.98)}
+:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
+@media(prefers-reduced-motion:reduce){*{transition-duration:.01ms!important;animation-duration:.01ms!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>🕹️ ทดสอบแผ่นเต้น</h1>
+    <span class="badge" id="badge"><span class="dot"></span><b id="stText">ยังไม่พบแผ่นเต้น</b> <small id="stSub"></small></span>
+  </header>
+
+  <div class="card hint" id="cardHint"><span id="hint">กำลังเริ่มระบบ…</span><small id="hintSub"></small></div>
+
+  <div class="main">
+    <div class="card">
+      <h2>แผงเหยียบ — เหยียบแล้วช่องต้องสว่าง (คลิกช่องเพื่อผูกปุ่มเฉพาะแผ่น)</h2>
+      <div class="pad" id="pad"></div>
+    </div>
+
+    <div class="side">
+      <div class="card">
+        <h2>ผลการตรวจ</h2>
+        <div class="score"><span id="okN">0</span><small> / <span id="allN">8</span> แผ่นใช้ได้</small></div>
+        <div class="progress"><i id="bar"></i></div>
+        <p class="verdict" id="verdict"></p>
+        <ul class="check" id="check"></ul>
+        <div class="live" id="live"></div>
+      </div>
+
+      <div class="card">
+        <h2>ตรวจสอบระบบ (อัปเดตอัตโนมัติ)</h2>
+        <ul class="diag" id="diag"></ul>
+        <div class="row" style="margin-top:10px"><button class="pri" id="btnFix">🔧 แก้ปัญหาให้อัตโนมัติ</button></div>
+        <div class="live" id="fixMsg"></div>
+      </div>
+
+      <div class="card">
+        <h2>เครื่องมือ</h2>
+        <div class="row">
+          <button class="pri" id="btnMap">ตั้งค่าแผ่น (ทำครั้งเดียว)</button>
+          <button id="btnSkip" hidden>ข้ามแผ่นนี้</button>
+          <button id="btnReset">ล้างค่า</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card" id="cardPlay">
+    <h2>ทดสอบความเร็วตอบสนอง — เหยียบตามแผ่นที่เรืองแสงสีแดง 10 ครั้ง</h2>
+    <div class="row">
+      <select id="selMulti"><option value="1">ทีละ 1 แผ่น</option><option value="2">2 แผ่นพร้อมกัน</option><option value="mix">สุ่ม 1–2 แผ่น</option></select>
+      <button class="pri" id="btnPlay">เริ่มทดสอบ</button>
+      <span class="result" id="playMsg"></span>
+    </div>
+  </div>
+
+  <details>
+    <summary>ค่าดิบจากอุปกรณ์ / ประวัติ (สำหรับตรวจปัญหา)</summary>
+    <p><a href="ทดสอบปุ่ม.html">🔘 เปิดหน้าทดสอบปุ่มแป้นเต้น (ดูทุกปุ่ม/แกนแบบละเอียด)</a></p>
+    <div class="raw" id="raw">–</div>
+    <div id="log"></div>
+  </details>
+
+  <details>
+    <summary>นำไปใช้ร่วมกับระบบอื่น</summary>
+    <p>ระบบอ่านแผ่นเต้นแยกเป็นไฟล์ <b>dancepad.js</b> (ไม่มี UI ไม่พึ่งไลบรารี) เรียกใช้ในหน้าเว็บอื่นได้ทันที:</p>
+<pre>&lt;script src="dancepad.js"&gt;&lt;/script&gt;
+&lt;script&gt;
+  const pad = DancePad.create();
+  pad.on('press',   e =&gt; console.log('เหยียบ',  e.id, e.name));   // id: x u o l r tri d sq
+  pad.on('release', e =&gt; console.log('ปล่อย', e.id));
+  pad.start();
+&lt;/script&gt;</pre>
+    <p>ส่งสัญญาณข้ามหน้า/แท็บ/iframe อัตโนมัติ — ระบบอื่นไม่ต้องโหลดไฟล์ก็รับได้:</p>
+<pre>addEventListener('dancepad:press', e =&gt; use(e.detail.id));          // หน้าเดียวกัน
+new BroadcastChannel('dancepad').onmessage = e =&gt; use(e.data);      // แท็บอื่น (origin เดียวกัน)
+addEventListener('message', e =&gt; e.data.source==='dancepad' &amp;&amp; use(e.data)); // ฝัง iframe</pre>
+    <p>ฝังหน้านี้เป็นตัวตั้งค่า/แผงแสดงผลในระบบอื่น: <code>&lt;iframe src="ส่วน ระบบ/index.html?embed=1"&gt;</code> — ค่าที่ตั้งไว้จะถูกใช้ร่วมกันทุกหน้าที่อยู่ origin เดียวกัน (ควรเปิดผ่านเซิร์ฟเวอร์เดียวกัน เช่น Live Server)</p>
+    <div class="live" id="bridgeLog">รอรับสัญญาณ…</div>
+  </details>
+</div>
+
+<script src="images-data.js"></script>
+<script src="dancepad.js"></script>
+<script>
+// รูปประจำแผ่น จากโฟลเดอร์ ../รูป — ชื่อไฟล์ไม่ตรงเนื้อหา จึงจับคู่ตามหน้าตารูปจริง (ตรวจดูทีละไฟล์แล้ว)
+//   ซ้าย.jpg = ลูกศรขึ้น(ชมพู)  ขวา.jpg = ลูกศรลง(ชมพู)  ขึ้น.jpg = ลูกศรขวา(ฟ้า)  ลง.jpg = ลูกศรซ้าย(ฟ้า)
+//   ซ้ายล่าง.jpg = สามเหลี่ยมชี้ขวา → หมุนให้ชี้ขึ้นตามแผ่นจริง
+const IMG={
+  // สีตามแผ่นจริงในรูปหลัก: ↑↓ เป็นสีฟ้า, ←→ เป็นสีชมพู (ไฟล์ต้นฉบับสลับสี จึงหมุนสีให้ตรง)
+  x:{img:'ซ้ายบน.jpg'}, u:{img:'ซ้าย.jpg',fx:'filter:hue-rotate(-110deg)'}, o:{img:'ขวาบน.jpg'},
+  l:{img:'ลง.jpg',fx:'filter:hue-rotate(110deg)'}, r:{img:'ขึ้น.jpg',fx:'filter:hue-rotate(110deg)'},
+  tri:{img:'ซ้ายล่าง.jpg',fx:'transform:rotate(-90deg);max-width:70%'}, d:{img:'ขวา.jpg',fx:'filter:hue-rotate(-110deg)'}, sq:{img:'ขวาล่าง.jpg'},
+};
+const imgUrl=f=>(window.PAD_IMAGES&&window.PAD_IMAGES[f])||('../รูป/'+encodeURIComponent(f));
+const $=id=>document.getElementById(id);
+if(/[?&]embed=1/.test(location.search))document.body.classList.add('embed');
+
+// ผูกทุกแผ่นด้วยตัวช่วยตั้งค่า (ขวาบน O ส่งหลายปุ่มพร้อมกัน ระบบเก็บเป็นลายเซ็นให้เอง)
+const pad=DancePad.create({single:true});
+const P=pad.panels, S=pad.state;
+let foot={};
+let playing=false, targets=[], playN=0, times=[], miss=0, tShown=0;
+
+// ---------- วาดแผง ----------
+const cells={};
+for(let i=0;i<9;i++){
+  const p=P.find(x=>x.pos===i), c=document.createElement('div');
+  if(!p){
+    c.className='cell center';
+    c.innerHTML='<div class="ring"><b>ยืนรอตรงนี้</b><small>แล้วก้าวไปเหยียบแผ่นที่เรืองแสง</small></div>';
+    c.style.cursor='default';
+  }else{
+    const m=IMG[p.id];
+    c.className='cell';
+    c.innerHTML=`<img src="${imgUrl(m.img)}" alt="${p.name}" style="${m.fx||''}"><span class="tick">✔</span><div class="lbl"></div><div class="cnt"></div>`;
+    c.title='คลิกเพื่อผูกปุ่มใหม่เฉพาะแผ่นนี้';
+    c.onclick=()=>{ if(pad.mode==='map'&&pad.target===p.id) pad.cancel(); else if(!playing) pad.bindOne(p.id); };
+    cells[p.id]=c;
+  }
+  $('pad').appendChild(c);
+}
+
+// ---------- วาดสถานะ ----------
+function paint(){
+  let ok=0;
+  P.forEach(p=>{
+    const c=cells[p.id], s=S[p.id]; if(s.tested)ok++;
+    c.classList.toggle('down',s.down);
+    c.classList.toggle('tested',s.tested);
+    c.classList.toggle('target',pad.target===p.id||targets.includes(p.id));
+    if(playing&&foot[p.id]&&targets.includes(p.id))c.dataset.foot='เท้า'+foot[p.id]; else delete c.dataset.foot;
+    c.querySelector('.cnt').textContent=s.count?('×'+s.count):'';
+    c.querySelector('.lbl').textContent=p.name+(pad.map[p.id]?'':' (ยังไม่ผูก)');
+  });
+  $('okN').textContent=ok; $('allN').textContent=P.length;
+  $('bar').style.width=(ok/P.length*100)+'%';
+  $('check').innerHTML=P.map(p=>`<li class="${S[p.id].tested?'ok':''}">${p.name}</li>`).join('');
+  const v=$('verdict');
+  if(ok===P.length){v.textContent='✅ ผ่าน: เหยียบครบทุกแผ่น';v.className='verdict pass';}
+  else{v.textContent=pad.isMapped?'เหยียบแผ่นที่ยังไม่มีเครื่องหมาย ✔ ให้ครบ':'ยังไม่ได้ตั้งค่าแผ่น';v.className='verdict';}
+  $('live').textContent='กดพร้อมกันได้สูงสุด '+pad.maxSimultaneous+' แผ่น';
+  const mapping=pad.mode==='map'||pad.mode==='center';
+  $('btnSkip').hidden=!(pad.mode==='map');
+  $('btnMap').disabled=playing||mapping; $('btnReset').disabled=playing||pad.mode==='center'; $('btnPlay').disabled=playing||mapping;
+}
+function setHint(text,sub,cls){ $('hint').textContent=text; $('hintSub').textContent=sub||''; $('cardHint').className='card hint '+(cls||''); }
+function idleHint(){
+  if(playing)return;
+  if(!pad.isMapped) setHint('ขั้นที่ 1: กด "ตั้งค่าแผ่น" แล้วทำตามที่ระบบบอก','ทำครั้งเดียว ค่าจะถูกบันทึกในเบราว์เซอร์ — หรือใช้ลูกศร/Q E Z C บนคีย์บอร์ดทดสอบแทนได้');
+  else if(P.every(p=>S[p.id].tested)) setHint('ผ่านแล้ว ✅ ทุกแผ่นใช้งานได้','จะลองวัดความเร็วตอบสนองต่อก็ได้ (ปุ่มด้านล่าง)','good');
+  else setHint('ขั้นที่ 2: เหยียบทีละแผ่น','แผ่นที่ใช้ได้แล้วจะมีกรอบเขียว + ✔');
+}
+
+// ---------- เชื่อมกับโมดูล ----------
+const L=$('log');
+pad.on('log',t=>{const d=document.createElement('div');d.textContent=new Date().toLocaleTimeString()+'  '+t;L.prepend(d);while(L.childElementCount>60)L.lastChild.remove();});
+let lastRaw='';
+pad.on('raw',raw=>{
+  const h=raw.length?raw.map(([t,on])=>`<span class="${on?'on':''}">${t}</span>`).join(''):'–  (ยังไม่มีสัญญาณ)';
+  if(h!==lastRaw){$('raw').innerHTML=h;lastRaw=h;}
+});
+pad.on('status',s=>{
+  $('badge').classList.toggle('on',s.connected);
+  $('stText').textContent=s.connected?'พบแผ่นเต้นแล้ว':'ยังไม่พบแผ่นเต้น';
+  $('stSub').textContent=s.connected?(s.id.length>34?s.id.slice(0,34)+'…':s.id):'เสียบแผ่น แล้วเหยียบ 1 ครั้งให้เบราว์เซอร์เห็น';
+});
+pad.on('prompt',m=>{
+  const bad=m.level==='warn';
+  setHint(m.text, m.step==='bind'?'กด "ข้ามแผ่นนี้" ถ้าไม่มีแผ่นนี้':(m.step==='done'?'':''), bad?'warn':(m.step==='done'||m.step==='bound-one'?'good':''));
+  $('btnMap').textContent='ตั้งค่าแผ่น (ทำครั้งเดียว)';
+  if(m.step==='done'||m.step==='cancel'||m.step==='bound-one') setTimeout(idleHint,3500);
+});
+pad.on('press',e=>{
+  if(!playing||!targets.length)return;
+  if(!targets.includes(e.id)){miss++;return;}
+  if(targets.every(t=>S[t].down&&S[t].pt>=tShown)){times.push(performance.now()-tShown);nextTarget();}
+});
+pad.on('change',()=>{paint();});
+
+// ---------- ปุ่ม ----------
+$('btnMap').onclick=()=>pad.bindAll();
+$('btnSkip').onclick=()=>pad.skip();
+$('btnReset').onclick=()=>{ if(confirm('ล้างค่าที่ตั้งไว้ทั้งหมดและตั้งค่าใหม่?')) pad.resetAll(); };
+
+// ---------- ทดสอบความเร็ว ----------
+function nextTarget(){
+  playN++;
+  if(playN>10){
+    playing=false; targets=[];
+    const avg=times.reduce((a,b)=>a+b,0)/Math.max(times.length,1);
+    $('playMsg').textContent=`จบ: ถูก ${times.length}/10 · พลาด ${miss} · เฉลี่ย ${Math.round(avg)} ms`;
+    setHint('ทดสอบความเร็วเสร็จแล้ว','ดูผลที่การ์ดด้านล่าง','good'); paint(); return;
+  }
+  const sel=$('selMulti').value, n=sel==='mix'?(Math.random()<0.5?1:2):+sel;
+  targets=P.map(p=>p.id).sort(()=>Math.random()-0.5).slice(0,n); tShown=performance.now();
+  foot={}; const used=new Set();
+  const side=t=>{const c=P.find(p=>p.id===t).pos%3;return c===0?'ซ้าย':c===2?'ขวา':null;};
+  // แผ่นฝั่งซ้าย/ขวา ใช้เท้าฝั่งเดียวกัน ก่อน แล้วแผ่นกลางใช้เท้าที่เหลือ
+  targets.slice().sort((a,b)=>(side(a)?0:1)-(side(b)?0:1)).forEach(t=>{
+    let f=side(t)||(Math.random()<0.5?'ซ้าย':'ขวา');
+    if(used.has(f))f=f==='ซ้าย'?'ขวา':'ซ้าย';
+    used.add(f); foot[t]=f;
+  });
+  const names=targets.map(t=>'เท้า'+foot[t]+' → '+P.find(p=>p.id===t).name).join(' + ');
+  $('playMsg').textContent=`ครั้งที่ ${playN}/10`;
+  setHint('เหยียบ: '+names, n>1?'เหยียบทั้ง '+n+' แผ่นพร้อมกัน':'ครั้งที่ '+playN+' จาก 10');
+  paint();
+}
+$('btnPlay').onclick=()=>{ playing=true; playN=0; times=[]; miss=0; targets=[]; pad.resetStats(); nextTarget(); };
+
+// ---------- แสดงสัญญาณที่ส่งต่อให้ระบบอื่น ----------
+addEventListener('dancepad:press',e=>{$('bridgeLog').textContent='ส่งออก: press '+e.detail.id+' @ '+new Date(e.detail.time).toLocaleTimeString();});
+
+// ---------- ตรวจสอบระบบ ----------
+const ICON={ok:'✅',warn:'⚠️',error:'❌'};
+let lastDiag='';
+function showDiag(){
+  const d=pad.diagnose(), h=d.map(x=>`<li class="${x.level}">${ICON[x.level]} ${x.text}</li>`).join('');
+  if(h!==lastDiag){$('diag').innerHTML=h;lastDiag=h;}
+}
+$('btnFix').onclick=()=>{ $('fixMsg').innerHTML=pad.autoFix().map(t=>'• '+t).join('<br>'); showDiag(); };
+setInterval(showDiag,1000); pad.on('change',showDiag);
+
+pad.start(); paint(); idleHint(); showDiag();
+if(!pad.isMapped) pad.bindAll();   // ครั้งแรก: สอบเทียบกับแผ่นจริงก่อน
+</script>
+</body>
+</html>

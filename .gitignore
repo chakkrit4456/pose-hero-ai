@@ -1,0 +1,11 @@
+__pycache__/
+*.pyc
+desktop.ini
+*.zip
+
+# ไฟล์ที่สร้างจาก build (รัน: node "3.Game Control System/build.js")
+3.Game Control System/ai/
+3.Game Control System/music-list.js
+dist/
+
+3.Game Control System/dance/

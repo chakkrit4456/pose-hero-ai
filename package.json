@@ -1,0 +1,10 @@
+{
+  "name": "pose-hero-ai",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Move & Relieve — เกมบริหารร่างกายสำหรับคนทำงานออฟฟิศ ใช้ AI จับท่าทางจากกล้อง",
+  "scripts": {
+    "build": "node \"3.Game Control System/build.js\"",
+    "test": "node tests/run-tests.js"
+  }
+}

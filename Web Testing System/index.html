@@ -1,0 +1,676 @@
+<!doctype html>
+<html lang="th">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>MOVE &amp; RELIEVE ทดสอบผ่านเว็บ</title>
+    <style>
+      :root {
+        --bg: #f4f6f9;
+        --card: #fff;
+        --ink: #1d2430;
+        --mut: #667085;
+        --line: #d9dee6;
+        --acc: #1f6feb;
+        --acc-ink: #fff;
+        --ok: #127a3d;
+        --bad: #b42318;
+        --warn: #a15c00;
+        --ghost: #c4c9d1;
+        --chip: #eef2f8;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --bg: #12161c;
+          --card: #1b212b;
+          --ink: #e8ecf2;
+          --mut: #9aa4b2;
+          --line: #2c3542;
+          --acc: #4c8dff;
+          --acc-ink: #0b1220;
+          --ok: #4cc38a;
+          --bad: #ff7b72;
+          --warn: #e3b341;
+          --ghost: #4a5361;
+          --chip: #242c38;
+        }
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--ink);
+        font:
+          16px/1.55 Tahoma,
+          "Noto Sans Thai",
+          system-ui,
+          sans-serif;
+      }
+      header {
+        padding: 12px 16px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px 16px;
+        align-items: center;
+        border-bottom: 1px solid var(--line);
+        background: var(--card);
+      }
+      header h1 {
+        font-size: 18px;
+        margin: 0;
+      }
+      .badges {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        margin-left: auto;
+      }
+      .badge {
+        padding: 2px 10px;
+        border-radius: 99px;
+        background: var(--chip);
+        font-size: 13px;
+        color: var(--mut);
+      }
+      .badge.ok {
+        color: var(--ok);
+      }
+      .badge.bad {
+        color: var(--bad);
+      }
+      .badge.warn {
+        color: var(--warn);
+      }
+      nav {
+        display: flex;
+        gap: 4px;
+        padding: 8px 16px 0;
+        flex-wrap: wrap;
+      }
+      nav button {
+        border: 1px solid var(--line);
+        border-bottom: none;
+        background: var(--chip);
+        color: var(--ink);
+        padding: 8px 14px;
+        border-radius: 8px 8px 0 0;
+        cursor: pointer;
+        font: inherit;
+      }
+      nav button[aria-selected="true"] {
+        background: var(--card);
+        font-weight: 700;
+        color: var(--acc);
+      }
+      main {
+        background: var(--card);
+        border-top: 1px solid var(--line);
+        padding: 16px;
+        min-height: 70vh;
+      }
+      [hidden],
+      section[hidden] {
+        display: none !important;
+      }
+      .grid2 {
+        display: grid;
+        grid-template-columns: minmax(300px, 1fr) minmax(300px, 1fr);
+        gap: 16px;
+      }
+      .grid3 {
+        display: grid;
+        grid-template-columns: 280px minmax(0, 1fr) 380px;
+        gap: 20px;
+      }
+      @media (max-width: 1100px) {
+        .grid2,
+        .grid3 {
+          grid-template-columns: 1fr;
+        }
+      }
+      h2 {
+        font-size: 17px;
+        margin: 0 0 6px;
+      }
+      .list {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+        max-height: 240px;
+        overflow: auto;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        padding: 4px;
+      }
+      .list button {
+        text-align: left;
+        border: 0;
+        background: transparent;
+        color: var(--ink);
+        padding: 6px 8px;
+        border-radius: 6px;
+        cursor: pointer;
+        font: inherit;
+      }
+      .list button[aria-pressed="true"] {
+        background: var(--acc);
+        color: var(--acc-ink);
+      }
+      .list button[aria-pressed="true"] .mut {
+        color: inherit;
+      }
+      .list label {
+        padding: 4px 8px;
+        margin: 0;
+        cursor: pointer;
+      }
+      .box {
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        padding: 8px 10px;
+        margin: 10px 0;
+      }
+      .box legend {
+        padding: 0 4px;
+        font-weight: 700;
+        font-size: 13px;
+      }
+      label {
+        display: block;
+        margin: 5px 0;
+        font-size: 15px;
+      }
+      select,
+      input[type="number"] {
+        font: inherit;
+        padding: 4px 6px;
+        border: 1px solid var(--line);
+        border-radius: 6px;
+        background: var(--card);
+        color: var(--ink);
+        max-width: 100%;
+      }
+      input[type="text"],
+      input[type="search"],
+      textarea {
+        font: inherit;
+        padding: 4px 6px;
+        border: 1px solid var(--line);
+        border-radius: 6px;
+        background: var(--card);
+        color: var(--ink);
+        max-width: 100%;
+      }
+      input[type="range"] {
+        width: 100%;
+      }
+      .btn {
+        font: inherit;
+        padding: 8px 14px;
+        border-radius: 8px;
+        border: 1px solid var(--line);
+        background: var(--chip);
+        color: var(--ink);
+        cursor: pointer;
+      }
+      .btn.pri {
+        background: var(--acc);
+        color: var(--acc-ink);
+        border-color: var(--acc);
+        font-weight: 700;
+      }
+      .btn:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+      .row {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        align-items: center;
+      }
+      canvas.fig {
+        width: 100%;
+        aspect-ratio: 1;
+        background: var(--bg);
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        display: block;
+      }
+      .bar {
+        height: 14px;
+        background: var(--chip);
+        border-radius: 7px;
+        overflow: hidden;
+        margin: 8px 0;
+      }
+      .bar i {
+        display: block;
+        height: 100%;
+        width: 0;
+        background: var(--acc);
+        transition: width 0.08s;
+      }
+      .big {
+        font-size: 22px;
+        font-weight: 700;
+      }
+      .panel {
+        white-space: pre-wrap;
+        background: var(--bg);
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        padding: 12px;
+        min-height: 260px;
+        font-size: 16px;
+        overflow: auto;
+        max-height: 520px;
+      }
+      .mut {
+        color: var(--mut);
+        font-size: 14px;
+      }
+      #play-steps {
+        font-size: 17px;
+        line-height: 1.6;
+        color: var(--ink);
+      }
+      #play-list label {
+        font-size: 15px;
+      }
+      .ok {
+        color: var(--ok);
+      }
+      .bad {
+        color: var(--bad);
+      }
+      .warn {
+        color: var(--warn);
+      }
+      .vid {
+        position: relative;
+        background: #101418;
+        border-radius: 8px;
+        overflow: hidden;
+        aspect-ratio: 16/9;
+      }
+      .vid video,
+      .vid canvas {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+      }
+      .vid video {
+        transform: scaleX(-1);
+        object-fit: contain;
+      }
+      .vid canvas {
+        object-fit: contain;
+      }
+      .vid.sim video {
+        display: none;
+      }
+      .vid .msg.top {
+        top: 5%;
+      }
+      .vid .msg {
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: 36%;
+        text-align: center;
+        font-size: 30px;
+        font-weight: 700;
+        color: #fff;
+        text-shadow:
+          0 0 4px #000,
+          0 0 8px #000;
+        padding: 0 12px;
+        white-space: pre-wrap;
+      }
+      .hud {
+        display: flex;
+        justify-content: space-between;
+        gap: 8px;
+        flex-wrap: wrap;
+      }
+      table {
+        border-collapse: collapse;
+        width: 100%;
+        font-size: 14px;
+      }
+      th,
+      td {
+        border-bottom: 1px solid var(--line);
+        padding: 6px 8px;
+        text-align: left;
+        vertical-align: top;
+      }
+      table.pick tbody tr {
+        cursor: pointer;
+      }
+      table.pick tbody tr:hover {
+        background: var(--chip);
+      }
+      table.pick tbody tr.sel {
+        background: var(--acc);
+        color: var(--acc-ink);
+      }
+      pre {
+        background: var(--bg);
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        padding: 10px;
+        overflow: auto;
+        max-height: 520px;
+        font-size: 12px;
+      }
+      .drop {
+        border: 2px dashed var(--line);
+        border-radius: 8px;
+        padding: 14px;
+        text-align: center;
+        color: var(--mut);
+      }
+      .drop.on {
+        border-color: var(--acc);
+        color: var(--acc);
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>MOVE &amp; RELIEVE · ทดสอบผ่านเว็บ</h1>
+      <div class="badges">
+        <span class="badge" id="b-net">…</span>
+        <span class="badge" id="b-ex">…</span>
+        <span class="badge" id="b-poses">…</span>
+        <span class="badge" id="b-model">…</span>
+      </div>
+    </header>
+    <nav id="tabs" role="tablist">
+      <button role="tab" data-tab="play" aria-selected="true">
+        ระบบ 1 · เล่น / ทดสอบ AI
+      </button>
+      <button role="tab" data-tab="list" aria-selected="false">
+        4.1 รายการท่า
+      </button>
+      <button role="tab" data-tab="edit" aria-selected="false">
+        4.2 สร้าง/แก้ไขท่า
+      </button>
+      <button role="tab" data-tab="detail" aria-selected="false">
+        4.3 รายละเอียด/ทำตามท่า
+      </button>
+      <button role="tab" data-tab="settings" aria-selected="false">
+        4.4 ตั้งค่า/ฝึกตามเวลา
+      </button>
+      <button role="tab" data-tab="auto" aria-selected="false">
+        ทดสอบอัตโนมัติ
+      </button>
+      <button role="tab" data-tab="data" aria-selected="false">
+        ข้อมูล / ตั้งค่า
+      </button>
+    </nav>
+    <main>
+      <!-- ======================= ระบบ 1 : เหมือน main.py ======================= -->
+      <section id="tab-play">
+        <div class="grid3">
+          <div>
+            <h2>เลือกท่าที่จะเล่น (exercises.json ของระบบ 1)</h2>
+            <div class="list" id="play-list" style="max-height: 230px"></div>
+            <div class="row" style="margin-top: 6px">
+              <button class="btn" id="play-all">เลือกทั้งหมด</button
+              ><button class="btn" id="play-none">ไม่เลือกเลย</button>
+            </div>
+            <fieldset class="box" id="cam-box">
+              <legend>ระบบ 1.1 รับภาพจากกล้อง</legend>
+              <div class="row">
+                <button class="btn" id="cam-find">ค้นหากล้อง</button
+                ><select id="cam-select" style="flex: 1; min-width: 0">
+                  <option value="">(กล้องเริ่มต้น)</option>
+                </select>
+              </div>
+              <label
+                ><input type="checkbox" id="cam-mirror" checked /> กลับซ้าย-ขวา
+                (โหมดกระจก)</label
+              >
+              <label
+                ><input type="checkbox" id="cam-smooth" checked />
+                ทำให้โครงกระดูกขยับลื่น (กรองการสั่น)</label
+              >
+              <div class="row">
+                <button class="btn" id="cam-open">เปิดกล้อง</button
+                ><button class="btn" id="cam-close" disabled>ปิดกล้อง</button>
+              </div>
+              <div class="row" style="margin-top: 6px">
+                <button class="btn" id="cam-test" disabled>ทดสอบรับภาพ</button
+                ><button class="btn" id="cam-body" disabled>
+                  ทดสอบตรวจจับร่างกาย (1.2)
+                </button>
+              </div>
+              <div class="mut" id="cam-status" style="margin-top: 4px">
+                ยังไม่ได้เปิดกล้อง
+              </div>
+            </fieldset>
+            <fieldset class="box">
+              <legend>แหล่งภาพ</legend>
+              <label
+                ><input type="radio" name="play-mode" value="cam" /> กล้องจริง
+                (1.1 กล้อง + 1.2 MediaPipe)</label
+              >
+              <label
+                ><input type="radio" name="play-mode" value="sim" checked />
+                คนจำลอง (ไม่ใช้กล้อง)</label
+              >
+              <label
+                >ดูท่าตัวอย่างก่อนเริ่มแต่ละท่า (วินาที, 0 = ข้าม)
+                <input
+                  type="number"
+                  id="play-demo-sec"
+                  min="0"
+                  max="30"
+                  value="10"
+                  style="width: 64px"
+              /></label>
+              <label
+                >จำนวนครั้งต่อท่า (0 = ตามไฟล์)
+                <input
+                  type="number"
+                  id="play-reps"
+                  min="0"
+                  max="50"
+                  value="0"
+                  style="width: 64px"
+              /></label>
+              <label
+                >ความเร็วคนจำลอง
+                <input
+                  type="range"
+                  id="play-speed"
+                  min="0.5"
+                  max="6"
+                  step="0.5"
+                  value="2"
+              /></label>
+            </fieldset>
+            <fieldset class="box" id="sim-box">
+              <legend>จำลองความผิดพลาด (เฉพาะคนจำลอง)</legend>
+              <label
+                >มุมที่ทำผิด
+                <select id="sim-err"></select
+              ></label>
+              <label
+                >ผิดไป <b id="sim-deg-v">0</b>°
+                <input type="range" id="sim-deg" min="-90" max="90" value="0"
+              /></label>
+              <label
+                ><input type="checkbox" id="sim-still" /> ยืนนิ่ง
+                ไม่ทำท่า</label
+              >
+              <label
+                ><input type="checkbox" id="sim-nobody" /> ไม่มีคนในภาพ</label
+              >
+              <label
+                >ซ่อนข้อต่อ
+                <select id="sim-hide">
+                  <option value="">(ไม่ซ่อน)</option>
+                  <option value="ankle">ข้อเท้าทั้งสอง (ยืนใกล้กล้อง)</option>
+                  <option value="left_wrist">ข้อมือซ้าย</option>
+                  <option value="left_elbow">ศอกซ้าย</option>
+                  <option value="right_knee">เข่าขวา</option>
+                </select></label
+              >
+              <label
+                >ทำท่าอื่นแทน
+                <select id="sim-other"></select
+              ></label>
+            </fieldset>
+            <div class="row">
+              <button class="btn pri" id="play-start">▶ เริ่มเล่น</button>
+              <button class="btn" id="play-skip">ข้าม (n)</button>
+              <button class="btn" id="play-stop">■ ออก (q)</button>
+            </div>
+            <div class="mut" style="margin-top: 6px" id="play-hint"></div>
+          </div>
+          <div>
+            <div class="big" id="play-title">เลือกท่า แล้วกด ▶ เริ่มเล่น</div>
+            <div class="vid sim" id="play-vid">
+              <video id="play-video" playsinline muted></video
+              ><canvas id="play-ov" width="1280" height="720"></canvas>
+              <div class="msg" id="play-ovmsg"></div>
+            </div>
+            <div class="bar"><i id="play-bar"></i></div>
+            <div class="hud">
+              <div class="big" id="play-reps-l"></div>
+              <div class="big ok" id="play-hold"></div>
+            </div>
+            <div class="big" id="play-live"></div>
+            <div class="mut" id="play-last"></div>
+            <div class="big warn" id="play-msg"></div>
+          </div>
+          <div>
+            <h2>ท่าตัวอย่าง (แอนิเมชัน)</h2>
+            <canvas
+              class="fig"
+              id="play-demo"
+              width="360"
+              height="360"
+              style="max-width: 360px"
+            ></canvas>
+            <div
+              class="big"
+              id="play-demo-name"
+              style="font-size: 18px; margin: 4px 0 8px"
+            ></div>
+            <h2>ขั้นตอนของท่า</h2>
+            <div id="play-steps" style="white-space: pre-wrap"></div>
+            <h2 style="margin-top: 10px">มุมที่วัดได้ (1.4)</h2>
+            <div
+              class="panel"
+              id="play-angles"
+              style="min-height: 90px; max-height: 170px"
+            ></div>
+            <h2 style="margin-top: 10px">ผลการประเมิน (1.5) / สรุป</h2>
+            <div class="panel" id="play-out" style="min-height: 120px"></div>
+          </div>
+        </div>
+      </section>
+
+      <section id="tab-list" hidden></section>
+      <section id="tab-edit" hidden></section>
+      <section id="tab-detail" hidden></section>
+      <section id="tab-settings" hidden></section>
+
+      <!-- ======================= ทดสอบอัตโนมัติ ======================= -->
+      <section id="tab-auto" hidden>
+        <div class="row">
+          <button class="btn pri" id="auto-run">▶ รันชุดทดสอบทั้งหมด</button
+          ><span class="mut"
+            >ไม่ใช้กล้อง · ย้ายมาจาก test_all_systems.py (ระบบ 1) + ทดสอบระบบ 2
+            ตามข้อมูลที่โหลดอยู่</span
+          >
+        </div>
+        <div id="auto-sum" class="big" style="margin: 10px 0"></div>
+        <table id="auto-tbl">
+          <thead>
+            <tr>
+              <th>ผล</th>
+              <th>รายการ</th>
+              <th>รายละเอียด</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </section>
+
+      <!-- ======================= ข้อมูล ======================= -->
+      <section id="tab-data" hidden>
+        <div class="grid2">
+          <div>
+            <h2>ท่าของระบบ 1 (exercises.json)</h2>
+            <div id="data-info" class="mut"></div>
+            <div class="drop" id="drop" style="margin: 10px 0">
+              ลากไฟล์ <b>exercises.json</b> มาวางที่นี่<br />หรือ
+              <input
+                type="file"
+                id="data-file"
+                accept=".json,application/json"
+              />
+            </div>
+            <div class="row">
+              <button class="btn" id="data-sample">
+                ใช้ไฟล์ในโฟลเดอร์ (data/exercises-data.js)</button
+              ><button class="btn" id="data-ex-dl">
+                ดาวน์โหลด exercises.json (ใช้กับระบบ 1)
+              </button>
+            </div>
+            <h2 style="margin-top: 14px">ท่าที่ถูกข้าม (ข้อมูลไม่ถูกต้อง)</h2>
+            <div id="data-skip" class="mut" style="white-space: pre-wrap"></div>
+            <h2 style="margin-top: 14px">ท่าของระบบ 2 (poses.json)</h2>
+            <div id="data-poses" class="mut"></div>
+            <div class="drop" id="drop2" style="margin: 10px 0">
+              ลากไฟล์ <b>poses.json</b> (ระบบ 2 → data) มาวางที่นี่<br />หรือ
+              <input
+                type="file"
+                id="data-file2"
+                accept=".json,application/json"
+              />
+            </div>
+            <div class="row">
+              <button class="btn" id="data-poses-sample">
+                ใช้ท่าจากโฟลเดอร์ (data/poses-data.js)</button
+              ><button class="btn" id="data-poses-seed">
+                กลับเป็นท่าตัวอย่าง 10 ท่า</button
+              ><button class="btn" id="data-poses-dl">
+                ดาวน์โหลด poses.json
+              </button>
+            </div>
+          </div>
+          <div>
+            <label
+              >เลือกท่า
+              <select id="data-ex"></select
+            ></label>
+            <pre id="data-json"></pre>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <script src="vendor/vision.js"></script><script src="vendor/vision-b64.js"></script>
+    <script src="vendor/mp-assets.js"></script>
+    <script src="vendor/model-data.js"></script>
+    <script src="data/exercises-data.js"></script>
+    <script src="data/poses-data.js"></script>
+    <script src="js/core.js"></script>
+    <script src="js/sys2core.js"></script>
+    <script src="js/tests.js"></script>
+    <script src="js/camera.js"></script>
+    <script src="js/sys2ui.js"></script>
+    <script src="js/play.js"></script>
+    <script src="js/app.js"></script>
+  </body>
+</html>

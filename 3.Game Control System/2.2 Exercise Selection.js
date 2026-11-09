@@ -1,0 +1,137 @@
+// 2.2 ระบบเลือกท่าบริหาร — เลือก/ยกเลิก/จัดลำดับท่า และกำหนดจำนวนครั้ง/เวลาต่อท่า
+'use strict';
+
+const { GAME_STATUS, DIFFICULTY, emit } = require('./2.1 Start Game.js');
+
+// ท่าสำหรับผู้ที่เป็นออฟฟิศซินโดรม (ทำได้ที่โต๊ะทำงาน)
+const EXERCISE_CATALOG = [
+  { id: 'neck-tilt',      name: 'เอียงคอซ้าย-ขวา',        target: 'คอ / บ่า · AI ตรวจท่า', reps: 8,  durationSec: 90 },
+  { id: 'shoulder-roll',  name: 'หมุนไหล่',               target: 'ไหล่ / บ่า · AI ตรวจท่า', reps: 10, durationSec: 90 },
+  { id: 'upper-trap',     name: 'ยืดกล้ามเนื้อบ่า',       target: 'บ่า · AI ตรวจท่า (ทดลอง)', reps: 3,  durationSec: 90 },
+  { id: 'arm-stretch',    name: 'ยืดแขนเหนือศีรษะ',       target: 'แขน / สะบัก · AI ตรวจท่า', reps: 8,  durationSec: 90 },
+  { id: 'seated-twist',   name: 'นั่งบิดลำตัว',           target: 'หลังส่วนล่าง · AI ตรวจท่า', reps: 10, durationSec: 90 },
+  { id: 'wrist-stretch',  name: 'ยืดข้อมือและนิ้วมือ',    target: 'ข้อมือ · AI ตรวจท่า (ทดลอง)', reps: 3,  durationSec: 90 },
+  { id: 'wrist-circle',   name: 'หมุนข้อมือ',             target: 'ข้อมือ · AI ตรวจท่า (ทดลอง)', reps: 12, durationSec: 90 },
+  // ท่าที่ระบบ AI (โฟลเดอร์ 1) ตรวจจับท่าทางและนับครั้งจากกล้องได้ — id ตรงกับ ai/data/exercises-data.js
+  { id: 'basic_01', name: 'ยกแขนด้านข้าง',         target: 'ไหล่ · AI ตรวจท่า',     reps: 10, durationSec: 90 },
+  { id: 'basic_02', name: 'ยกแขนเหนือศีรษะ',       target: 'ไหล่ / สะบัก · AI',      reps: 10, durationSec: 90 },
+  { id: 'basic_03', name: 'งอศอกยกมือแตะไหล่',     target: 'แขน · AI ตรวจท่า',       reps: 10, durationSec: 90 },
+  { id: 'basic_04', name: 'ย่อเข่า',               target: 'ขา / สะโพก · AI',        reps: 10, durationSec: 90 },
+  { id: 'basic_05', name: 'เอียงลำตัวด้านข้าง',    target: 'ข้างลำตัว · AI',         reps: 10, durationSec: 90 },
+  { id: 'basic_06', name: 'ยกเข่าสลับข้าง',        target: 'ขา / หน้าท้อง · AI',     reps: 10, durationSec: 90 },
+  { id: 'basic_07', name: 'ยกไหล่ขึ้น-ลง',         target: 'บ่า · AI ตรวจท่า',       reps: 10, durationSec: 90 },
+  { id: 'basic_08', name: 'ก้มตัวแตะปลายเท้า',     target: 'หลังล่าง · AI',          reps: 10, durationSec: 90 },
+  { id: 'basic_09', name: 'บิดลำตัว',              target: 'เอว · AI ตรวจท่า',       reps: 10, durationSec: 90 },
+  { id: 'basic_10', name: 'ยืดแขนเหนือศีรษะ (ค้าง 8 วินาที)', target: 'ไหล่ / สะบัก · AI', reps: 3, durationSec: 90 },
+];
+
+// เปลี่ยนระดับความยาก: ปรับท่าที่เลือกไว้ทั้งหมดใหม่ตามระดับ
+function setDifficulty(state, key) {
+  assertEditable(state);
+  if (!DIFFICULTY[key]) throw new Error(`ไม่มีระดับความยาก: ${key}`);
+  const ids = state.queue.map((q) => q.id);
+  state.difficulty = key;
+  state.queue = [];
+  ids.forEach((id) => selectExercise(state, id));
+  return state;
+}
+
+
+// ท่าที่ผู้เล่นสร้างเองในหน้า "จัดการท่า" (ระบบ 2) — แทนที่รายการ custom เดิมทั้งหมดด้วยรายการใหม่
+function syncCustomExercises(list) {
+  for (let i = EXERCISE_CATALOG.length - 1; i >= 0; i--) if (EXERCISE_CATALOG[i].custom) EXERCISE_CATALOG.splice(i, 1);
+  list.forEach((e) => EXERCISE_CATALOG.push({ ...e, custom: true }));
+}
+
+function getCatalog() {
+  return EXERCISE_CATALOG.map((e) => ({ ...e }));
+}
+
+function assertEditable(state) {
+  if (state.status !== GAME_STATUS.IDLE && state.status !== GAME_STATUS.FINISHED) {
+    throw new Error('เปลี่ยนท่าบริหารไม่ได้ขณะเกมกำลังดำเนินอยู่');
+  }
+}
+
+function findInCatalog(id) {
+  const ex = EXERCISE_CATALOG.find((e) => e.id === id);
+  if (!ex) throw new Error(`ไม่พบท่าบริหาร: ${id}`);
+  return ex;
+}
+
+function validateTarget({ reps, durationSec }) {
+  if (!Number.isInteger(reps) || reps < 1 || reps > 100) {
+    throw new Error('จำนวนครั้งต้องเป็นจำนวนเต็ม 1-100');
+  }
+  if (!Number.isFinite(durationSec) || durationSec < 5 || durationSec > 600) {
+    throw new Error('เวลาต่อท่าต้องอยู่ระหว่าง 5-600 วินาที');
+  }
+}
+
+function selectExercise(state, id, overrides = {}) {
+  assertEditable(state);
+  if (state.queue.some((q) => q.id === id)) return state; // เลือกซ้ำ ไม่ทำอะไร
+  const base = findInCatalog(id);
+  const level = DIFFICULTY[state.difficulty];
+  const item = {
+    id: base.id,
+    name: base.name,
+    target: base.target,
+    reps: overrides.reps ?? Math.max(1, Math.round(base.reps * level.repsMul)),
+    durationSec: overrides.durationSec ?? Math.round(base.durationSec * level.timeMul),
+  };
+  validateTarget(item);
+  state.queue.push(item);
+  emit(state, 'select', item);
+  return state;
+}
+
+function deselectExercise(state, id) {
+  assertEditable(state);
+  const before = state.queue.length;
+  state.queue = state.queue.filter((q) => q.id !== id);
+  if (state.queue.length !== before) emit(state, 'deselect', { id });
+  return state;
+}
+
+function toggleExercise(state, id) {
+  return state.queue.some((q) => q.id === id)
+    ? deselectExercise(state, id)
+    : selectExercise(state, id);
+}
+
+function setExerciseTarget(state, id, { reps, durationSec }) {
+  assertEditable(state);
+  const item = state.queue.find((q) => q.id === id);
+  if (!item) throw new Error(`ยังไม่ได้เลือกท่า: ${id}`);
+  const next = { reps: reps ?? item.reps, durationSec: durationSec ?? item.durationSec };
+  validateTarget(next);
+  Object.assign(item, next);
+  return state;
+}
+
+function moveExercise(state, id, newIndex) {
+  assertEditable(state);
+  const from = state.queue.findIndex((q) => q.id === id);
+  if (from < 0) throw new Error(`ยังไม่ได้เลือกท่า: ${id}`);
+  const to = Math.max(0, Math.min(state.queue.length - 1, newIndex));
+  const [item] = state.queue.splice(from, 1);
+  state.queue.splice(to, 0, item);
+  return state;
+}
+
+function selectAll(state) {
+  EXERCISE_CATALOG.forEach((e) => selectExercise(state, e.id));
+  return state;
+}
+
+function clearSelection(state) {
+  assertEditable(state);
+  state.queue = [];
+  return state;
+}
+
+module.exports = {
+  setDifficulty,  getCatalog, syncCustomExercises, selectExercise, deselectExercise, toggleExercise,
+  setExerciseTarget, moveExercise, selectAll, clearSelection,
+};
