@@ -1,7 +1,7 @@
 // 2.3 ระบบควบคุมลำดับการเล่น — เดินท่าตามคิว, นับครั้ง, จับเวลา, พักระหว่างท่า
 'use strict';
 
-const { GAME_STATUS, DIFFICULTY, emit, tickCountdown } = require('./2.1 ระบบเริ่มเกม.js');
+const { GAME_STATUS, DIFFICULTY, emit, tickCountdown } = require('./2.1 Start Game.js');
 
 
 function beginExercise(state, index) {

@@ -261,7 +261,7 @@ module.exports = { DIFFICULTY, GAME_STATUS, createGameState, on, emit, startGame
 __src['2.2']=function(module,exports,require){// 2.2 ระบบเลือกท่าบริหาร — เลือก/ยกเลิก/จัดลำดับท่า และกำหนดจำนวนครั้ง/เวลาต่อท่า
 'use strict';
 
-const { GAME_STATUS, DIFFICULTY, emit } = require('./2.1 ระบบเริ่มเกม.js');
+const { GAME_STATUS, DIFFICULTY, emit } = require('./2.1 Start Game.js');
 
 // ท่าสำหรับผู้ที่เป็นออฟฟิศซินโดรม (ทำได้ที่โต๊ะทำงาน)
 const EXERCISE_CATALOG = [
@@ -384,7 +384,7 @@ module.exports = {
 __src['2.3']=function(module,exports,require){// 2.3 ระบบควบคุมลำดับการเล่น — เดินท่าตามคิว, นับครั้ง, จับเวลา, พักระหว่างท่า
 'use strict';
 
-const { GAME_STATUS, DIFFICULTY, emit, tickCountdown } = require('./2.1 ระบบเริ่มเกม.js');
+const { GAME_STATUS, DIFFICULTY, emit, tickCountdown } = require('./2.1 Start Game.js');
 
 
 function beginExercise(state, index) {
@@ -513,7 +513,7 @@ module.exports = { tick, registerRep, skipExercise, getProgress };
 __src['2.4']=function(module,exports,require){// 2.4 ระบบหยุดและสิ้นสุดเกม — หยุดชั่วคราว, เล่นต่อ, ออกจากเกม, สรุปผลดิบ
 'use strict';
 
-const { GAME_STATUS, emit } = require('./2.1 ระบบเริ่มเกม.js');
+const { GAME_STATUS, emit } = require('./2.1 Start Game.js');
 
 function pauseGame(state) {
   if (state.status !== GAME_STATUS.PLAYING && state.status !== GAME_STATUS.COUNTDOWN) {

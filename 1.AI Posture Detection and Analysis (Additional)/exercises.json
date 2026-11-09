@@ -1,0 +1,153 @@
+{
+  "exercises": [
+    {
+      "id": "arm_01",
+      "name": "ยกแขนด้านข้าง",
+      "category": "แขนและไหล่",
+      "description": "ยกแขนทั้งสองข้างขึ้นด้านข้างลำตัวจนถึงระดับไหล่ ช่วยคลายความเมื่อยล้าบริเวณไหล่และต้นคอจากการนั่งทำงาน",
+      "steps": [
+        "ยืนตรง เท้าห่างกันเท่าช่วงไหล่ ปล่อยแขนข้างลำตัว",
+        "เหยียดศอกให้ตรง ยกแขนทั้งสองข้างขึ้นด้านข้างช้า ๆ จนถึงระดับไหล่",
+        "ค้างไว้เล็กน้อย แล้วลดแขนลงช้า ๆ กลับท่าเริ่มต้น"
+      ],
+      "precautions": ["ไม่เหวี่ยงแขนด้วยแรงเฉื่อย", "ไม่ยกไหล่ขึ้นเกร็งคอ", "หยุดทันทีหากเจ็บบริเวณไหล่"],
+      "muscles": ["กล้ามเนื้อไหล่ (Deltoid)", "กล้ามเนื้อสะบัก"],
+      "image": "images/arm_01.png",
+      "reps": 10,
+      "duration_sec": 0,
+      "rest_sec": 15,
+      "tracked_joints": ["left_shoulder", "right_shoulder", "left_elbow", "right_elbow", "left_wrist", "right_wrist", "left_hip", "right_hip"],
+      "angles": {
+        "left_shoulder": ["left_hip", "left_shoulder", "left_elbow"],
+        "right_shoulder": ["right_hip", "right_shoulder", "right_elbow"],
+        "left_elbow": ["left_shoulder", "left_elbow", "left_wrist"],
+        "right_elbow": ["right_shoulder", "right_elbow", "right_wrist"]
+      },
+      "counter": {"mode": "reps", "angle": ["left_shoulder", "right_shoulder"], "start_angle": 15, "target_angle": 90},
+      "criteria": [
+        {"angle": "left_elbow", "min": 150, "max": 180, "when": "always", "feedback": "เหยียดศอกซ้ายให้ตรง"},
+        {"angle": "right_elbow", "min": 150, "max": 180, "when": "always", "feedback": "เหยียดศอกขวาให้ตรง"},
+        {"angle": "left_shoulder", "min": 75, "max": 105, "when": "target", "feedback_low": "ยกแขนซ้ายให้สูงขึ้นอีกหน่อย", "feedback_high": "แขนซ้ายสูงเกินระดับไหล่"},
+        {"angle": "right_shoulder", "min": 75, "max": 105, "when": "target", "feedback_low": "ยกแขนขวาให้สูงขึ้นอีกหน่อย", "feedback_high": "แขนขวาสูงเกินระดับไหล่"}
+      ]
+    },
+    {
+      "id": "arm_02",
+      "name": "งอศอกยกมือแตะไหล่",
+      "category": "แขนและไหล่",
+      "description": "งอศอกทั้งสองข้างยกมือขึ้นแตะไหล่ ช่วยขยับข้อศอกและกล้ามเนื้อต้นแขน",
+      "steps": [
+        "ยืนตรง ปล่อยแขนข้างลำตัว ฝ่ามือหันไปข้างหน้า",
+        "แนบต้นแขนไว้ข้างลำตัว งอศอกยกมือขึ้นเข้าหาไหล่",
+        "ค่อย ๆ เหยียดแขนลงกลับท่าเริ่มต้น"
+      ],
+      "precautions": ["ไม่แกว่งตัวช่วยยกแขน", "เหยียดศอกให้สุดทุกครั้ง"],
+      "muscles": ["กล้ามเนื้อต้นแขนด้านหน้า (Biceps)", "กล้ามเนื้อปลายแขน"],
+      "image": "images/arm_02.png",
+      "reps": 10,
+      "duration_sec": 0,
+      "rest_sec": 15,
+      "tracked_joints": ["left_shoulder", "right_shoulder", "left_elbow", "right_elbow", "left_wrist", "right_wrist", "left_hip", "right_hip"],
+      "angles": {
+        "left_elbow": ["left_shoulder", "left_elbow", "left_wrist"],
+        "right_elbow": ["right_shoulder", "right_elbow", "right_wrist"],
+        "left_shoulder": ["left_hip", "left_shoulder", "left_elbow"],
+        "right_shoulder": ["right_hip", "right_shoulder", "right_elbow"]
+      },
+      "counter": {"mode": "reps", "angle": ["left_elbow", "right_elbow"], "start_angle": 165, "target_angle": 50},
+      "criteria": [
+        {"angle": "left_shoulder", "min": 0, "max": 35, "when": "always", "feedback": "แนบต้นแขนซ้ายไว้ข้างลำตัว"},
+        {"angle": "right_shoulder", "min": 0, "max": 35, "when": "always", "feedback": "แนบต้นแขนขวาไว้ข้างลำตัว"},
+        {"angle": "left_elbow", "min": 30, "max": 65, "when": "target", "feedback_low": "งอศอกซ้ายมากเกินไป", "feedback_high": "งอศอกซ้ายให้มากขึ้นอีกหน่อย"},
+        {"angle": "right_elbow", "min": 30, "max": 65, "when": "target", "feedback_low": "งอศอกขวามากเกินไป", "feedback_high": "งอศอกขวาให้มากขึ้นอีกหน่อย"}
+      ]
+    },
+    {
+      "id": "torso_01",
+      "name": "เอียงลำตัวด้านข้าง",
+      "category": "ลำตัวและเอว",
+      "description": "เอียงลำตัวไปด้านข้างสลับซ้ายขวา ช่วยยืดกล้ามเนื้อข้างลำตัวและคลายเอว",
+      "steps": [
+        "ยืนตรง เท้าห่างกันเท่าช่วงไหล่ มือวางข้างลำตัว",
+        "เอียงลำตัวไปทางซ้ายช้า ๆ โดยไม่บิดตัว",
+        "กลับมายืนตรง แล้วเอียงไปทางขวา (นับเป็น 1 ครั้งต่อการเอียง 1 ข้าง)"
+      ],
+      "precautions": ["ไม่โน้มตัวไปข้างหน้าหรือข้างหลัง", "ไม่งอเข่า", "หยุดหากรู้สึกปวดหลัง"],
+      "muscles": ["กล้ามเนื้อข้างลำตัว (Obliques)", "กล้ามเนื้อหลังส่วนล่าง"],
+      "image": "images/torso_01.png",
+      "reps": 10,
+      "duration_sec": 0,
+      "rest_sec": 15,
+      "tracked_joints": ["left_shoulder", "right_shoulder", "left_hip", "right_hip", "left_knee", "right_knee", "left_ankle", "right_ankle"],
+      "angles": {
+        "trunk": ["mid_shoulder", "mid_hip", "below_mid_hip"],
+        "left_knee": ["left_hip", "left_knee", "left_ankle"],
+        "right_knee": ["right_hip", "right_knee", "right_ankle"]
+      },
+      "counter": {"mode": "reps", "angle": "trunk", "start_angle": 176, "target_angle": 160},
+      "criteria": [
+        {"angle": "left_knee", "min": 160, "max": 180, "when": "always", "feedback": "ยืนให้ขาตรง ไม่งอเข่า"},
+        {"angle": "right_knee", "min": 160, "max": 180, "when": "always", "feedback": "ยืนให้ขาตรง ไม่งอเข่า"},
+        {"angle": "trunk", "min": 145, "max": 165, "when": "target", "feedback_low": "เอียงลำตัวมากเกินไป ลดลงหน่อย", "feedback_high": "เอียงลำตัวให้มากขึ้นอีกนิด"}
+      ]
+    },
+    {
+      "id": "leg_01",
+      "name": "ย่อเข่า",
+      "category": "ขาและสะโพก",
+      "description": "ย่อตัวลงโดยงอเข่าและสะโพก ช่วยบริหารกล้ามเนื้อต้นขาและสะโพก",
+      "steps": [
+        "ยืนตรง เท้าห่างกันเท่าช่วงไหล่",
+        "งอเข่าย่อตัวลงช้า ๆ เหมือนจะนั่งเก้าอี้ ให้หลังตรง",
+        "ดันตัวขึ้นกลับท่ายืน"
+      ],
+      "precautions": ["เข่าไม่เลยปลายเท้ามากเกินไป", "ส้นเท้าติดพื้น", "ผู้มีปัญหาเข่าควรย่อตื้นลงและปรึกษาแพทย์"],
+      "muscles": ["กล้ามเนื้อต้นขาด้านหน้า (Quadriceps)", "กล้ามเนื้อสะโพก (Gluteus)"],
+      "image": "images/leg_01.png",
+      "reps": 10,
+      "duration_sec": 0,
+      "rest_sec": 20,
+      "tracked_joints": ["left_hip", "right_hip", "left_knee", "right_knee", "left_ankle", "right_ankle", "left_shoulder", "right_shoulder"],
+      "angles": {
+        "left_knee": ["left_hip", "left_knee", "left_ankle"],
+        "right_knee": ["right_hip", "right_knee", "right_ankle"]
+      },
+      "counter": {"mode": "reps", "angle": ["left_knee", "right_knee"], "start_angle": 170, "target_angle": 100},
+      "criteria": [
+        {"angle": "left_knee", "min": 85, "max": 115, "when": "target", "feedback_low": "ย่อต่ำเกินไป ระวังเข่า", "feedback_high": "ย่อให้ลึกขึ้นอีกนิด"},
+        {"angle": "right_knee", "min": 85, "max": 115, "when": "target", "feedback_low": "ย่อต่ำเกินไป ระวังเข่า", "feedback_high": "ย่อให้ลึกขึ้นอีกนิด"}
+      ]
+    },
+    {
+      "id": "stretch_01",
+      "name": "ยืดแขนเหนือศีรษะ",
+      "category": "การยืดเหยียดร่างกาย",
+      "description": "ยกแขนทั้งสองข้างขึ้นเหนือศีรษะแล้วค้างไว้ ช่วยยืดไหล่ สะบัก และด้านข้างลำตัว",
+      "steps": [
+        "ยืนตรง เท้าห่างกันเท่าช่วงไหล่",
+        "ยกแขนทั้งสองข้างขึ้นเหนือศีรษะ เหยียดศอกให้ตรง",
+        "ค้างไว้ตามเวลาที่กำหนด หายใจเข้าออกช้า ๆ แล้วลดแขนลง"
+      ],
+      "precautions": ["ไม่แอ่นหลังมากเกินไป", "ไม่กลั้นหายใจ", "หยุดหากรู้สึกชาที่แขน"],
+      "muscles": ["กล้ามเนื้อไหล่", "กล้ามเนื้อสะบัก", "กล้ามเนื้อข้างลำตัว"],
+      "image": "images/stretch_01.png",
+      "reps": 3,
+      "duration_sec": 0,
+      "rest_sec": 10,
+      "tracked_joints": ["left_shoulder", "right_shoulder", "left_elbow", "right_elbow", "left_wrist", "right_wrist", "left_hip", "right_hip"],
+      "angles": {
+        "left_shoulder": ["left_hip", "left_shoulder", "left_elbow"],
+        "right_shoulder": ["right_hip", "right_shoulder", "right_elbow"],
+        "left_elbow": ["left_shoulder", "left_elbow", "left_wrist"],
+        "right_elbow": ["right_shoulder", "right_elbow", "right_wrist"]
+      },
+      "counter": {"mode": "hold", "angle": ["left_shoulder", "right_shoulder"], "start_angle": 20, "target_angle": 165, "hold_sec": 8},
+      "criteria": [
+        {"angle": "left_elbow", "min": 150, "max": 180, "when": "always", "feedback": "เหยียดศอกซ้ายให้ตรง"},
+        {"angle": "right_elbow", "min": 150, "max": 180, "when": "always", "feedback": "เหยียดศอกขวาให้ตรง"},
+        {"angle": "left_shoulder", "min": 150, "max": 180, "when": "always", "feedback": "ยกแขนซ้ายให้สูงขึ้นอีก"},
+        {"angle": "right_shoulder", "min": 150, "max": 180, "when": "always", "feedback": "ยกแขนขวาให้สูงขึ้นอีก"}
+      ]
+    }
+  ]
+}

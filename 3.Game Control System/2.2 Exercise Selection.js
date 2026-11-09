@@ -1,7 +1,7 @@
 // 2.2 ระบบเลือกท่าบริหาร — เลือก/ยกเลิก/จัดลำดับท่า และกำหนดจำนวนครั้ง/เวลาต่อท่า
 'use strict';
 
-const { GAME_STATUS, DIFFICULTY, emit } = require('./2.1 ระบบเริ่มเกม.js');
+const { GAME_STATUS, DIFFICULTY, emit } = require('./2.1 Start Game.js');
 
 // ท่าสำหรับผู้ที่เป็นออฟฟิศซินโดรม (ทำได้ที่โต๊ะทำงาน)
 const EXERCISE_CATALOG = [

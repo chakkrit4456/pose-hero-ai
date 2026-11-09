@@ -1,7 +1,7 @@
 // 2.4 ระบบหยุดและสิ้นสุดเกม — หยุดชั่วคราว, เล่นต่อ, ออกจากเกม, สรุปผลดิบ
 'use strict';
 
-const { GAME_STATUS, emit } = require('./2.1 ระบบเริ่มเกม.js');
+const { GAME_STATUS, emit } = require('./2.1 Start Game.js');
 
 function pauseGame(state) {
   if (state.status !== GAME_STATUS.PLAYING && state.status !== GAME_STATUS.COUNTDOWN) {
