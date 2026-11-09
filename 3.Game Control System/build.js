@@ -1,6 +1,40 @@
 // สร้าง Game Start.html โดยฝังโมดูล 2.1-2.4 (shim require สำหรับเบราว์เซอร์)
 const fs=require('fs'),path=require('path');
-const files={'2.1':'2.1 Start Game.js','2.2':'2.2 Exercise Selection.js','2.3':'2.3 Game Sequence Control.js','2.4':'2.4 Pause and End Game.js','2.5':'2.5 Camera Support.js'};
+const files={'2.1':'2.1 Start Game.js','2.2':'2.2 Exercise Selection.js','2.3':'2.3 Game Sequence Control.js','2.4':'2.4 Pause and End Game.js','2.5':'2.5 Camera Support.js','7.1':'../5.Game Results Summary/7.1 Score Calculation.js','7.2':'../5.Game Results Summary/7.2 Gameplay Assessment.js','7.3':'../5.Game Results Summary/7.3 Total Score Display.js','7.4':'../5.Game Results Summary/7.4 Gameplay Summary.js','7.5':'../5.Game Results Summary/7.5 Play History.js','7.6':'../5.Game Results Summary/7.6 Share Card.js','7.7':'../5.Game Results Summary/7.7 Stats View.js','6.1':'../4.Notifications and Guidance System/6.1 Incorrect Pose Alert.js','6.2':'../4.Notifications and Guidance System/6.2 Posture Correction Guidance.js','6.3':'../4.Notifications and Guidance System/6.3 Time and Rep Count Alerts.js','6.4':'../4.Notifications and Guidance System/6.4 Exercise Status Notification.js'};
+
+// ซิงก์ไฟล์ระบบ AI จาก Web Testing System เข้า ai/ (ต้นฉบับอยู่ที่นั่นที่เดียว — ห้ามแก้สำเนาใน ai/ ตรง ๆ)
+const web=path.join(__dirname,'..','Web Testing System');
+const syncAi=[['js/core.js','core.js'],['js/camera.js','camera.js'],['js/sys2core.js','sys2core.js'],['js/sys2ui.js','sys2ui.js'],
+  ['vendor/vision.js','vendor/vision.js'],['vendor/mp-assets.js','vendor/mp-assets.js'],['vendor/model-data.js','vendor/model-data.js'],
+  ['data/exercises-data.js','data/exercises-data.js'],['data/poses-data.js','data/poses-data.js']];
+if(fs.existsSync(web)){
+  for(const[from,to]of syncAi){
+    const a=path.join(web,from),b=path.join(__dirname,'ai',to);
+    if(!fs.existsSync(a)){console.warn('ไม่พบ '+a);continue}
+    const sa=fs.statSync(a),sb=fs.existsSync(b)?fs.statSync(b):null;
+    if(!sb||sa.size!==sb.size||sa.mtimeMs>sb.mtimeMs){fs.mkdirSync(path.dirname(b),{recursive:true});fs.copyFileSync(a,b);console.log('ซิงก์ ai/'+to);}
+  }
+}else console.warn('ไม่พบโฟลเดอร์ Web Testing System — ใช้ไฟล์ใน ai/ ตามเดิม');
+
+
+// ส่งออกท่า AI ทั้งหมดให้ฝั่ง Python (ใช้คู่กับ main.py --file exercises_full.json) — exercises.json เดิมของฝั่ง Python ไม่ถูกแก้
+const py1=path.join(__dirname,'..','1.AI Posture Detection and Analysis (Additional)');
+const srcEx=path.join(web,'data','src','exercises.json');
+if(fs.existsSync(py1)&&fs.existsSync(srcEx)){
+  const a=fs.readFileSync(srcEx),b=path.join(py1,'exercises_full.json');
+  if(!fs.existsSync(b)||!fs.readFileSync(b).equals(a)){fs.writeFileSync(b,a);console.log('ส่งออก exercises_full.json ให้ฝั่ง Python');}
+}
+// สแกนโฟลเดอร์ Music แล้วเขียนรายชื่อเพลงลง music-list.js (เบราว์เซอร์อ่านรายชื่อไฟล์ในโฟลเดอร์เองไม่ได้)
+const musicDir=path.join(__dirname,'..','Music');
+const musicExt=/\.(mp3|ogg|wav|m4a|aac|flac|opus)$/i;
+// ไฟล์ในโฟลเดอร์ Music ตรง ๆ = เพลงทั่วไป (g:'')   ไฟล์ใน Music/slow, Music/mid, Music/fast = เพลงตามจังหวะ (ใช้ในโหมดอัตโนมัติ)
+const musicGroups=['slow','mid','fast'];
+const listAudio=d=>fs.existsSync(d)?fs.readdirSync(d,{withFileTypes:true}).filter(e=>e.isFile()&&musicExt.test(e.name)).map(e=>e.name).sort():[];
+const tracks=[];
+listAudio(musicDir).forEach(f=>tracks.push({u:'../Music/'+encodeURIComponent(f),g:''}));
+musicGroups.forEach(g=>listAudio(path.join(musicDir,g)).forEach(f=>tracks.push({u:'../Music/'+g+'/'+encodeURIComponent(f),g})));
+fs.writeFileSync(path.join(__dirname,'music-list.js'),'window.MR_MUSIC='+JSON.stringify(tracks)+';\n');
+console.log('เพลง: '+tracks.length+' ไฟล์');
 let m='const __src={},__cache={};function require(p){const k=p.replace("./","").slice(0,3);if(__cache[k])return __cache[k].exports;const mod={exports:{}};__cache[k]=mod;__src[k](mod,mod.exports,require);return mod.exports}\n';
 for(const[k,f]of Object.entries(files)){
   const src=fs.readFileSync(path.join(__dirname,f),'utf8').replace(/<\/script/gi,'<\/script');

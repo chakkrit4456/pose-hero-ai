@@ -305,6 +305,8 @@
       const q = P("nose"); if (neck) line(neck, q);
       g.beginPath(); g.arc(q[0], q[1], 5 * sc, 0, 7); g.fillStyle = col.head || "rgb(0,220,255)"; g.fill();
     }
+    // ท่าที่ตรวจข้อมือ: วาดมือ (ข้อมือ -> นิ้วชี้)
+    ["left", "right"].forEach((sd) => { const w = sd + "_wrist", i = sd + "_index"; if (head(i) && ok(w)) { const a = P(w), b = P(i); line(a, b); g.beginPath(); g.arc(b[0], b[1], 4 * sc, 0, 7); g.fillStyle = col.head || "rgb(0,220,255)"; g.fill(); } });
     ["left_ear", "right_ear"].forEach((n) => { if (head(n)) { const q = P(n); g.beginPath(); g.arc(q[0], q[1], 4 * sc, 0, 7); g.fillStyle = col.head || "rgb(0,220,255)"; g.fill(); } });
   }
 
@@ -575,7 +577,7 @@
     p = p || {};
     const el = p.elbow || [175, 175], kn = p.knee || [175, 175], tilt = p.tilt || 0, hidden = p.hidden || [];
     const sh = p.armIn > 0 ? [-p.armIn, -p.armIn] : p.shoulder || [15, 15];
-    const shrug = [p.shrugL || 0, p.shrugR || 0], lift = [p.liftL || 0, p.liftR || 0];
+    const shrug = [p.shrugL || 0, p.shrugR || 0], lift = [p.liftL || 0, p.liftR || 0], wristFlex = [p.wristL || 0, p.wristR || 0];
     const k = 0.75, hipC = [640, 370], t = tilt * DEG, bendC = Math.cos((p.bend || 0) * DEG), twistC = Math.cos((p.twist || 0) * DEG);
     const up = [Math.sin(t), -Math.cos(t)], right = [Math.cos(t), Math.sin(t)];
     const midSh = [hipC[0] + 170 * k * bendC * up[0], hipC[1] + 170 * k * bendC * up[1]];
@@ -593,6 +595,9 @@
       const base = 2 * 130 * k * Math.sin(kn[i] * DEG / 2);
       const ankle = [hip[0], hip[1] + base - lift[i]];
       const K = [hip[0] + s * 130 * k * Math.cos(kn[i] * DEG / 2), hip[1] + base / 2 - lift[i] * 0.6];
+      const hd = rotate(wd, -s * wristFlex[i]); // มือ: งอข้อมือขึ้น (บวก = ปลายนิ้วยกขึ้น)
+      const fing = (len, off) => { const v = rotate(hd, s * off); return [Wr[0] + len * k * v[0], Wr[1] + len * k * v[1]]; };
+      pts[side + "_index"] = fing(48, 0); pts[side + "_pinky"] = fing(42, 9); pts[side + "_thumb"] = fing(30, -38);
       pts[side + "_shoulder"] = S; pts[side + "_elbow"] = E; pts[side + "_wrist"] = Wr;
       pts[side + "_hip"] = hip; pts[side + "_knee"] = K; pts[side + "_ankle"] = ankle;
     });
@@ -614,7 +619,9 @@
     hands_front: { triple: ["left_wrist", "mid_shoulder", "right_wrist"], param: "armIn", hi: 25 },    // มือประสานด้านหน้า
     torso_twist: { triple: ["left_shoulder", "mid_hip", "right_shoulder"], param: "twist", hi: 70 },   // บิดตัว: ไหล่แคบลงในภาพ มุมลด
     torso_bend: { triple: ["left_shoulder", "mid_hip", "right_shoulder"], param: "bend", hi: 70 },     // โน้มตัวไปหน้า: ไหล่ลงมาใกล้สะโพก มุมเพิ่ม
-    legs: { triple: ["left_ankle", "mid_hip", "right_ankle"], param: "liftL", hi: 150 },               // ยกขา: ข้อเท้าข้างหนึ่งสูงขึ้น มุมเพิ่ม
+    legs: { triple: ["left_ankle", "mid_hip", "right_ankle"], param: "liftL", hi: 150 },
+    left_wrist_flex: { triple: ["left_elbow", "left_wrist", "left_index"], param: "wristL", hi: 80 },     // งอข้อมือ (ปลายนิ้วยกขึ้น ยิ่งงอ มุมยิ่งน้อย)
+    right_wrist_flex: { triple: ["right_elbow", "right_wrist", "right_index"], param: "wristR", hi: 80 },               // ยกขา: ข้อเท้าข้างหนึ่งสูงขึ้น มุมเพิ่ม
   };
   const customTables = {};
   function pointOfLm(lm, name) {

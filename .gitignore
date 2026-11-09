@@ -2,3 +2,17 @@ __pycache__/
 *.pyc
 desktop.ini
 *.zip
+
+# ไฟล์ที่สร้างจาก build (รัน: node "3.Game Control System/build.js")
+3.Game Control System/ai/
+3.Game Control System/music-list.js
+dist/
+
+# เพลงของผู้ใช้ (มักมีลิขสิทธิ์ — ไม่เก็บใน git; เก็บเฉพาะ README และไฟล์แนะนำ)
+Music/**/*.mp3
+Music/**/*.ogg
+Music/**/*.wav
+Music/**/*.m4a
+Music/**/*.aac
+Music/**/*.flac
+Music/**/*.opus

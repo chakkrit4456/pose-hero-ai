@@ -835,6 +835,601 @@
           "feedback": "ยกแขนขวาให้สูงขึ้นอีก"
         }
       ]
+    },
+    {
+      "duration_sec": 0,
+      "rest_sec": 10,
+      "image": "",
+      "id": "arm-stretch",
+      "name": "ยืดแขนเหนือศีรษะ",
+      "category": "การยืดเหยียดร่างกาย",
+      "reps": 8,
+      "description": "ประสานมือยกแขนเหนือศีรษะ เหยียดศอกให้ตรง ช่วยยืดแขนและสะบัก",
+      "steps": [
+        "ยืนหรือนั่งหลังตรง ปล่อยแขนข้างลำตัว",
+        "เหยียดศอกให้ตรง ยกแขนทั้งสองข้างขึ้นเหนือศีรษะช้า ๆ",
+        "ค้างเล็กน้อย แล้วลดแขนลงช้า ๆ"
+      ],
+      "precautions": [
+        "ไม่แอ่นหลัง",
+        "ไม่กลั้นหายใจ",
+        "หยุดทันทีหากชาที่แขน"
+      ],
+      "muscles": [
+        "กล้ามเนื้อไหล่ (Deltoid)",
+        "กล้ามเนื้อสะบัก"
+      ],
+      "tracked_joints": [
+        "left_shoulder",
+        "right_shoulder",
+        "left_hip",
+        "right_hip",
+        "left_elbow",
+        "right_elbow",
+        "left_wrist",
+        "right_wrist"
+      ],
+      "angles": {
+        "left_shoulder": [
+          "left_hip",
+          "left_shoulder",
+          "left_elbow"
+        ],
+        "right_shoulder": [
+          "right_hip",
+          "right_shoulder",
+          "right_elbow"
+        ],
+        "left_elbow": [
+          "left_shoulder",
+          "left_elbow",
+          "left_wrist"
+        ],
+        "right_elbow": [
+          "right_shoulder",
+          "right_elbow",
+          "right_wrist"
+        ]
+      },
+      "counter": {
+        "mode": "reps",
+        "angle": [
+          "left_shoulder",
+          "right_shoulder"
+        ],
+        "start_angle": 15,
+        "target_angle": 165
+      },
+      "criteria": [
+        {
+          "angle": "left_elbow",
+          "min": 150,
+          "max": 180,
+          "when": "always",
+          "feedback": "เหยียดศอกซ้ายให้ตรง"
+        },
+        {
+          "angle": "right_elbow",
+          "min": 150,
+          "max": 180,
+          "when": "always",
+          "feedback": "เหยียดศอกขวาให้ตรง"
+        },
+        {
+          "angle": "left_shoulder",
+          "min": 150,
+          "max": 180,
+          "when": "target",
+          "feedback_low": "ยกแขนซ้ายให้สูงขึ้นอีกหน่อย"
+        },
+        {
+          "angle": "right_shoulder",
+          "min": 150,
+          "max": 180,
+          "when": "target",
+          "feedback_low": "ยกแขนขวาให้สูงขึ้นอีกหน่อย"
+        }
+      ]
+    },
+    {
+      "id": "neck-tilt",
+      "name": "เอียงคอซ้าย-ขวา",
+      "category": "การยืดเหยียดร่างกาย",
+      "description": "เอียงศีรษะไปด้านข้างสลับซ้ายขวา ช่วยคลายกล้ามเนื้อคอและบ่า (นับ 1 ครั้งต่อการเอียง 1 ข้าง)",
+      "steps": [
+        "ยืนหลังตรง ไหล่ผ่อนคลาย มองตรงไปข้างหน้า",
+        "เอียงศีรษะไปทางซ้ายช้า ๆ จนรู้สึกตึงข้างคอ ค้างเล็กน้อย",
+        "กลับมาตรงแล้วเอียงไปทางขวา"
+      ],
+      "precautions": [
+        "ไม่ยกไหล่เข้าหาหู",
+        "ไม่กระชากหรือหมุนคอเป็นวง",
+        "หยุดทันทีหากปวดหรือชา"
+      ],
+      "muscles": [
+        "กล้ามเนื้อคอด้านข้าง",
+        "กล้ามเนื้อบ่า (Trapezius)"
+      ],
+      "image": "",
+      "reps": 8,
+      "duration_sec": 0,
+      "rest_sec": 10,
+      "tracked_joints": [
+        "nose",
+        "left_shoulder",
+        "right_shoulder",
+        "left_hip",
+        "right_hip"
+      ],
+      "angles": {
+        "neck": [
+          "nose",
+          "mid_shoulder",
+          "mid_hip"
+        ],
+        "trunk": [
+          "mid_shoulder",
+          "mid_hip",
+          "below_mid_hip"
+        ]
+      },
+      "counter": {
+        "mode": "reps",
+        "angle": "neck",
+        "start_angle": 176,
+        "target_angle": 160
+      },
+      "criteria": [
+        {
+          "angle": "trunk",
+          "min": 166,
+          "max": 180,
+          "when": "always",
+          "feedback": "ยืนให้ลำตัวตรง อย่าเอียงตัวตาม"
+        },
+        {
+          "angle": "neck",
+          "min": 148,
+          "max": 168,
+          "when": "target",
+          "feedback_low": "เอียงคอมากเกินไป ลดลงหน่อย",
+          "feedback_high": "เอียงคอให้มากขึ้นอีกนิด"
+        }
+      ]
+    },
+    {
+      "duration_sec": 0,
+      "rest_sec": 10,
+      "image": "",
+      "id": "shoulder-roll",
+      "name": "หมุนไหล่",
+      "category": "แขนและไหล่",
+      "reps": 10,
+      "description": "ยกไหล่ขึ้น หมุนไปด้านหลังเป็นวงกลมช้า ๆ ช่วยคลายไหล่และบ่า (ระบบนับจากจังหวะที่ไหล่ยกขึ้นแต่ละรอบ)",
+      "steps": [
+        "ยืนหลังตรง ปล่อยแขนข้างลำตัว",
+        "ยกไหล่ขึ้น หมุนไปด้านหลังเป็นวงกลมช้า ๆ",
+        "หมุนครบแล้วสลับหมุนไปด้านหน้า"
+      ],
+      "precautions": [
+        "ทำช้า ๆ ไม่กลั้นหายใจ",
+        "ไม่เอียงศีรษะ",
+        "หยุดทันทีหากเจ็บไหล่"
+      ],
+      "muscles": [
+        "กล้ามเนื้อบ่า (Trapezius)"
+      ],
+      "tracked_joints": [
+        "left_ear",
+        "right_ear",
+        "left_shoulder",
+        "right_shoulder",
+        "left_hip",
+        "right_hip"
+      ],
+      "angles": {
+        "left_shrug": [
+          "left_ear",
+          "left_shoulder",
+          "left_hip"
+        ],
+        "right_shrug": [
+          "right_ear",
+          "right_shoulder",
+          "right_hip"
+        ],
+        "trunk": [
+          "mid_shoulder",
+          "mid_hip",
+          "below_mid_hip"
+        ]
+      },
+      "counter": {
+        "mode": "reps",
+        "angle": [
+          "left_shrug",
+          "right_shrug"
+        ],
+        "start_angle": 143,
+        "target_angle": 125
+      },
+      "criteria": [
+        {
+          "angle": "trunk",
+          "min": 166,
+          "max": 180,
+          "when": "always",
+          "feedback": "ยืนให้ลำตัวตรง อย่าเอียงตัว"
+        },
+        {
+          "angle": "left_shrug",
+          "min": 100,
+          "max": 135,
+          "when": "target",
+          "feedback_high": "ยกไหล่ซ้ายให้สูงขึ้นอีกหน่อย",
+          "feedback_low": "ยกไหล่ซ้ายสูงเกินไป"
+        },
+        {
+          "angle": "right_shrug",
+          "min": 100,
+          "max": 135,
+          "when": "target",
+          "feedback_high": "ยกไหล่ขวาให้สูงขึ้นอีกหน่อย",
+          "feedback_low": "ยกไหล่ขวาสูงเกินไป"
+        }
+      ]
+    },
+    {
+      "duration_sec": 0,
+      "rest_sec": 10,
+      "image": "",
+      "id": "seated-twist",
+      "name": "นั่งบิดลำตัว",
+      "category": "ลำตัวและเอว",
+      "reps": 10,
+      "description": "บิดลำตัวสลับซ้ายขวาช้า ๆ โดยสะโพกอยู่กับที่ ช่วยคลายหลังส่วนล่าง (ตั้งกล้องให้เห็นลำตัวถึงสะโพก)",
+      "steps": [
+        "นั่งหรือยืนหลังตรง ไขว้แขนไว้หน้าอก",
+        "บิดลำตัวไปด้านหนึ่งช้า ๆ สะโพกอยู่กับที่",
+        "กลับมาตรงแล้วบิดสลับไปอีกข้าง"
+      ],
+      "precautions": [
+        "ไม่บิดกระชาก",
+        "ให้กล้องเห็นสะโพก ไม่ถูกโต๊ะบัง",
+        "หยุดทันทีหากปวดหลัง"
+      ],
+      "muscles": [
+        "กล้ามเนื้อข้างลำตัว (Obliques)",
+        "กล้ามเนื้อหลังส่วนล่าง"
+      ],
+      "tracked_joints": [
+        "left_shoulder",
+        "right_shoulder",
+        "left_hip",
+        "right_hip"
+      ],
+      "angles": {
+        "torso_twist": [
+          "left_shoulder",
+          "mid_hip",
+          "right_shoulder"
+        ],
+        "trunk": [
+          "mid_shoulder",
+          "mid_hip",
+          "below_mid_hip"
+        ]
+      },
+      "counter": {
+        "mode": "reps",
+        "angle": "torso_twist",
+        "start_angle": 50,
+        "target_angle": 30
+      },
+      "criteria": [
+        {
+          "angle": "trunk",
+          "min": 168,
+          "max": 180,
+          "when": "always",
+          "feedback": "ยืนให้ลำตัวตรง อย่าเอียงตัว"
+        },
+        {
+          "angle": "torso_twist",
+          "min": 20,
+          "max": 38,
+          "when": "target",
+          "feedback_high": "บิดตัวให้มากขึ้นอีกหน่อย",
+          "feedback_low": "บิดตัวมากเกินไป ลดลงหน่อย"
+        }
+      ]
+    },
+    {
+      "id": "upper-trap",
+      "name": "ยืดกล้ามเนื้อบ่า",
+      "category": "การยืดเหยียดร่างกาย",
+      "description": "เอียงศีรษะไปด้านข้างแล้วค้างไว้ ให้รู้สึกตึงที่บ่าด้านตรงข้าม ช่วยคลายกล้ามเนื้อบ่าส่วนบน (ค้างข้างละ 1 ครั้ง)",
+      "steps": [
+        "ยืนหลังตรง มือข้างหนึ่งจับขอบเก้าอี้หรือไว้ข้างลำตัว",
+        "เอียงศีรษะไปด้านตรงข้ามช้า ๆ จนรู้สึกตึงที่บ่า ค้างไว้ 5 วินาที",
+        "กลับมาตรงแล้วสลับข้าง"
+      ],
+      "precautions": [
+        "ไม่ดึงศีรษะแรง",
+        "ไม่ยกไหล่เข้าหาหู",
+        "หยุดทันทีหากชาที่แขน"
+      ],
+      "muscles": [
+        "กล้ามเนื้อบ่า (Trapezius)",
+        "กล้ามเนื้อคอด้านข้าง"
+      ],
+      "image": "",
+      "reps": 3,
+      "duration_sec": 0,
+      "rest_sec": 10,
+      "tracked_joints": [
+        "nose",
+        "left_shoulder",
+        "right_shoulder",
+        "left_hip",
+        "right_hip"
+      ],
+      "angles": {
+        "neck": [
+          "nose",
+          "mid_shoulder",
+          "mid_hip"
+        ],
+        "trunk": [
+          "mid_shoulder",
+          "mid_hip",
+          "below_mid_hip"
+        ]
+      },
+      "counter": {
+        "mode": "hold",
+        "angle": "neck",
+        "start_angle": 176,
+        "target_angle": 158,
+        "hold_sec": 5
+      },
+      "criteria": [
+        {
+          "angle": "trunk",
+          "min": 166,
+          "max": 180,
+          "when": "always",
+          "feedback": "ยืนให้ลำตัวตรง อย่าเอียงตัวตาม"
+        },
+        {
+          "angle": "neck",
+          "min": 144,
+          "max": 168,
+          "when": "target",
+          "feedback_low": "เอียงคอมากเกินไป ลดลงหน่อย",
+          "feedback_high": "เอียงคอให้มากขึ้นอีกนิดจนรู้สึกตึงที่บ่า"
+        }
+      ]
+    },
+    {
+      "id": "wrist-circle",
+      "name": "หมุนข้อมือ",
+      "category": "แขนและไหล่",
+      "description": "งอศอกยกมือขึ้นหน้าอก หมุนข้อมือเป็นวงกลมช้า ๆ ช่วยคลายข้อมือจากการพิมพ์งาน (ระบบนับจากการที่ข้อมือเอียงออกไปด้านข้างแต่ละรอบ)",
+      "steps": [
+        "งอศอกยกแขนขึ้นหน้าอก ให้กล้องเห็นมือทั้งสองข้างชัด",
+        "กำมือหลวม ๆ หมุนข้อมือเป็นวงกลมช้า ๆ ตามเข็มนาฬิกา",
+        "หมุนครบแล้วกลับทิศ"
+      ],
+      "precautions": [
+        "ขยับเฉพาะข้อมือ ไม่ต้องออกแรงมาก",
+        "หยุดทันทีหากปวดข้อมือหรือชา"
+      ],
+      "muscles": [
+        "กล้ามเนื้อปลายแขน",
+        "ข้อมือ"
+      ],
+      "image": "",
+      "reps": 12,
+      "duration_sec": 0,
+      "rest_sec": 10,
+      "tracked_joints": [
+        "left_shoulder",
+        "right_shoulder",
+        "left_elbow",
+        "right_elbow",
+        "left_wrist",
+        "right_wrist",
+        "left_index",
+        "right_index"
+      ],
+      "angles": {
+        "left_wrist_flex": [
+          "left_elbow",
+          "left_wrist",
+          "left_index"
+        ],
+        "right_wrist_flex": [
+          "right_elbow",
+          "right_wrist",
+          "right_index"
+        ],
+        "left_elbow": [
+          "left_shoulder",
+          "left_elbow",
+          "left_wrist"
+        ],
+        "right_elbow": [
+          "right_shoulder",
+          "right_elbow",
+          "right_wrist"
+        ]
+      },
+      "counter": {
+        "mode": "reps",
+        "angle": [
+          "left_wrist_flex",
+          "right_wrist_flex"
+        ],
+        "start_angle": 176,
+        "target_angle": 150
+      },
+      "criteria": [
+        {
+          "angle": "left_elbow",
+          "min": 50,
+          "max": 135,
+          "when": "always",
+          "feedback": "งอศอกซ้ายยกมือขึ้นหน้าอก ให้เห็นข้อมือชัด"
+        },
+        {
+          "angle": "right_elbow",
+          "min": 50,
+          "max": 135,
+          "when": "always",
+          "feedback": "งอศอกขวายกมือขึ้นหน้าอก ให้เห็นข้อมือชัด"
+        },
+        {
+          "angle": "left_wrist_flex",
+          "min": 120,
+          "max": 160,
+          "when": "target",
+          "feedback_high": "หมุนข้อมือซ้ายให้กว้างขึ้นอีกนิด",
+          "feedback_low": "หมุนข้อมือซ้ายกว้างเกินไป"
+        },
+        {
+          "angle": "right_wrist_flex",
+          "min": 120,
+          "max": 160,
+          "when": "target",
+          "feedback_high": "หมุนข้อมือขวาให้กว้างขึ้นอีกนิด",
+          "feedback_low": "หมุนข้อมือขวากว้างเกินไป"
+        }
+      ]
+    },
+    {
+      "id": "wrist-stretch",
+      "name": "ยืดข้อมือและนิ้วมือ",
+      "category": "การยืดเหยียดร่างกาย",
+      "description": "กางแขนไปด้านข้างระดับไหล่ งอข้อมือให้ปลายนิ้วชี้ขึ้นแล้วค้างไว้ ช่วยยืดข้อมือและนิ้วมือ (ท่านิ้วล็อก)",
+      "steps": [
+        "ยืนหลังตรง กางแขนไปด้านข้างระดับไหล่ เหยียดศอกให้ตรง",
+        "งอข้อมือทั้งสองข้างให้ปลายนิ้วชี้ขึ้น เหมือนดันฝ่ามือออกไปด้านข้าง",
+        "ค้างไว้ 5 วินาที แล้วผ่อนมือลง"
+      ],
+      "precautions": [
+        "ไม่ฝืนจนเจ็บ",
+        "ไม่กลั้นหายใจ",
+        "หยุดทันทีหากชาที่นิ้วหรือข้อมือ"
+      ],
+      "muscles": [
+        "กล้ามเนื้อปลายแขน",
+        "ข้อมือและนิ้วมือ"
+      ],
+      "image": "",
+      "reps": 3,
+      "duration_sec": 0,
+      "rest_sec": 10,
+      "tracked_joints": [
+        "left_shoulder",
+        "right_shoulder",
+        "left_elbow",
+        "right_elbow",
+        "left_wrist",
+        "right_wrist",
+        "left_index",
+        "right_index",
+        "left_hip",
+        "right_hip"
+      ],
+      "angles": {
+        "left_wrist_flex": [
+          "left_elbow",
+          "left_wrist",
+          "left_index"
+        ],
+        "right_wrist_flex": [
+          "right_elbow",
+          "right_wrist",
+          "right_index"
+        ],
+        "left_shoulder": [
+          "left_hip",
+          "left_shoulder",
+          "left_elbow"
+        ],
+        "right_shoulder": [
+          "right_hip",
+          "right_shoulder",
+          "right_elbow"
+        ],
+        "left_elbow": [
+          "left_shoulder",
+          "left_elbow",
+          "left_wrist"
+        ],
+        "right_elbow": [
+          "right_shoulder",
+          "right_elbow",
+          "right_wrist"
+        ]
+      },
+      "counter": {
+        "mode": "hold",
+        "angle": [
+          "left_wrist_flex",
+          "right_wrist_flex"
+        ],
+        "start_angle": 176,
+        "target_angle": 140,
+        "hold_sec": 5
+      },
+      "criteria": [
+        {
+          "angle": "left_shoulder",
+          "min": 70,
+          "max": 110,
+          "when": "always",
+          "feedback": "ยกแขนซ้ายให้ได้ระดับไหล่"
+        },
+        {
+          "angle": "right_shoulder",
+          "min": 70,
+          "max": 110,
+          "when": "always",
+          "feedback": "ยกแขนขวาให้ได้ระดับไหล่"
+        },
+        {
+          "angle": "left_elbow",
+          "min": 150,
+          "max": 180,
+          "when": "always",
+          "feedback": "เหยียดศอกซ้ายให้ตรง"
+        },
+        {
+          "angle": "right_elbow",
+          "min": 150,
+          "max": 180,
+          "when": "always",
+          "feedback": "เหยียดศอกขวาให้ตรง"
+        },
+        {
+          "angle": "left_wrist_flex",
+          "min": 120,
+          "max": 152,
+          "when": "target",
+          "feedback_high": "งอข้อมือซ้ายขึ้นให้มากขึ้นอีกนิด",
+          "feedback_low": "งอข้อมือซ้ายมากเกินไป"
+        },
+        {
+          "angle": "right_wrist_flex",
+          "min": 120,
+          "max": 152,
+          "when": "target",
+          "feedback_high": "งอข้อมือขวาขึ้นให้มากขึ้นอีกนิด",
+          "feedback_low": "งอข้อมือขวามากเกินไป"
+        }
+      ]
     }
   ]
 }

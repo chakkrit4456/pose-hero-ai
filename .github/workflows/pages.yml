@@ -1,0 +1,42 @@
+# ขึ้นเว็บอัตโนมัติด้วย GitHub Pages เมื่อ push เข้า main
+# ต้องเปิดใช้ก่อน 1 ครั้ง: Settings -> Pages -> Build and deployment -> Source = "GitHub Actions"
+# เพลงไม่ถูกรวม (ไฟล์เพลงไม่อยู่ใน git) — ถ้าต้องการเพลงบนเว็บ ให้ build เองด้วย --with-music แล้วอัปโหลด dist/ ตามคู่มือใน README
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Build (sync AI files + generate pages)
+        run: node "3.Game Control System/build.js"
+      - name: Test
+        run: node tests/run-tests.js
+      - name: Build web package
+        run: node "3.Game Control System/build-web.js"
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+      - id: deployment
+        uses: actions/deploy-pages@v4
