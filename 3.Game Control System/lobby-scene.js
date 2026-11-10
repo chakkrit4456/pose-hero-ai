@@ -4,6 +4,8 @@
 const home=document.getElementById('home'),button=document.getElementById('lobby-motion');
 if(!home||!button)return;
 const mascot=document.getElementById('mascot'),video=mascot.querySelector('video');
+video.pause();video.removeAttribute('autoplay');video.removeAttribute('src');video.removeAttribute('poster');video.load();
+const loadStatus=document.createElement('p');loadStatus.className='lobby-load-status';loadStatus.setAttribute('role','status');loadStatus.textContent='กำลังเตรียมฉาก 3D…';document.querySelector('.lobby-copy').append(loadStatus);
 document.getElementById('lobby-character').append(mascot);
 const layer=document.createElement('div');layer.className='lobby-scene';layer.setAttribute('aria-hidden','true');
 const canvas=document.createElement('canvas');layer.append(canvas);document.querySelector('.site-header').after(layer);
@@ -109,13 +111,13 @@ function draw(){
  canvas.dataset.progress=progress.toFixed(5);canvas.dataset.angle=(-35+70*p).toFixed(3);canvas.dataset.distance=distance.toFixed(4);
 }
 function tick(now){raf=0;if(!canMove()||!world)return;const dt=last?Math.min((now-last)/1000,.1):1/60;last=now;progress+=(target-progress)*(1-Math.exp(-dt/.16));if(Math.abs(progress-target)<.0001)progress=target;draw();if(progress!==target)raf=requestAnimationFrame(tick);else last=0;}
-function fallback(){failed=true;home.classList.remove('lobby-webgl-ready');layer.hidden=true;button.textContent='ใช้ฉากภาพนิ่ง (อุปกรณ์ไม่รองรับ 3D)';button.disabled=true;video.pause();}
+function fallback(){failed=true;home.classList.remove('lobby-webgl-ready');layer.hidden=true;loadStatus.hidden=false;loadStatus.textContent='โหลดฉาก 3D ไม่สำเร็จ คุณยังเลือกเล่นเกมได้ตามปกติ';button.textContent='ฉาก 3D ไม่พร้อม';button.disabled=true;video.pause();}
 async function init(){
  if(loaded||failed)return;loaded=true;
  try{
   if(!window.MRTeacher3D||!window.MR_TEACHER_B64)throw new Error('No model');
   world=await MRTeacher3D.create(canvas,Uint8Array.from(atob(MR_TEACHER_B64),c=>c.charCodeAt(0)));
-  environment(world);home.classList.add('lobby-webgl-ready');video.pause();resize();readScroll();sync();
+  environment(world);home.classList.add('lobby-webgl-ready');video.pause();resize();readScroll();sync();loadStatus.hidden=true;
  }catch(e){console.warn('Lobby 3D fallback:',e);fallback();}
 }
 function sync(){

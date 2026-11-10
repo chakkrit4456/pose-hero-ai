@@ -1,4 +1,7 @@
 /* Guidance and accessible controls shared by all existing game modes. */
+/* Applied in the head, before first paint: the lobby never shows a 2D stand-in. */
+#mascot,#lobby-character,.lobby-stage{display:none!important}
+.lobby-load-status{color:#b9c8e7;font-size:14px;padding:12px 0}
 [hidden]{display:none!important}
 html{scroll-padding-bottom:220px}
 button,input,select,summary,a{touch-action:manipulation}

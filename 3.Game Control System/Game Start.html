@@ -682,6 +682,9 @@ main:has(#done:not([hidden])){max-width:820px}
 .chainmsg{font-weight:700;color:var(--acc,#2563eb);margin:8px 0}
 </style>
 <style>/* Guidance and accessible controls shared by all existing game modes. */
+/* Applied in the head, before first paint: the lobby never shows a 2D stand-in. */
+#mascot,#lobby-character,.lobby-stage{display:none!important}
+.lobby-load-status{color:#b9c8e7;font-size:14px;padding:12px 0}
 [hidden]{display:none!important}
 html{scroll-padding-bottom:220px}
 button,input,select,summary,a{touch-action:manipulation}
@@ -927,7 +930,7 @@ body:has(#home:not([hidden])) .site-header button{color:#dce6ff;background:#ffff
 </section>
 
   <div class="mascot" id="mascot" aria-label="มาสคอตโบกมือทักทาย">
-    <video id="mascot-vid" src="vid/mascot.webm" poster="vid/mascot.png" autoplay muted loop playsinline aria-hidden="true"></video>
+    <video id="mascot-vid" muted loop playsinline aria-hidden="true"></video>
     <div class="bubble">ออกกำลังกายกันเถอะ!</div>
   </div>
 
@@ -4761,6 +4764,8 @@ if(location.hash.startsWith('#manage')&&!$('m-manage').disabled){$('m-manage').c
 const home=document.getElementById('home'),button=document.getElementById('lobby-motion');
 if(!home||!button)return;
 const mascot=document.getElementById('mascot'),video=mascot.querySelector('video');
+video.pause();video.removeAttribute('autoplay');video.removeAttribute('src');video.removeAttribute('poster');video.load();
+const loadStatus=document.createElement('p');loadStatus.className='lobby-load-status';loadStatus.setAttribute('role','status');loadStatus.textContent='กำลังเตรียมฉาก 3D…';document.querySelector('.lobby-copy').append(loadStatus);
 document.getElementById('lobby-character').append(mascot);
 const layer=document.createElement('div');layer.className='lobby-scene';layer.setAttribute('aria-hidden','true');
 const canvas=document.createElement('canvas');layer.append(canvas);document.querySelector('.site-header').after(layer);
@@ -4866,13 +4871,13 @@ function draw(){
  canvas.dataset.progress=progress.toFixed(5);canvas.dataset.angle=(-35+70*p).toFixed(3);canvas.dataset.distance=distance.toFixed(4);
 }
 function tick(now){raf=0;if(!canMove()||!world)return;const dt=last?Math.min((now-last)/1000,.1):1/60;last=now;progress+=(target-progress)*(1-Math.exp(-dt/.16));if(Math.abs(progress-target)<.0001)progress=target;draw();if(progress!==target)raf=requestAnimationFrame(tick);else last=0;}
-function fallback(){failed=true;home.classList.remove('lobby-webgl-ready');layer.hidden=true;button.textContent='ใช้ฉากภาพนิ่ง (อุปกรณ์ไม่รองรับ 3D)';button.disabled=true;video.pause();}
+function fallback(){failed=true;home.classList.remove('lobby-webgl-ready');layer.hidden=true;loadStatus.hidden=false;loadStatus.textContent='โหลดฉาก 3D ไม่สำเร็จ คุณยังเลือกเล่นเกมได้ตามปกติ';button.textContent='ฉาก 3D ไม่พร้อม';button.disabled=true;video.pause();}
 async function init(){
  if(loaded||failed)return;loaded=true;
  try{
   if(!window.MRTeacher3D||!window.MR_TEACHER_B64)throw new Error('No model');
   world=await MRTeacher3D.create(canvas,Uint8Array.from(atob(MR_TEACHER_B64),c=>c.charCodeAt(0)));
-  environment(world);home.classList.add('lobby-webgl-ready');video.pause();resize();readScroll();sync();
+  environment(world);home.classList.add('lobby-webgl-ready');video.pause();resize();readScroll();sync();loadStatus.hidden=true;
  }catch(e){console.warn('Lobby 3D fallback:',e);fallback();}
 }
 function sync(){
