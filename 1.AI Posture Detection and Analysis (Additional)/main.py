@@ -19,6 +19,7 @@ main.py
 import argparse
 import sys
 import time
+from pathlib import Path
 
 import cv2
 
@@ -34,8 +35,35 @@ evaluator_system = load_system("1.5")    # ระบบประเมินท�
 
 WINDOW_NAME = "Move & Relieve AI"
 KEY_ESC, KEY_Q, KEY_N = 27, ord("q"), ord("n")
+DEFAULT_MUSIC_PATH = (
+    Path(__file__).resolve().parents[1] / "Music" / "POSE AI – โยกให้สุด.mp3"
+)
 
 WHITE, GREEN, YELLOW, RED, GRAY = (255, 255, 255), (80, 220, 80), (0, 220, 255), (60, 60, 255), (200, 200, 200)
+
+
+def start_default_music():
+    """เล่นเพลงเริ่มต้นวนซ้ำระหว่างเซสชัน ถ้าไม่มีไฟล์หรืออุปกรณ์เสียงให้แจ้งเตือน"""
+    if not DEFAULT_MUSIC_PATH.is_file():
+        print("ไม่พบไฟล์เพลงเริ่มต้น:", DEFAULT_MUSIC_PATH)
+        return None
+
+    try:
+        import pygame
+    except ImportError as error:
+        print("เล่นเพลงไม่ได้ กรุณาติดตั้งแพ็กเกจจาก requirements.txt:", error)
+        return None
+
+    try:
+        pygame.mixer.init()
+        pygame.mixer.music.load(str(DEFAULT_MUSIC_PATH))
+        pygame.mixer.music.set_volume(0.35)
+        pygame.mixer.music.play(-1)
+    except pygame.error as error:
+        pygame.mixer.quit()
+        print("เปิดเพลงเริ่มต้นไม่ได้:", error)
+        return None
+    return pygame
 
 
 class SessionAbort(Exception):
@@ -323,6 +351,7 @@ def main():
         detector.close()
         return 1
 
+    music_player = start_default_music()
     try:
         print("เริ่มเล่น! ยืนให้เห็นทั้งตัวในกล้อง (กด n ข้ามท่า, q ออก)")
         WorkoutApp(camera, detector, tracker).run_session(chosen)
@@ -330,6 +359,9 @@ def main():
         print("เกิดข้อผิดพลาดเกี่ยวกับกล้อง:\n", error)
         return 1
     finally:
+        if music_player is not None:
+            music_player.mixer.music.stop()
+            music_player.mixer.quit()
         detector.close()
         camera.close_camera()
         cv2.destroyAllWindows()

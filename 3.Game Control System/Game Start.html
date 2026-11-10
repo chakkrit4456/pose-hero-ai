@@ -851,6 +851,7 @@ main:has(#done:not([hidden])){max-width:820px}
 <section id="setup" class="card" hidden>
   <h2>เลือกท่าสำหรับผู้ที่เป็นออฟฟิศซินโดรม</h2>
   <div class="f" id="musbox" hidden><label for="mus">เพลงประกอบ</label><span class="row"><select id="mus"></select><button id="mus-prev" type="button">▶ ฟังตัวอย่าง</button></span></div>
+  <div class="f" id="musvolbox" hidden><label for="mus-vol">ระดับเสียงเพลง <span id="mus-volv"></span></label><span style="flex:1;max-width:340px"><input type="range" id="mus-vol" min="0" max="100" step="5" style="width:100%"></span></div>
   <div class="pain-box" data-pain></div>
   <div id="list"></div>
   <div class="setup-bar">
@@ -3251,22 +3252,32 @@ function fillSongSelect(sel,autoLabel,offLabel,value){
 }
 function fillMusic(){
   const box=$('musbox');
+  $('musvolbox').hidden=!musicList.length;
+  syncMusicVol();
   if(!musicList.length){box.hidden=true;return}
   box.hidden=false;fillSongSelect($('mus'),'อัตโนมัติ — ตามระดับความยาก','ไม่เปิดเพลง',musicChoice());
 }
 $('mus').onchange=()=>{cfg.musicChoice=$('mus').value;saveCfg();musicStop();mLoaded=null;};
+$('mus-vol').oninput=()=>setVol(+$('mus-vol').value);
 $('mus-prev').onclick=()=>{
   if(mAudio&&!mAudio.paused){musicStop();return}
   if(!musicOn()){$('err').textContent=cfg.muted||cfg.volume<=0?'เสียงปิดอยู่ — เปิดเสียงในตั้งค่าก่อน':'เลือกเพลงก่อนฟังตัวอย่าง';return}
   $('err').textContent='';musicStart();$('mus-prev').textContent='■ หยุดฟัง';
   clearTimeout(mPrevT);mPrevT=setTimeout(musicStop,15000);
 };
+function syncMusicVol(){
+  const slider=$('mus-vol'),label=$('mus-volv');
+  if(!slider||!label)return;
+  slider.value=cfg.volume;
+  label.textContent=cfg.muted?'(ปิดเสียง)':cfg.volume+'%';
+}
 function syncVol(){
   $('s-vol').value=cfg.volume;
   $('s-volv').textContent=cfg.muted?'(ปิดเสียง)':cfg.volume+'%';
   $('s-mute').textContent=cfg.muted||cfg.volume===0?'🔇':'🔊';
+  syncMusicVol();
 }
-function setVol(v){cfg.volume=Math.max(0,Math.min(100,v));if(cfg.volume>0)cfg.muted=false;saveCfg();syncVol();beep(660,80)}
+function setVol(v){cfg.volume=Math.max(0,Math.min(100,v));if(cfg.volume>0)cfg.muted=false;saveCfg();syncVol();applyMusicVol();beep(660,80)}
 $('s-vol').oninput=()=>setVol(+$('s-vol').value);
 $('s-down').onclick=()=>setVol(cfg.volume-10);
 $('s-up').onclick=()=>setVol(cfg.volume+10);
