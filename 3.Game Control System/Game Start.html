@@ -1,5 +1,48 @@
 <!doctype html>
-<html lang="th"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<html lang="th" class="app-loading"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+html.app-loading{overflow:hidden}html.app-loading main{visibility:hidden}
+#app-loading{position:fixed;inset:0;z-index:2147483647;display:grid;place-items:center;padding:24px;background:#080d21;color:#eef4ff;font:16px/1.7 system-ui,sans-serif;text-align:center}
+#app-loading[hidden]{display:none}#app-loading .loading-ring{width:54px;height:54px;border:4px solid #253b5c;border-top-color:#7ce4ec;border-radius:50%;margin:0 auto 20px;animation:loading-turn 1s linear infinite}
+#app-loading h2{font:700 24px/1.4 system-ui,sans-serif;color:#b6baff}#loading-detail{color:#a4b6d5;font-size:14px}#loading-retry{font:inherit;padding:12px 22px;border-radius:12px;border:1px solid #7ce4ec;background:#243b5d;color:white;cursor:pointer}
+@keyframes loading-turn{to{transform:rotate(360deg)}}@media(prefers-reduced-motion:reduce){#app-loading .loading-ring{animation:none}}
+</style><script>/* Runs in the head, before app scripts: no page is exposed until its tasks settle. */
+(() => {
+  const tasks=new Map();let next=0,boot=true,failed=false,lastFocus=null;
+  const el=id=>document.getElementById(id);
+  function paint(){
+    const busy=boot||tasks.size>0||failed;
+    document.documentElement.classList.toggle('app-loading',busy);
+    const main=document.querySelector('main');if(main)main.inert=busy;
+    const screen=el('app-loading');if(!screen)return;screen.hidden=!busy;screen.setAttribute('aria-busy',String(busy));
+    if(!failed){el('loading-message').textContent=[...tasks.values()].pop()||'กำลังเตรียมหน้าเกม…';el('loading-detail').textContent=tasks.size?'กำลังโหลดทรัพยากร '+tasks.size+' รายการ':'กำลังตรวจความพร้อม';}
+    if(!busy&&lastFocus?.isConnected){lastFocus.focus({preventScroll:true});lastFocus=null;}
+  }
+  function fail(message){failed=true;document.documentElement.classList.add('loading-error');paint();if(el('loading-message')){el('loading-message').textContent=message;el('loading-detail').textContent='ตรวจการเชื่อมต่อ แล้วกดลองโหลดใหม่';el('loading-retry').hidden=false;}}
+  window.MRLoading={begin(label){if(!boot&&!tasks.size)lastFocus=document.activeElement;const id=++next;tasks.set(id,label);paint();let done=false;return()=>{if(done)return;done=true;tasks.delete(id);paint();};},fail};
+  window.MRLoading.watchMedia=(media,label)=>{
+    let done=null,timer=0;
+    const finish=()=>{clearTimeout(timer);if(done){done();done=null;}};
+    media.addEventListener('loadstart',()=>{finish();if(!media.getAttribute('src'))return;done=MRLoading.begin(label);timer=setTimeout(finish,12000);});
+    ['canplay','error','emptied','abort'].forEach(event=>media.addEventListener(event,finish));
+  };
+  const timeout=(promise,ms)=>Promise.race([promise,new Promise((_,reject)=>setTimeout(()=>reject(new Error('timeout')),ms))]);
+  document.addEventListener('DOMContentLoaded',async()=>{
+    el('loading-retry').onclick=()=>location.reload();paint();
+    try{
+      if(!window.MRBeginner||!window.MR)throw new Error('scripts');
+      // Fonts have a usable local system fallback; critical image/script failures do not.
+      if(document.fonts)await timeout(document.fonts.ready,5000).catch(()=>{});
+      await timeout(Promise.all([...document.images].filter(i=>!i.closest('[hidden]')).map(i=>i.decode())),15000);
+      boot=false;paint();
+    }catch(e){fail('โหลดข้อมูลหน้าเกมไม่สำเร็จ');}
+  });
+  window.addEventListener('error',event=>{
+    if(boot&&(event.target?.tagName==='SCRIPT'||event.error))fail('โหลดระบบเกมไม่สำเร็จ');
+  },true);
+  setTimeout(()=>{if(boot&&!failed)fail('การโหลดหน้าเกมใช้เวลานานเกินไป');},25000);
+})();
+</script>
 <title>Pose Hero AI — ขยับกาย ทลายเมื่อย</title>
 <link rel="icon" type="image/png" href="assets/pose-hero-logo-mascot-v3.png">
 <script>try{var t=JSON.parse(localStorage.getItem('move-relieve-settings')||'{}').theme;if(t==='dark'||t==='light')document.documentElement.setAttribute('data-theme',t)}catch(e){}</script>
@@ -834,26 +877,26 @@ body:has(#home:not([hidden])) .site-header button{color:#dce6ff;background:#ffff
 @media(prefers-reduced-motion:reduce){.stage-orbit,#lobby-character .mascot{animation:none!important}}
 .lobby-scene canvas{opacity:1}
 .lobby-scene::after{background:linear-gradient(90deg,#080c20c9,transparent 75%),linear-gradient(0deg,#080c2020,transparent 30%)}
-#home.lobby-webgl-ready .lobby-stage{visibility:hidden}
+#home:is(.lobby-webgl-ready,.lobby-2d-ready) .lobby-stage{visibility:hidden}
 .lobby-finale{min-height:85vh;display:flex;flex-direction:column;justify-content:center;padding:70px 0 30px;color:#eff3ff;gap:80px}
 .lobby-finale h3{font-size:clamp(30px,4vw,54px);line-height:1.4;margin:15px 0}
 .lobby-finale p:not(.eyebrow){font-size:14px;color:#a7b8d7;line-height:1.9;margin-bottom:25px}
 .lobby-finale>span{font-size:12px;color:#a3b7d5}
 .site-header .brand-text{position:absolute!important;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
-#home.lobby-webgl-ready .mode-grid{width:48%;grid-template-columns:1fr}
-#home.lobby-webgl-ready .lobby-quick,#home.lobby-webgl-ready .home-secondary{width:48%}
-#home.lobby-webgl-ready .lobby-finale>div{max-width:48%}
+#home:is(.lobby-webgl-ready,.lobby-2d-ready) .mode-grid{width:48%;grid-template-columns:1fr}
+#home:is(.lobby-webgl-ready,.lobby-2d-ready) .lobby-quick,#home:is(.lobby-webgl-ready,.lobby-2d-ready) .home-secondary{width:48%}
+#home:is(.lobby-webgl-ready,.lobby-2d-ready) .lobby-finale>div{max-width:48%}
 @media(max-width:760px){
   body:has(#home:not([hidden])) .lobby-scene{position:sticky;top:0;height:44vh;z-index:5;pointer-events:auto;touch-action:pan-y;margin:0 -16px 18px;width:calc(100% + 32px);border-bottom:1px solid #7290b84d}
   body:has(#home:not([hidden])) .lobby-scene::after{display:none}
-  #home.lobby-webgl-ready .lobby-stage{display:none}
-  #home.lobby-webgl-ready .mode-grid,#home.lobby-webgl-ready .lobby-quick,#home.lobby-webgl-ready .home-secondary{width:100%}
-  #home.lobby-webgl-ready .lobby-finale>div{max-width:100%}
+  #home:is(.lobby-webgl-ready,.lobby-2d-ready) .lobby-stage{display:none}
+  #home:is(.lobby-webgl-ready,.lobby-2d-ready) .mode-grid,#home:is(.lobby-webgl-ready,.lobby-2d-ready) .lobby-quick,#home:is(.lobby-webgl-ready,.lobby-2d-ready) .home-secondary{width:100%}
+  #home:is(.lobby-webgl-ready,.lobby-2d-ready) .lobby-finale>div{max-width:100%}
   html:has(#home:not([hidden])){scroll-padding-top:calc(44vh + 20px)}
 }
 .site-header .brand-logo,body:has(#home:not([hidden])) .site-header .brand-logo{width:240px;height:102px;object-fit:contain;background:transparent;border:0;border-radius:0}
 @media(max-width:760px){.site-header .brand-logo,body:has(#home:not([hidden])) .site-header .brand-logo{width:160px;height:68px}}
-@media(max-width:760px){.lobby-finale{min-height:100vh;justify-content:flex-end;padding-bottom:25px;gap:24px}.lobby-finale h3{font-size:28px}.lobby-finale>div{padding:18px;border-radius:16px;background:#080c20bd}.lobby-scene::after{background:linear-gradient(0deg,#080c2066,transparent 75%)}#home.lobby-webgl-ready .lobby-stage{height:350px}}
+@media(max-width:760px){.lobby-finale{min-height:100vh;justify-content:flex-end;padding-bottom:25px;gap:24px}.lobby-finale h3{font-size:28px}.lobby-finale>div{padding:18px;border-radius:16px;background:#080c20bd}.lobby-scene::after{background:linear-gradient(0deg,#080c2066,transparent 75%)}#home:is(.lobby-webgl-ready,.lobby-2d-ready) .lobby-stage{height:350px}}
 
 /* Keep the character visible on phones AND tablets, including landscape touch screens.
    Match this query with compact in lobby-scene.js; the camera measures this panel. */
@@ -867,18 +910,18 @@ body:has(#home:not([hidden])) .site-header button{color:#dce6ff;background:#ffff
   }
   body:has(#home:not([hidden])) .lobby-scene canvas{width:100%;height:100%;touch-action:pan-y pinch-zoom}
   body:has(#home:not([hidden])) .lobby-scene::after{display:none}
-  #home.lobby-webgl-ready .lobby-stage{display:none}
+  #home:is(.lobby-webgl-ready,.lobby-2d-ready) .lobby-stage{display:none}
   #home .lobby-hero{grid-template-columns:1fr;min-height:0;gap:0}
   #home .lobby-copy{text-align:center}
   #home .page-intro{margin-inline:auto}
   #home .lobby-features{justify-content:center}
-  #home.lobby-webgl-ready .mode-grid{width:100%;grid-template-columns:repeat(2,minmax(0,1fr))}
-  #home.lobby-webgl-ready .lobby-quick,#home.lobby-webgl-ready .home-secondary{width:100%}
-  #home.lobby-webgl-ready .lobby-finale>div{max-width:100%}
+  #home:is(.lobby-webgl-ready,.lobby-2d-ready) .mode-grid{width:100%;grid-template-columns:repeat(2,minmax(0,1fr))}
+  #home:is(.lobby-webgl-ready,.lobby-2d-ready) .lobby-quick,#home:is(.lobby-webgl-ready,.lobby-2d-ready) .home-secondary{width:100%}
+  #home:is(.lobby-webgl-ready,.lobby-2d-ready) .lobby-finale>div{max-width:100%}
   #home .lobby-finale{min-height:calc(100svh - clamp(160px,44svh,480px));justify-content:flex-end;padding:30px 0 24px;gap:24px}
   html:has(#home:not([hidden])){scroll-padding-top:calc(clamp(160px,44vh,480px) + 20px);scroll-padding-top:calc(clamp(160px,44svh,480px) + 20px)}
 }
-@media(max-width:600px){#home.lobby-webgl-ready .mode-grid{grid-template-columns:1fr}}
+@media(max-width:600px){#home:is(.lobby-webgl-ready,.lobby-2d-ready) .mode-grid{grid-template-columns:1fr}}
 @media(max-height:500px) and (max-width:1100px){
   #home .lobby-finale{padding:12px 0;gap:8px}
   #home .lobby-finale .eyebrow,#home .lobby-finale>span{display:none}
@@ -904,8 +947,18 @@ body:has(#home:not([hidden])) .site-header button{color:#dce6ff;background:#ffff
   #home .lobby-finale{min-height:0;padding:32px 0 20px;gap:12px}
   html:has(#home:not([hidden])){scroll-padding-top:16px}
 }
+
+.lobby-fallback,.lobby-fallback img{display:block;width:100%;height:100%}.lobby-fallback{position:absolute;inset:0}.lobby-fallback img{object-fit:cover;object-position:center}
+.lobby-audio{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:14px 0;color:#c0d0ea;font-size:12px}
+.lobby-audio button{font-size:12px;min-height:44px;background:#172840;border:1px solid #6c89b94d;color:#e2edff}
+#lobby-music-toggle{width:44px;height:44px;min-width:44px;padding:10px;display:inline-grid;place-items:center}
+.lobby-audio label{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.lobby-audio input{width:120px;min-height:44px}
+.lobby-audio span{color:#a0b5d7;overflow-wrap:anywhere}
 </style></head><body>
-<main>
+<div id="app-loading" role="status" aria-live="polite" aria-busy="true"><div><div class="loading-ring" aria-hidden="true"></div><h2>POSE HERO AI</h2><p id="loading-message">กำลังเตรียมหน้าเกม…</p><p id="loading-detail">กรุณารอสักครู่</p><button id="loading-retry" type="button" hidden>ลองโหลดใหม่</button></div></div>
+<noscript><style>#app-loading{display:none}html.app-loading{overflow:auto}html.app-loading main{visibility:visible}</style><p>กรุณาเปิด JavaScript เพื่อเล่นเกมนี้</p></noscript>
+<main inert>
 <header class="site-header"><img class="brand-logo" src="assets/pose-hero-logo-mascot-v3.png" alt="Pose Hero AI — โลโก้มาสคอต" width="240" height="102"><div class="brand-text"><h1>POSE HERO AI</h1><p>ขยับกาย ทลายเมื่อย · Move &amp; Relieve</p></div><button class="help-launch" type="button">วิธีเล่น / ช่วยเหลือ</button></header>
 
 <section id="home" class="card game-lobby">
@@ -948,7 +1001,7 @@ body:has(#home:not([hidden])) .site-header button{color:#dce6ff;background:#ffff
   <div class="f"><label for="s-cd">นับถอยหลังก่อนเริ่ม (วินาที)</label><input type="number" id="s-cd" min="0" max="10"></div>
   <div class="f"><label for="s-demo">เวลาดูท่าตัวอย่างก่อนเริ่มแต่ละท่า (วินาที, 0 = เริ่มเลย)</label><input type="number" id="s-demo" min="0" max="30"></div>
   <div class="f"><label for="s-rest">พักระหว่างท่า (วินาที)</label><input type="number" id="s-rest" min="1" max="60"></div>
-  <div class="f"><label for="s-vol">เสียง <span id="s-volv"></span></label>
+  <div class="f"><label for="s-vol">เสียงหลัก <span id="s-volv"></span></label>
     <span style="display:flex;gap:8px;align-items:center;flex:1;max-width:300px">
       <button id="s-down" type="button" aria-label="ลดเสียง">−</button>
       <input type="range" id="s-vol" min="0" max="100" step="5" style="flex:1">
@@ -958,6 +1011,10 @@ body:has(#home:not([hidden])) .site-header button{color:#dce6ff;background:#ffff
   <div class="f"><label for="s-cam">เปิดกล้องอัตโนมัติเมื่อเริ่มเกม</label><input type="checkbox" id="s-cam"></div>
   <div class="f"><label for="s-camid">เลือกกล้อง</label><select id="s-camid" style="width:100%;max-width:300px;padding:6px 8px"><option value="">กล้องเริ่มต้น</option></select></div>
   <div class="f"><label for="s-read">อ่านขั้นตอนท่าออกเสียงตอนดูตัวอย่าง (เพลงจะเบาลงให้ได้ยินชัด)</label><input type="checkbox" id="s-read"></div>
+  <div class="f"><label for="s-lobby-2d">ใช้ฉากพื้นหลัง 2D บนหน้าหลัก (ลดการใช้ทรัพยากร)</label><input type="checkbox" id="s-lobby-2d"></div>
+  <div class="f"><label for="s-lobby-music">เปิดเพลงคลอหน้าหลัก (สุ่มเพลง)</label><input type="checkbox" id="s-lobby-music"></div>
+  <div class="f"><label for="s-lobby-vol">เพลงหน้าหลัก <span id="s-lobby-volv">25%</span> ของเสียงหลัก</label><input type="range" id="s-lobby-vol" min="0" max="100" step="1"></div>
+  <div class="f"><label for="s-game-vol">เพลงในเกม <span id="s-game-volv">60%</span> ของเสียงหลัก</label><input type="range" id="s-game-vol" min="0" max="100" step="1"></div>
   <div class="f"><label for="s-3d">ใช้หุ่นสอน 3D (ถ้าเครื่องช้า เกมจะสลับเป็นหุ่น 2D ให้เอง)</label><input type="checkbox" id="s-3d"></div>
   <div class="f"><label for="s-ang">แสดงค่ามุมสดตอนเล่น (ไว้ปรับท่า)</label><input type="checkbox" id="s-ang"></div>
   <div class="f"><label for="s-ai">ใช้ AI จับท่าทาง (โครงกระดูก + ให้คะแนน)</label><input type="checkbox" id="s-ai"></div>
@@ -3292,7 +3349,7 @@ const show=n=>{if(n!=='manage'&&!$('manage').hidden&&window.S2&&S2.confirmLeaveE
 function go(page){
   if(page==='setup')renderList();
   if(page==='level')renderLevels();
-  if(page==='settings'){$('s-name').value=cfg.playerName;$('s-cd').value=cfg.countdownSec;$('s-rest').value=cfg.restSec;$('s-demo').value=cfg.demoSec;$('s-err').textContent='';syncVol();$('s-cam').checked=cfg.autoCam;$('s-ai').checked=cfg.ai;$('s-ang').checked=cfg.showAngles;$('s-read').checked=cfg.readSteps;$('s-3d').checked=cfg.teacher3d!==false;$('s-chain').checked=cfg.chainStep!==false;{const rm=WM.normalize(cfg.remind);$('s-rem').checked=rm.enabled;$('s-rem-int').value=rm.intervalMin;$('s-rem-s').value=rm.startHour;$('s-rem-e').value=rm.endHour;$('s-bk-msg').textContent='';$('s-rem-msg').textContent=''}fillCameras();}
+  if(page==='settings'){$('s-lobby-2d').checked=!!cfg.lobbyBackground2d;$('s-lobby-music').checked=cfg.lobbyMusicEnabled!==false;$('s-lobby-vol').value=cfg.lobbyMusicVolume??25;$('s-game-vol').value=cfg.gameMusicVolume??60;$('s-lobby-volv').textContent=$('s-lobby-vol').value+'%';$('s-game-volv').textContent=$('s-game-vol').value+'%';$('s-name').value=cfg.playerName;$('s-cd').value=cfg.countdownSec;$('s-rest').value=cfg.restSec;$('s-demo').value=cfg.demoSec;$('s-err').textContent='';syncVol();$('s-cam').checked=cfg.autoCam;$('s-ai').checked=cfg.ai;$('s-ang').checked=cfg.showAngles;$('s-read').checked=cfg.readSteps;$('s-3d').checked=cfg.teacher3d!==false;$('s-chain').checked=cfg.chainStep!==false;{const rm=WM.normalize(cfg.remind);$('s-rem').checked=rm.enabled;$('s-rem-int').value=rm.intervalMin;$('s-rem-s').value=rm.startHour;$('s-rem-e').value=rm.endHour;$('s-bk-msg').textContent='';$('s-rem-msg').textContent=''}fillCameras();}
   if(page!=='settings'){C.stopCamera($('s-prev'));$('s-prev').hidden=true;$('s-camtest').textContent='ทดสอบกล้อง';}
   if(page==='home')renderHome();
   if(st.status==='finished')E.resetGame(st);
@@ -3301,9 +3358,9 @@ function go(page){
 
 // ---- การตั้งค่า (เก็บใน localStorage ถ้าใช้ได้) ----
 const KEY='move-relieve-settings';
-let cfg={playerName:'ผู้เล่น',countdownSec:3,restSec:5,difficulty:'normal',volume:60,muted:false,theme:'auto',autoCam:true,musicChoice:'auto',ai:true,showAngles:false,danceMusic:false,readSteps:true,cameraId:'',demoSec:8,ffSong:'auto',teacher3d:true,chainStep:true,remind:{enabled:false,intervalMin:60,startHour:9,endHour:18}};
+let cfg={playerName:'ผู้เล่น',countdownSec:3,restSec:5,difficulty:'normal',volume:60,muted:false,theme:'auto',autoCam:true,musicChoice:'auto',ai:true,showAngles:false,danceMusic:false,readSteps:true,cameraId:'',demoSec:8,ffSong:'auto',teacher3d:true,chainStep:true,lobbyBackground2d:false,lobbyMusicEnabled:true,lobbyMusicVolume:25,gameMusicVolume:60,remind:{enabled:false,intervalMin:60,startHour:9,endHour:18}};
 try{Object.assign(cfg,JSON.parse(localStorage.getItem(KEY)||'{}'))}catch(e){}
-const saveCfg=()=>{try{localStorage.setItem(KEY,JSON.stringify(cfg));return true}catch(e){notify('บันทึกการตั้งค่าไม่ได้ กรุณาสำรองข้อมูลหรือตรวจพื้นที่เบราว์เซอร์','warn',true);return false}};
+const saveCfg=()=>{try{localStorage.setItem(KEY,JSON.stringify(cfg));window.dispatchEvent(new Event('mr-config-change'));return true}catch(e){notify('บันทึกการตั้งค่าไม่ได้ กรุณาสำรองข้อมูลหรือตรวจพื้นที่เบราว์เซอร์','warn',true);return false}};
 
 let st,last=0,raf=0;
 function newState(keepQueue){
@@ -3409,7 +3466,7 @@ function nowPlaying(){
   $('mnext').hidden=!(musicOn()&&musicChoice()!=='' &&!musicUrls.includes(musicChoice())&&mPool.length>1);
 }
 // ระดับเสียงเพลง: ปกติ = 35% ของระดับเสียงที่ตั้ง  ระหว่างมีเสียงพูดหรือช่วงดูท่าตัวอย่าง หรี่เหลือ 18% ของค่านั้น
-const musicTarget=()=>Math.min(1,cfg.volume/100*0.6)*(duckSpeech?0.35:duckDemo?0.6:1);
+const musicTarget=()=>Math.min(1,cfg.volume/100*Math.max(0,Math.min(100,+cfg.gameMusicVolume||0))/100)*(duckSpeech?0.35:duckDemo?0.6:1);
 function applyMusicVol(){
   if(!mAudio)return;
   clearInterval(duckTimer);
@@ -3432,7 +3489,7 @@ function musicPlay(){
 }
 function musicLoad(){
   if(!mAudio){
-    mAudio=new Audio();
+    mAudio=new Audio();if(window.MRLoading)MRLoading.watchMedia(mAudio,'กำลังเตรียมเพลงประกอบ…');
     mAudio.addEventListener('ended',()=>musicNext());
     mAudio.addEventListener('error',()=>{
       if(!mAudio.getAttribute('src'))return;
@@ -3495,7 +3552,7 @@ function fillMusic(){
   box.hidden=false;fillSongSelect($('mus'),'อัตโนมัติ — ตามระดับความยาก','ไม่เปิดเพลง',musicChoice());
 }
 $('mus').onchange=()=>{cfg.musicChoice=$('mus').value;saveCfg();musicStop();mLoaded=null;};
-$('mus-vol').oninput=()=>setVol(+$('mus-vol').value);
+$('mus-vol').oninput=()=>{cfg.gameMusicVolume=+$('mus-vol').value;saveCfg();syncMusicVol();applyMusicVol()};
 $('mus-prev').onclick=()=>{
   if(mAudio&&!mAudio.paused){musicStop();return}
   if(!musicOn()){$('err').textContent=cfg.muted||cfg.volume<=0?'เสียงปิดอยู่ — เปิดเสียงในตั้งค่าก่อน':'เลือกเพลงก่อนฟังตัวอย่าง';return}
@@ -3505,8 +3562,8 @@ $('mus-prev').onclick=()=>{
 function syncMusicVol(){
   const slider=$('mus-vol'),label=$('mus-volv');
   if(!slider||!label)return;
-  slider.value=cfg.volume;
-  label.textContent=cfg.muted?'(ปิดเสียง)':cfg.volume+'%';
+  slider.value=cfg.gameMusicVolume??60;
+  label.textContent=cfg.muted?'(ปิดเสียงหลัก)':slider.value+'% ของเสียงหลัก';
 }
 function syncVol(){
   $('s-vol').value=cfg.volume;
@@ -3566,7 +3623,7 @@ $('s-save').onclick=()=>{
   cfg.autoCam=$('s-cam').checked;cfg.ai=$('s-ai').checked;cfg.showAngles=$('s-ang').checked;cfg.readSteps=$('s-read').checked;cfg.teacher3d=$('s-3d').checked;if(!cfg.readSteps&&activeUtt&&activeUtt.isSteps)stopSpeech();cfg.cameraId=$('s-camid').value;C.stopCamera($('s-prev'));$('s-prev').hidden=true;$('s-camtest').textContent='ทดสอบกล้อง';
   const dm=+$('s-demo').value;if(!Number.isInteger(dm)||dm<0||dm>30)return $('s-err').textContent='เวลาท่าตัวอย่างต้องเป็นจำนวนเต็ม 0-30';
   cfg.demoSec=dm;cfg.playerName=name||'ผู้เล่น';cfg.countdownSec=cd;cfg.restSec=rest;
-  cfg.chainStep=$('s-chain').checked;
+  cfg.chainStep=$('s-chain').checked;cfg.lobbyBackground2d=$('s-lobby-2d').checked;cfg.lobbyMusicEnabled=$('s-lobby-music').checked;cfg.lobbyMusicVolume=+$('s-lobby-vol').value;cfg.gameMusicVolume=+$('s-game-vol').value;
   cfg.remind=WM.normalize({enabled:$('s-rem').checked,intervalMin:+$('s-rem-int').value,startHour:+$('s-rem-s').value,endHour:+$('s-rem-e').value});remRebuild();
   if(saveCfg())notify('บันทึกการตั้งค่าแล้ว','good',true);
   st.playerName=cfg.playerName;st.countdownSec=cd;st.restSec=rest;
@@ -3666,7 +3723,7 @@ function render(){
 }
 const detector=C.createMotionRepDetector({onRep:()=>P.registerRep(st)});
 function loop(now){
-  const d=now-last;last=now;const hold=demoTick(d);if(!hold)P.tick(st,d);
+  const d=now-last;last=now;if(document.documentElement.classList.contains('app-loading')){raf=requestAnimationFrame(loop);return;}const hold=demoTick(d);if(!hold)P.tick(st,d);
   if(hold){if(runnerIdx!==-2){runner=null;runnerIdx=-2;}aiPreview();} // กำลังดูท่าตัวอย่าง: หยุดเวลาเกมและการนับ แต่ยังแสดงโครงกระดูกของผู้เล่น เริ่มตัวนับใหม่เมื่อจบช่วงนี้
   else if(aiOn)aiFrame(now);
   else if(C.isCameraOn()){
@@ -3716,10 +3773,11 @@ function teacher3Init(){
   teacher3Tried=true;
   const cv=$('demo-3d');
   cv.addEventListener('webglcontextlost',()=>{teacher3=null},{once:true});
+  const loadingDone=window.MRLoading?MRLoading.begin('กำลังเตรียมหุ่นสอน 3D…'):()=>{};
   try{
     const bytes=Uint8Array.from(atob(window.MR_TEACHER_B64),c=>c.charCodeAt(0));
-    MRTeacher3D.create(cv,bytes).then(t=>{teacher3=t}).catch(e=>console.warn('หุ่น 3D ใช้ไม่ได้:',e));
-  }catch(e){console.warn('หุ่น 3D ใช้ไม่ได้:',e)}
+    MRTeacher3D.create(cv,bytes).then(t=>{teacher3=t}).catch(e=>console.warn('หุ่น 3D ใช้ไม่ได้:',e)).finally(loadingDone);
+  }catch(e){loadingDone();console.warn('หุ่น 3D ใช้ไม่ได้:',e)}
 }
 // วาดหุ่น 3D ได้ไหม: เครื่องวาดไม่ทันติดกันนานเกิน 4 วินาที = สลับเป็นหุ่น 2D ไปตลอดรอบการใช้งาน
 function teacher3Draw(lm,t){
@@ -3837,6 +3895,7 @@ function aiFrame(now){
 }
 function stopCam(){$('angles').hidden=true;C.stopCamera($('cam'));if(aiCam)aiCam.close();aiOn=false;runner=null;runnerIdx=-2;clearOv();$('cam').hidden=true;$('mbar').hidden=true;$('camtog').textContent='เปิดกล้อง';}
 async function startPlayCam(){
+  const loadingDone=window.MRLoading?MRLoading.begin('กำลังเตรียมกล้องและระบบตรวจท่า…'):()=>{};
   try{
     if(aiMode()){
       $('camerr').textContent='กำลังเตรียมระบบตรวจท่า กรุณารอสักครู่…';await aiCam.prepareModel();
@@ -3844,7 +3903,7 @@ async function startPlayCam(){
     }else await C.startCamera($('cam'),cfg.cameraId);
     const vv=$('cam');if(vv.videoWidth&&vv.videoHeight)document.querySelector('.camwrap').style.setProperty('--asp',vv.videoWidth/vv.videoHeight);
     $('cam').hidden=false;$('mbar').hidden=false;detector.reset();$('camerr').textContent='';$('camtog').textContent='ปิดกล้อง';
-  }catch(e){aiOn=false;$('camerr').textContent=(e.message||'เปิดกล้องไม่ได้')+' — ใช้ปุ่มกดนับแทนได้';$('camtog').textContent='ลองเปิดกล้องอีกครั้ง';}
+  }catch(e){aiOn=false;$('camerr').textContent=(e.message||'เปิดกล้องไม่ได้')+' — ใช้ปุ่มกดนับแทนได้';$('camtog').textContent='ลองเปิดกล้องอีกครั้ง';}finally{loadingDone();}
 }
 $('camtog').onclick=()=>{if(aiOn||C.isCameraOn())stopCam();else startPlayCam()};
 function finish(){
@@ -3964,7 +4023,7 @@ const DIMG={x:{img:'ซ้ายบน.jpg'},u:{img:'ซ้าย.jpg',fx:'filte
 const DKEYS={x:'Q',u:'↑',o:'E',l:'←',r:'→',tri:'Z',d:'↓',sq:'C'};
 const DJTEXT={perfect:'PERFECT!',great:'GREAT',good:'GOOD',miss:'MISS'};
 const D_LEAD=900;
-let dCells={},dPhase='menu',dGame=null,dT0=0,dRaf=0,dLevel='normal',dTick=-1,dChart=null,dRes=null,dBest=null,dJT=0,dCountSaid=-1,dCardTok=0;
+let dCells={},dPhase='menu',dGame=null,dT0=0,dRaf=0,dLevel='normal',dTick=-1,dChart=null,dRes=null,dBest=null,dJT=0,dCountSaid=-1,dCardTok=0,dLoadingAt=0;
 function buildDpad(){
   const box=$('dpad');if(box.childElementCount)return;
   const ids=Object.keys(DPOS);
@@ -4013,6 +4072,7 @@ function paintDanceTargets(now){
 }
 function danceLoop(){
   if(dPhase!=='play')return;
+  const real=performance.now();if(document.documentElement.classList.contains('app-loading')){if(!dLoadingAt)dLoadingAt=real;dRaf=requestAnimationFrame(danceLoop);return;}if(dLoadingAt){dT0+=real-dLoadingAt;dLoadingAt=0;}
   const now=performance.now()-dT0,ctr=$('d-center');
   if(now<0){
     const n=Math.ceil(-now/1000);ctr.textContent=n;ctr.className='';
@@ -4031,7 +4091,7 @@ function danceLoop(){
 function danceStart(level){
   if(!DPAD)return;
   dLevel=level;dChart=DC.makeChart(level);dGame=new DJ.DanceGame(dChart.notes);
-  dPhase='play';dTick=-1;dCountSaid=-1;dT0=performance.now()+3000;
+  dPhase='play';dLoadingAt=0;dTick=-1;dCountSaid=-1;dT0=performance.now()+3000;
   $('d-menu').hidden=true;$('d-result').hidden=true;$('d-playbar').hidden=false;$('d-hud').hidden=false;$('d-prog').hidden=false;$('dpad').hidden=false;
   $('d-score').textContent='0';$('d-combo').textContent='0';$('d-acc').textContent='0%';$('d-bar').style.width='0';
   if(cfg.danceMusic){musicStop();mForce=DC.LEVELS[level].music;mLoaded=null;musicStart();}
@@ -4278,7 +4338,7 @@ function ffLoop(){
   const real=performance.now(),dt=real-ffLast;ffLast=real;let now=0;
   if(ffPhase==='play'&&ffGame){
     // แผ่นหลุดหรือแท็บถูกซ่อนจนเฟรมขาดช่วง: หยุดนาฬิกาเกม ไม่ให้ไอคอนกลายเป็น MISS ทั้งที่ผู้เล่นไม่ได้พลาด
-    ffFrozen=!DPAD.gamepad;
+    ffFrozen=!DPAD.gamepad||document.documentElement.classList.contains('app-loading');
     if(ffSong&&ffFrozen!==ffPausedSong){ffPausedSong=ffFrozen;if(ffFrozen)musicPause();else musicPlay();} // แผ่นหลุด เพลงหยุดรอด้วย
     if(ffFrozen||dt>500)ffT0+=dt;
     now=real-ffT0;
@@ -4480,12 +4540,13 @@ function csRender(r){
 async function csStart(){
   if(csOn)return;
   if(typeof AI==='undefined'||!AI||!aiCam){$('cs-msg').textContent='ระบบตรวจท่ายังไม่พร้อม กลับหน้าแรกแล้วลองใหม่ หรือลองโหลดหน้าเว็บอีกครั้ง';return}
+  const loadingDone=window.MRLoading?MRLoading.begin('กำลังเตรียมกล้องและระบบตรวจท่า…'):()=>{};
   $('cs-msg').textContent='กำลังโหลดโมเดล AI และเปิดกล้อง…';$('cs-toggle').disabled=true;
   try{
     await aiCam.prepareModel();await aiCam.open($('cs-video'),cfg.cameraId);
     csOn=true;csTr=new MR.JointTracker();csSig='';$('cs-msg').textContent='';$('cs-toggle').textContent='ปิดกล้อง';csLoop();
   }catch(e){$('cs-msg').textContent='เปิดกล้องไม่ได้: '+(e.name==='NotAllowedError'?'ยังไม่ได้อนุญาตกล้อง':e.message)}
-  $('cs-toggle').disabled=false;if(window.MRBeginner&&!csOn)MRBeginner.cameraStatus(false,'เปิดกล้องไม่สำเร็จ กดเปิดกล้องเพื่อลองใหม่');
+  loadingDone();$('cs-toggle').disabled=false;if(window.MRBeginner&&!csOn)MRBeginner.cameraStatus(false,'เปิดกล้องไม่สำเร็จ กดเปิดกล้องเพื่อลองใหม่');
 }
 function csStop(){csOn=false;cancelAnimationFrame(csRaf);try{if(aiCam)aiCam.close()}catch(e){}$('cs-toggle').textContent='เปิดกล้อง';if(window.MRBeginner)MRBeginner.cameraStatus(false,'กล้องปิดอยู่ กดเปิดกล้องเพื่อตรวจตำแหน่ง');}
 function csLoop(){
@@ -4643,8 +4704,8 @@ if(location.hash.startsWith('#manage')&&!$('m-manage').disabled){$('m-manage').c
   const groups=[
     ['หน้าตาและผู้เล่น',['s-theme','s-name']],
     ['เวลาและการเล่น',['s-cd','s-demo','s-rest','s-chain']],
-    ['เสียงและคำบรรยาย',['s-vol','s-read']],
-    ['กล้องและตัวอย่างท่า',['s-cam','s-camid','s-3d','s-ai','s-camtest','s-prev']],
+    ['เสียงและคำบรรยาย',['s-vol','s-read','s-lobby-music','s-lobby-vol','s-game-vol']],
+    ['กล้องและตัวอย่างท่า',['s-cam','s-camid','s-lobby-2d','s-3d','s-ai','s-camtest','s-prev']],
     ['เตือนให้พัก',['s-rem','s-rem-int','s-rem-msg']],
     ['ข้อมูลและความปลอดภัย',['s-bk','s-bk-msg']],
     ['ขั้นสูง: สำหรับปรับระบบ',['s-ang']],
@@ -4666,6 +4727,7 @@ if(location.hash.startsWith('#manage')&&!$('m-manage').disabled){$('m-manage').c
     's-rem':'เตือนเฉพาะเมื่อเปิดหน้าเกมค้างไว้ และไม่รบกวนขณะเล่น',
   };
   Object.entries(fieldHints).forEach(([id,text])=>{const label=setting.querySelector('label[for="'+id+'"]');if(label){const hint=document.createElement('small');hint.className='field-help';hint.id=id+'-help';hint.textContent=text;label.append(hint);byId(id).setAttribute('aria-describedby',hint.id);}});
+  ['s-lobby-vol','s-game-vol'].forEach(id=>{byId(id).oninput=()=>byId(id+'v').textContent=byId(id).value+'%';});
   const sound=document.createElement('div');sound.className='row';sound.innerHTML='<button type="button">ทดสอบเสียงเตือน</button><button type="button">ทดสอบเสียงพูด</button>';byId('s-read').closest('fieldset').append(sound);sound.children[0].onclick=()=>beep(660,200);sound.children[1].onclick=()=>{speak('ยินดีต้อนรับ ทำท่าตามตัวอย่างได้เลย',660);notify('หากไม่ได้ยินเสียงพูด ให้ตรวจระดับเสียงและเสียงภาษาไทยในเครื่อง','info',true);};
   const state=document.createElement('p');state.id='play-state';state.className='play-state';state.setAttribute('role','status');byId('big').before(state);
   const review=document.createElement('button');review.type='button';review.textContent='ดูวิธีทำอีกครั้ง';byId('end').after(review);review.onclick=()=>{if(!st.current)return;const playing=st.status==='playing';if(playing)byId('pause').click();openPreview(st.current.exercise);};
@@ -4690,7 +4752,8 @@ if(location.hash.startsWith('#manage')&&!$('m-manage').disabled){$('m-manage').c
   const teacherCanvas=document.createElement('canvas');teacherCanvas.width=480;teacherCanvas.height=480;
   function prepareTeacher(){
     if(cardTeacherPromise||cfg.teacher3d===false||!window.MRTeacher3D||!window.MR_TEACHER_B64)return;
-    try{cardTeacherPromise=MRTeacher3D.create(teacherCanvas,Uint8Array.from(atob(MR_TEACHER_B64),c=>c.charCodeAt(0))).then(t=>{cardTeacher=t;if(!byId('setup').hidden)cardsChanged();}).catch(()=>{});}catch(e){}
+    const done=window.MRLoading?MRLoading.begin('กำลังเตรียมภาพตัวอย่างท่า…'):()=>{};
+    try{cardTeacherPromise=MRTeacher3D.create(teacherCanvas,Uint8Array.from(atob(MR_TEACHER_B64),c=>c.charCodeAt(0))).then(t=>{cardTeacher=t;if(!byId('setup').hidden)cardsChanged();}).catch(()=>{}).finally(done);}catch(e){done();}
   }
   function poseFrame(cv,ex,t,skeleton=false){
     if(!cv||!AI||!aiEx[ex.id]){if(cv)drawThumb(cv,ex);return;}
@@ -4769,6 +4832,9 @@ const loadStatus=document.createElement('p');loadStatus.className='lobby-load-st
 document.getElementById('lobby-character').append(mascot);
 const layer=document.createElement('div');layer.className='lobby-scene';layer.setAttribute('aria-hidden','true');
 const canvas=document.createElement('canvas');layer.append(canvas);document.querySelector('.site-header').after(layer);
+let sceneDone=window.MRLoading?MRLoading.begin('กำลังโหลดฉากและมาสคอต 3D…'):()=>{};
+let sceneSettled=false,fallbackReady=false,initTimer=0,generation=0,preferred2d=!!cfg.lobbyBackground2d;
+function finishScene(){if(!sceneSettled){sceneSettled=true;sceneDone();}}
 const reduced=matchMedia('(prefers-reduced-motion: reduce)');
 const compact=matchMedia('(max-width: 1100px), (pointer: coarse) and (max-width: 1400px)');
 const phone=matchMedia('(max-width: 760px), (pointer: coarse) and (max-height: 500px) and (max-width: 1000px)');
@@ -4779,7 +4845,7 @@ const finale=document.createElement('div');finale.className='lobby-finale';
 finale.innerHTML='<div><p class="eyebrow">YOUR NEXT MOVE</p><h3>พร้อมขยับ<br>ไปด้วยกันหรือยัง?</h3><p>เลื่อนกลับขึ้นไปเลือกเกมที่อยากเล่น<br>กล้องและฮีโร่จะกลับไปยังจุดเริ่มต้น</p><a class="lobby-cta" href="#lobby-missions">กลับไปเลือกเกม ↑</a></div><span>เลื่อนขึ้นเพื่อย้อนมุมกล้องและท่าทาง</span>';
 home.append(finale);
 function readScroll(){target=clamp(scrollY/Math.max(1,document.documentElement.scrollHeight-innerHeight));}
-function canMove(){return !paused&&!reduced.matches&&!document.hidden&&!home.hidden;}
+function canMove(){return !failed&&!paused&&!reduced.matches&&!document.hidden&&!home.hidden;}
 function ring(T,r,width,color,opacity=1){
  const g=new T.CircleGeometry(1,128),p=g.attributes.position,indices=[];
  for(let i=0;i<=64;i++)for(let j=0;j<2;j++){const a=i/64*Math.PI*2,rr=r+(j?width:0);p.setXYZ(i*2+j,Math.cos(a)*rr,0,Math.sin(a)*rr);}
@@ -4841,7 +4907,7 @@ function environment(w){
 }
 
 function resize(){
- if(!world||home.hidden)return;
+ if(!world||failed||home.hidden)return;
  const {renderer,camera}=world,rect=layer.getBoundingClientRect();
  if(rect.width<1||rect.height<1)return;
  renderer.setPixelRatio(Math.min(devicePixelRatio||1,compact.matches?1.25:1.5));
@@ -4852,7 +4918,7 @@ function resize(){
 }
 
 function draw(){
- if(!world)return;const {camera,renderer,scene}=world,p=ease(progress),mobile=compact.matches;
+ if(!world||failed)return;const {camera,renderer,scene}=world,p=ease(progress),mobile=compact.matches;
  // Fit the pad horizontally on a portrait full-screen background, even at closest zoom.
  const base=phone.matches?Math.max(5.6,1.25/(2*Math.tan(Math.PI/18)*camera.aspect)+.95):mobile?5.6:5.25;
  const angle=(-35+70*p)*Math.PI/180,distance=base-.95*Math.sin(Math.PI*p);
@@ -4871,17 +4937,33 @@ function draw(){
  canvas.dataset.progress=progress.toFixed(5);canvas.dataset.angle=(-35+70*p).toFixed(3);canvas.dataset.distance=distance.toFixed(4);
 }
 function tick(now){raf=0;if(!canMove()||!world)return;const dt=last?Math.min((now-last)/1000,.1):1/60;last=now;progress+=(target-progress)*(1-Math.exp(-dt/.16));if(Math.abs(progress-target)<.0001)progress=target;draw();if(progress!==target)raf=requestAnimationFrame(tick);else last=0;}
-function fallback(){failed=true;home.classList.remove('lobby-webgl-ready');layer.hidden=true;loadStatus.hidden=false;loadStatus.textContent='โหลดฉาก 3D ไม่สำเร็จ คุณยังเลือกเล่นเกมได้ตามปกติ';button.textContent='ฉาก 3D ไม่พร้อม';button.disabled=true;video.pause();}
+async function fallback(manual=false){
+ if(failed)return;failed=true;generation++;clearTimeout(initTimer);cancelAnimationFrame(raf);video.pause();
+ const fallbackDone=sceneSettled&&window.MRLoading?MRLoading.begin('กำลังเตรียมฉาก 2D สำหรับอุปกรณ์นี้…'):()=>{};
+ home.classList.remove('lobby-webgl-ready');layer.hidden=true;canvas.hidden=true;
+ loadStatus.hidden=false;loadStatus.textContent=manual?'ใช้ฉาก 2D ตามการตั้งค่า':'อุปกรณ์นี้ใช้ฉาก 2D สำรอง คุณยังเลือกเล่นเกมได้ตามปกติ';button.textContent='ฉาก 2D สำรอง';button.disabled=true;
+ const picture=document.createElement('picture');picture.className='lobby-fallback';
+ const source=document.createElement('source');source.media='(max-width:760px) and (orientation:portrait)';source.srcset='assets/office-fallback-portrait.png';
+ const img=document.createElement('img');img.alt='';img.src='assets/office-fallback-wide.png';picture.append(source,img);layer.append(picture);
+ try{
+  await Promise.race([img.decode(),new Promise((_,reject)=>setTimeout(()=>reject(new Error('2D timeout')),15000))]);
+  fallbackReady=true;home.classList.add('lobby-2d-ready');layer.hidden=home.hidden;
+  canvas.dataset.fallback='2d';finishScene();fallbackDone();
+ }catch(e){window.MRLoading?.fail('โหลดฉากสำรองไม่สำเร็จ กรุณาลองโหลดใหม่');}
+}
+
 async function init(){
- if(loaded||failed)return;loaded=true;
+ if(loaded||failed)return;if(sceneSettled){sceneSettled=false;sceneDone=window.MRLoading?MRLoading.begin('กำลังเตรียมฉาก 3D…'):()=>{};}loaded=true;const ticket=++generation;initTimer=setTimeout(()=>fallback(),20000);
  try{
   if(!window.MRTeacher3D||!window.MR_TEACHER_B64)throw new Error('No model');
-  world=await MRTeacher3D.create(canvas,Uint8Array.from(atob(MR_TEACHER_B64),c=>c.charCodeAt(0)));
-  environment(world);home.classList.add('lobby-webgl-ready');video.pause();resize();readScroll();sync();loadStatus.hidden=true;
- }catch(e){console.warn('Lobby 3D fallback:',e);fallback();}
+  const result=await MRTeacher3D.create(canvas,Uint8Array.from(atob(MR_TEACHER_B64),c=>c.charCodeAt(0)));
+  if(failed||ticket!==generation){result.dispose();return;}world=result;
+  environment(world);home.classList.add('lobby-webgl-ready');video.pause();resize();readScroll();sync();loadStatus.hidden=true;clearTimeout(initTimer);finishScene();
+ }catch(e){if(ticket!==generation)return;console.warn('Lobby 3D fallback:',e);fallback();}
 }
 function sync(){
- cancelAnimationFrame(raf);raf=0;last=0;layer.hidden=home.hidden||failed;
+ if(home.hidden&&!loaded&&!failed)finishScene();
+ cancelAnimationFrame(raf);raf=0;last=0;layer.hidden=home.hidden||(failed&&!fallbackReady);
  const stopped=paused||reduced.matches;home.classList.toggle('lobby-motion-off',stopped||document.hidden||home.hidden);
  if(!failed){button.textContent=reduced.matches?'ใช้มุมคงที่ตามการตั้งค่าเครื่อง':paused?'เปิดกล้องเคลื่อนไหว':'หยุดกล้องเคลื่อนไหว';button.setAttribute('aria-pressed',String(stopped));button.disabled=reduced.matches;}
  if(world)video.pause();
@@ -4899,6 +4981,77 @@ if(window.visualViewport)visualViewport.addEventListener('resize',scheduleResize
 compact.addEventListener('change',scheduleResize);
 phone.addEventListener('change',scheduleResize);
 if(window.ResizeObserver)new ResizeObserver(scheduleResize).observe(layer);
-sync();
+window.addEventListener('mr-config-change',()=>{
+ const next=!!cfg.lobbyBackground2d;if(next===preferred2d)return;preferred2d=next;
+ clearTimeout(initTimer);cancelAnimationFrame(raf);generation++;
+ if(world){world.dispose();world=null;}loaded=false;failed=false;fallbackReady=false;
+ layer.querySelector('.lobby-fallback')?.remove();home.classList.remove('lobby-2d-ready','lobby-webgl-ready');
+ sceneSettled=false;sceneDone=window.MRLoading?MRLoading.begin(next?'กำลังเตรียมฉาก 2D…':'กำลังเตรียมฉาก 3D…'):()=>{};
+ if(next)fallback(true);else{canvas.hidden=false;init();}
+});
+if(preferred2d)fallback(true);else sync();
+})();
+</script><script>/* Home ambience has its own player, enabled flag and gain, separate from game music. */
+(() => {
+  const home=document.getElementById('home');if(!home)return;
+  const audio=new Audio();audio.preload='auto';audio.dataset.player='lobby';
+  const bar=document.createElement('div');bar.className='lobby-audio';
+  bar.innerHTML='<button id="lobby-music-toggle" type="button" aria-label="ปิดเพลงหน้าหลัก" aria-pressed="true"></button><label for="lobby-music-volume">เสียงเพลงหน้าหลัก <output id="lobby-music-value">25%</output><input id="lobby-music-volume" type="range" min="0" max="100" step="1"></label><span id="lobby-music-status" role="status"></span>';
+  home.querySelector('.lobby-profile').after(bar);
+  const button=document.getElementById('lobby-music-toggle'),slider=document.getElementById('lobby-music-volume'),value=document.getElementById('lobby-music-value'),status=document.getElementById('lobby-music-status');
+  const urls=(window.MR_MUSIC||[]).map(t=>typeof t==='string'?t:t.u).filter(Boolean),bad=new Set();
+  let current='',blocked=false,playing=false,attempt=0,loadingDone=null,timer=0;
+  const gain=()=>Math.max(0,Math.min(100,Number(cfg.lobbyMusicVolume)||0));
+  const allowed=()=>!home.hidden&&!document.hidden&&cfg.lobbyMusicEnabled!==false&&!cfg.muted&&Number(cfg.volume)>0&&gain()>0;
+  function stopLoading(){clearTimeout(timer);if(loadingDone){loadingDone();loadingDone=null;}}
+  function paint(){
+    slider.value=gain();value.textContent=gain()+'% ของเสียงหลัก';
+    const label=cfg.lobbyMusicEnabled===false?'เปิดเพลงหน้าหลัก':blocked?'แตะเพื่อเปิดเพลงหน้าหลัก':'ปิดเพลงหน้าหลัก';
+    button.setAttribute('aria-label',label);button.title=label;
+    const quiet=cfg.lobbyMusicEnabled===false||blocked||cfg.muted||gain()===0||Number(cfg.volume)<=0;
+    button.innerHTML='<svg aria-hidden="true" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H3v6h3l5 4z"/>'+(quiet?'<path d="m16 9 5 6m0-6-5 6"/>':'<path d="M15 8a6 6 0 0 1 0 8m3-11a10 10 0 0 1 0 14"/>')+'</svg>';
+    button.setAttribute('aria-pressed',String(cfg.lobbyMusicEnabled!==false));button.disabled=!urls.length;
+    if(!urls.length)status.textContent='ยังไม่มีเพลงในชุดเว็บนี้';
+    else if(cfg.lobbyMusicEnabled===false)status.textContent='ปิดเพลงหน้าหลักแล้ว';
+    else if(blocked)status.textContent='เบราว์เซอร์รอการแตะเพื่อเริ่มเสียง';
+    else if(playing)status.textContent='♪ '+trackName(current);
+    else if(bad.size===urls.length)status.textContent='โหลดเพลงไม่ได้ คุณยังเลือกเกมได้ตามปกติ';
+    else status.textContent='สุ่มเพลงคลอเฉพาะหน้าหลัก · แยกจากเพลงในเกม';
+  }
+  function choose(){
+    const pool=urls.filter(u=>!bad.has(u)&&u!==current);const candidates=pool.length?pool:urls.filter(u=>!bad.has(u));
+    if(!candidates.length)return false;
+    current=candidates[Math.floor(Math.random()*candidates.length)];audio.src=current;return true;
+  }
+  function pause(){attempt++;playing=false;audio.pause();stopLoading();paint();}
+  async function start(showLoading=false){
+    if(!allowed()){pause();return;}
+    audio.volume=cfg.muted?0:Math.max(0,Math.min(1,(Number(cfg.volume)||0)/100*gain()/100));
+    if(!current&&!choose()){paint();return;}
+    const token=++attempt;
+    if(showLoading&&audio.readyState<3&&window.MRLoading){stopLoading();loadingDone=MRLoading.begin('กำลังเตรียมเพลงหน้าหลัก…');timer=setTimeout(stopLoading,12000);}
+    try{await audio.play();if(token!==attempt||!allowed()){if(!allowed())audio.pause();return;}blocked=false;playing=true;stopLoading();paint();}
+    catch(e){if(token!==attempt)return;playing=false;stopLoading();if(e.name==='NotAllowedError')blocked=true;paint();}
+  }
+  function sync(){audio.volume=cfg.muted?0:Math.max(0,Math.min(1,(Number(cfg.volume)||0)/100*gain()/100));paint();if(allowed())start(true);else pause();}
+  button.onclick=()=>{
+    if(blocked){blocked=false;cfg.lobbyMusicEnabled=true;}else cfg.lobbyMusicEnabled=cfg.lobbyMusicEnabled===false;
+    if(cfg.lobbyMusicEnabled)bad.clear();saveCfg();start(true);
+  };
+  slider.oninput=()=>{cfg.lobbyMusicVolume=Number(slider.value);saveCfg();sync();};
+  audio.addEventListener('canplay',stopLoading);
+  audio.addEventListener('ended',()=>{playing=false;if(allowed()&&choose())start();else paint();});
+  audio.addEventListener('error',()=>{stopLoading();playing=false;if(current)bad.add(current);if(allowed()&&choose())start();else paint();});
+  new MutationObserver(sync).observe(home,{attributes:true,attributeFilter:['hidden']});
+  document.addEventListener('visibilitychange',sync);window.addEventListener('mr-config-change',sync);
+  document.addEventListener('click',()=>{if(blocked&&allowed())setTimeout(()=>start(),0);});
+  // Wait for the initial loading gate; autoplay may still need the user's first click.
+  const observer=new MutationObserver(()=>{if(!document.documentElement.classList.contains('app-loading')){observer.disconnect();sync();}});
+  observer.observe(document.documentElement,{attributes:true,attributeFilter:['class']});
+  // Buffer only the selected first track under the initial gate, never the whole library.
+  if(allowed()&&urls.length&&window.MRLoading){loadingDone=MRLoading.begin('กำลังเตรียมเพลงหน้าหลัก…');timer=setTimeout(stopLoading,12000);choose();}
+  paint();if(!document.documentElement.classList.contains('app-loading')){observer.disconnect();sync();}
+  // Read-only diagnostics for integration tests and support.
+  window.MRLobbyAudio={get audio(){return audio;},get current(){return current;}};
 })();
 </script></body></html>

@@ -151,26 +151,26 @@ body:has(#home:not([hidden])) .site-header button{color:#dce6ff;background:#ffff
 @media(prefers-reduced-motion:reduce){.stage-orbit,#lobby-character .mascot{animation:none!important}}
 .lobby-scene canvas{opacity:1}
 .lobby-scene::after{background:linear-gradient(90deg,#080c20c9,transparent 75%),linear-gradient(0deg,#080c2020,transparent 30%)}
-#home.lobby-webgl-ready .lobby-stage{visibility:hidden}
+#home:is(.lobby-webgl-ready,.lobby-2d-ready) .lobby-stage{visibility:hidden}
 .lobby-finale{min-height:85vh;display:flex;flex-direction:column;justify-content:center;padding:70px 0 30px;color:#eff3ff;gap:80px}
 .lobby-finale h3{font-size:clamp(30px,4vw,54px);line-height:1.4;margin:15px 0}
 .lobby-finale p:not(.eyebrow){font-size:14px;color:#a7b8d7;line-height:1.9;margin-bottom:25px}
 .lobby-finale>span{font-size:12px;color:#a3b7d5}
 .site-header .brand-text{position:absolute!important;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
-#home.lobby-webgl-ready .mode-grid{width:48%;grid-template-columns:1fr}
-#home.lobby-webgl-ready .lobby-quick,#home.lobby-webgl-ready .home-secondary{width:48%}
-#home.lobby-webgl-ready .lobby-finale>div{max-width:48%}
+#home:is(.lobby-webgl-ready,.lobby-2d-ready) .mode-grid{width:48%;grid-template-columns:1fr}
+#home:is(.lobby-webgl-ready,.lobby-2d-ready) .lobby-quick,#home:is(.lobby-webgl-ready,.lobby-2d-ready) .home-secondary{width:48%}
+#home:is(.lobby-webgl-ready,.lobby-2d-ready) .lobby-finale>div{max-width:48%}
 @media(max-width:760px){
   body:has(#home:not([hidden])) .lobby-scene{position:sticky;top:0;height:44vh;z-index:5;pointer-events:auto;touch-action:pan-y;margin:0 -16px 18px;width:calc(100% + 32px);border-bottom:1px solid #7290b84d}
   body:has(#home:not([hidden])) .lobby-scene::after{display:none}
-  #home.lobby-webgl-ready .lobby-stage{display:none}
-  #home.lobby-webgl-ready .mode-grid,#home.lobby-webgl-ready .lobby-quick,#home.lobby-webgl-ready .home-secondary{width:100%}
-  #home.lobby-webgl-ready .lobby-finale>div{max-width:100%}
+  #home:is(.lobby-webgl-ready,.lobby-2d-ready) .lobby-stage{display:none}
+  #home:is(.lobby-webgl-ready,.lobby-2d-ready) .mode-grid,#home:is(.lobby-webgl-ready,.lobby-2d-ready) .lobby-quick,#home:is(.lobby-webgl-ready,.lobby-2d-ready) .home-secondary{width:100%}
+  #home:is(.lobby-webgl-ready,.lobby-2d-ready) .lobby-finale>div{max-width:100%}
   html:has(#home:not([hidden])){scroll-padding-top:calc(44vh + 20px)}
 }
 .site-header .brand-logo,body:has(#home:not([hidden])) .site-header .brand-logo{width:240px;height:102px;object-fit:contain;background:transparent;border:0;border-radius:0}
 @media(max-width:760px){.site-header .brand-logo,body:has(#home:not([hidden])) .site-header .brand-logo{width:160px;height:68px}}
-@media(max-width:760px){.lobby-finale{min-height:100vh;justify-content:flex-end;padding-bottom:25px;gap:24px}.lobby-finale h3{font-size:28px}.lobby-finale>div{padding:18px;border-radius:16px;background:#080c20bd}.lobby-scene::after{background:linear-gradient(0deg,#080c2066,transparent 75%)}#home.lobby-webgl-ready .lobby-stage{height:350px}}
+@media(max-width:760px){.lobby-finale{min-height:100vh;justify-content:flex-end;padding-bottom:25px;gap:24px}.lobby-finale h3{font-size:28px}.lobby-finale>div{padding:18px;border-radius:16px;background:#080c20bd}.lobby-scene::after{background:linear-gradient(0deg,#080c2066,transparent 75%)}#home:is(.lobby-webgl-ready,.lobby-2d-ready) .lobby-stage{height:350px}}
 
 /* Keep the character visible on phones AND tablets, including landscape touch screens.
    Match this query with compact in lobby-scene.js; the camera measures this panel. */
@@ -184,18 +184,18 @@ body:has(#home:not([hidden])) .site-header button{color:#dce6ff;background:#ffff
   }
   body:has(#home:not([hidden])) .lobby-scene canvas{width:100%;height:100%;touch-action:pan-y pinch-zoom}
   body:has(#home:not([hidden])) .lobby-scene::after{display:none}
-  #home.lobby-webgl-ready .lobby-stage{display:none}
+  #home:is(.lobby-webgl-ready,.lobby-2d-ready) .lobby-stage{display:none}
   #home .lobby-hero{grid-template-columns:1fr;min-height:0;gap:0}
   #home .lobby-copy{text-align:center}
   #home .page-intro{margin-inline:auto}
   #home .lobby-features{justify-content:center}
-  #home.lobby-webgl-ready .mode-grid{width:100%;grid-template-columns:repeat(2,minmax(0,1fr))}
-  #home.lobby-webgl-ready .lobby-quick,#home.lobby-webgl-ready .home-secondary{width:100%}
-  #home.lobby-webgl-ready .lobby-finale>div{max-width:100%}
+  #home:is(.lobby-webgl-ready,.lobby-2d-ready) .mode-grid{width:100%;grid-template-columns:repeat(2,minmax(0,1fr))}
+  #home:is(.lobby-webgl-ready,.lobby-2d-ready) .lobby-quick,#home:is(.lobby-webgl-ready,.lobby-2d-ready) .home-secondary{width:100%}
+  #home:is(.lobby-webgl-ready,.lobby-2d-ready) .lobby-finale>div{max-width:100%}
   #home .lobby-finale{min-height:calc(100svh - clamp(160px,44svh,480px));justify-content:flex-end;padding:30px 0 24px;gap:24px}
   html:has(#home:not([hidden])){scroll-padding-top:calc(clamp(160px,44vh,480px) + 20px);scroll-padding-top:calc(clamp(160px,44svh,480px) + 20px)}
 }
-@media(max-width:600px){#home.lobby-webgl-ready .mode-grid{grid-template-columns:1fr}}
+@media(max-width:600px){#home:is(.lobby-webgl-ready,.lobby-2d-ready) .mode-grid{grid-template-columns:1fr}}
 @media(max-height:500px) and (max-width:1100px){
   #home .lobby-finale{padding:12px 0;gap:8px}
   #home .lobby-finale .eyebrow,#home .lobby-finale>span{display:none}
@@ -221,3 +221,11 @@ body:has(#home:not([hidden])) .site-header button{color:#dce6ff;background:#ffff
   #home .lobby-finale{min-height:0;padding:32px 0 20px;gap:12px}
   html:has(#home:not([hidden])){scroll-padding-top:16px}
 }
+
+.lobby-fallback,.lobby-fallback img{display:block;width:100%;height:100%}.lobby-fallback{position:absolute;inset:0}.lobby-fallback img{object-fit:cover;object-position:center}
+.lobby-audio{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:14px 0;color:#c0d0ea;font-size:12px}
+.lobby-audio button{font-size:12px;min-height:44px;background:#172840;border:1px solid #6c89b94d;color:#e2edff}
+#lobby-music-toggle{width:44px;height:44px;min-width:44px;padding:10px;display:inline-grid;place-items:center}
+.lobby-audio label{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.lobby-audio input{width:120px;min-height:44px}
+.lobby-audio span{color:#a0b5d7;overflow-wrap:anywhere}

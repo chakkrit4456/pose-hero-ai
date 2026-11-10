@@ -112,7 +112,17 @@
           shadow.position.set(0, footY - 0.052, 0);
           if (draw) renderer.render(scene, camera);
         }
-        resolve({ render, model, scene, camera, renderer, floorY: footY - 0.052, dispose() { renderer.dispose(); } });
+        resolve({ render, model, scene, camera, renderer, floorY: footY - 0.052, dispose() {
+          const freed = new Set();
+          const release = resource => { if (resource && resource.dispose && !freed.has(resource)) { freed.add(resource); resource.dispose(); } };
+          scene.traverse(object => {
+            release(object.geometry);
+            const materials = object.material ? (Array.isArray(object.material) ? object.material : [object.material]) : [];
+            materials.forEach(material => { Object.values(material).forEach(value => { if (value && value.isTexture) release(value); }); release(material); });
+            if (object.skeleton) release(object.skeleton);
+          });
+          renderer.dispose();
+        } });
       }, (e) => reject(e instanceof Error ? e : new Error("โหลดโมเดลไม่สำเร็จ")));
     });
   }

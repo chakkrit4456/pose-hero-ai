@@ -39,7 +39,7 @@ site using the same hostname must be resolved by the operator before deployment.
 
 Update the source checkout and rerun the same command with the same hostname.
 The installer does not pull Git or replace your source files from the network.
-Keep `--with-music` on updates if you want music in the deployed release.
+Project music is included by default so home ambience works after deployment. Use `--without-music` on updates to omit it.
 
 - Releases: `/var/www/pose-hero-ai/releases/<timestamp>`
 - Active symlink: `/var/www/pose-hero-ai/current`

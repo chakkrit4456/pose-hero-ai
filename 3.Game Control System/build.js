@@ -66,7 +66,8 @@ for(const[k,f]of Object.entries(files)){
 }
 const t=fs.readFileSync(path.join(__dirname,'Game Start.template.html'),'utf8');
 const page=t.replace('/*__MODULES__*/',()=>m)
+  .replace('/*__LOADING_JS__*/',()=>fs.readFileSync(path.join(__dirname,'loading.js'),'utf8'))
   .replace('/*__BEGINNER_CSS__*/',()=>fs.readFileSync(path.join(__dirname,'beginner-ui.css'),'utf8'))
   .replace('/*__BEGINNER_JS__*/',()=>fs.readFileSync(path.join(__dirname,'beginner-ui.js'),'utf8').replace(/<\/script/gi,'<\\/script'))
   .replace('/*__LOBBY_JS__*/',()=>fs.readFileSync(path.join(__dirname,'lobby-scene.js'),'utf8').replace(/<\/script/gi,'<\\/script'));
-fs.writeFileSync(path.join(__dirname,'Game Start.html'),page);
+fs.writeFileSync(path.join(__dirname,'Game Start.html'),page.replace('/*__LOBBY_AUDIO_JS__*/',()=>fs.readFileSync(path.join(__dirname,'lobby-audio.js'),'utf8')));

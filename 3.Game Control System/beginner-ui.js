@@ -41,8 +41,8 @@
   const groups=[
     ['หน้าตาและผู้เล่น',['s-theme','s-name']],
     ['เวลาและการเล่น',['s-cd','s-demo','s-rest','s-chain']],
-    ['เสียงและคำบรรยาย',['s-vol','s-read']],
-    ['กล้องและตัวอย่างท่า',['s-cam','s-camid','s-3d','s-ai','s-camtest','s-prev']],
+    ['เสียงและคำบรรยาย',['s-vol','s-read','s-lobby-music','s-lobby-vol','s-game-vol']],
+    ['กล้องและตัวอย่างท่า',['s-cam','s-camid','s-lobby-2d','s-3d','s-ai','s-camtest','s-prev']],
     ['เตือนให้พัก',['s-rem','s-rem-int','s-rem-msg']],
     ['ข้อมูลและความปลอดภัย',['s-bk','s-bk-msg']],
     ['ขั้นสูง: สำหรับปรับระบบ',['s-ang']],
@@ -64,6 +64,7 @@
     's-rem':'เตือนเฉพาะเมื่อเปิดหน้าเกมค้างไว้ และไม่รบกวนขณะเล่น',
   };
   Object.entries(fieldHints).forEach(([id,text])=>{const label=setting.querySelector('label[for="'+id+'"]');if(label){const hint=document.createElement('small');hint.className='field-help';hint.id=id+'-help';hint.textContent=text;label.append(hint);byId(id).setAttribute('aria-describedby',hint.id);}});
+  ['s-lobby-vol','s-game-vol'].forEach(id=>{byId(id).oninput=()=>byId(id+'v').textContent=byId(id).value+'%';});
   const sound=document.createElement('div');sound.className='row';sound.innerHTML='<button type="button">ทดสอบเสียงเตือน</button><button type="button">ทดสอบเสียงพูด</button>';byId('s-read').closest('fieldset').append(sound);sound.children[0].onclick=()=>beep(660,200);sound.children[1].onclick=()=>{speak('ยินดีต้อนรับ ทำท่าตามตัวอย่างได้เลย',660);notify('หากไม่ได้ยินเสียงพูด ให้ตรวจระดับเสียงและเสียงภาษาไทยในเครื่อง','info',true);};
   const state=document.createElement('p');state.id='play-state';state.className='play-state';state.setAttribute('role','status');byId('big').before(state);
   const review=document.createElement('button');review.type='button';review.textContent='ดูวิธีทำอีกครั้ง';byId('end').after(review);review.onclick=()=>{if(!st.current)return;const playing=st.status==='playing';if(playing)byId('pause').click();openPreview(st.current.exercise);};
@@ -88,7 +89,8 @@
   const teacherCanvas=document.createElement('canvas');teacherCanvas.width=480;teacherCanvas.height=480;
   function prepareTeacher(){
     if(cardTeacherPromise||cfg.teacher3d===false||!window.MRTeacher3D||!window.MR_TEACHER_B64)return;
-    try{cardTeacherPromise=MRTeacher3D.create(teacherCanvas,Uint8Array.from(atob(MR_TEACHER_B64),c=>c.charCodeAt(0))).then(t=>{cardTeacher=t;if(!byId('setup').hidden)cardsChanged();}).catch(()=>{});}catch(e){}
+    const done=window.MRLoading?MRLoading.begin('กำลังเตรียมภาพตัวอย่างท่า…'):()=>{};
+    try{cardTeacherPromise=MRTeacher3D.create(teacherCanvas,Uint8Array.from(atob(MR_TEACHER_B64),c=>c.charCodeAt(0))).then(t=>{cardTeacher=t;if(!byId('setup').hidden)cardsChanged();}).catch(()=>{}).finally(done);}catch(e){done();}
   }
   function poseFrame(cv,ex,t,skeleton=false){
     if(!cv||!AI||!aiEx[ex.id]){if(cv)drawThumb(cv,ex);return;}

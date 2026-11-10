@@ -17,18 +17,20 @@ Point the domain's A/AAAA records to this server and allow inbound TCP 80/443.
 requires HTTPS. For IP-only HTTP testing use --domain SERVER_IP --http; open
 the supplied host URL (an existing default Nginx site is left untouched).
 
+Project music is included by default. Use --without-music to omit it.
 Run from a complete project checkout. Files deploy to /var/www/pose-hero-ai.
 Re-run to update; old releases and previous configuration are retained.
 HELP
 }
 die() { printf 'ERROR: %s\n' "$*" >&2; exit 1; }
-DOMAIN=''; EMAIL=''; HTTP=0; MUSIC=0
+DOMAIN=''; EMAIL=''; HTTP=0; MUSIC=1
 while (($#)); do
   case "$1" in
     --domain) (($# >= 2)) || die '--domain needs a value'; DOMAIN=$2; shift 2 ;;
     --email) (($# >= 2)) || die '--email needs a value'; EMAIL=$2; shift 2 ;;
     --http) HTTP=1; shift ;;
     --with-music) MUSIC=1; shift ;;
+    --without-music) MUSIC=0; shift ;;
     -h|--help) usage; exit 0 ;;
     *) die "Unknown argument: $1" ;;
   esac

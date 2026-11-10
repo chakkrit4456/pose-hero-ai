@@ -9,6 +9,9 @@ const loadStatus=document.createElement('p');loadStatus.className='lobby-load-st
 document.getElementById('lobby-character').append(mascot);
 const layer=document.createElement('div');layer.className='lobby-scene';layer.setAttribute('aria-hidden','true');
 const canvas=document.createElement('canvas');layer.append(canvas);document.querySelector('.site-header').after(layer);
+let sceneDone=window.MRLoading?MRLoading.begin('กำลังโหลดฉากและมาสคอต 3D…'):()=>{};
+let sceneSettled=false,fallbackReady=false,initTimer=0,generation=0,preferred2d=!!cfg.lobbyBackground2d;
+function finishScene(){if(!sceneSettled){sceneSettled=true;sceneDone();}}
 const reduced=matchMedia('(prefers-reduced-motion: reduce)');
 const compact=matchMedia('(max-width: 1100px), (pointer: coarse) and (max-width: 1400px)');
 const phone=matchMedia('(max-width: 760px), (pointer: coarse) and (max-height: 500px) and (max-width: 1000px)');
@@ -19,7 +22,7 @@ const finale=document.createElement('div');finale.className='lobby-finale';
 finale.innerHTML='<div><p class="eyebrow">YOUR NEXT MOVE</p><h3>พร้อมขยับ<br>ไปด้วยกันหรือยัง?</h3><p>เลื่อนกลับขึ้นไปเลือกเกมที่อยากเล่น<br>กล้องและฮีโร่จะกลับไปยังจุดเริ่มต้น</p><a class="lobby-cta" href="#lobby-missions">กลับไปเลือกเกม ↑</a></div><span>เลื่อนขึ้นเพื่อย้อนมุมกล้องและท่าทาง</span>';
 home.append(finale);
 function readScroll(){target=clamp(scrollY/Math.max(1,document.documentElement.scrollHeight-innerHeight));}
-function canMove(){return !paused&&!reduced.matches&&!document.hidden&&!home.hidden;}
+function canMove(){return !failed&&!paused&&!reduced.matches&&!document.hidden&&!home.hidden;}
 function ring(T,r,width,color,opacity=1){
  const g=new T.CircleGeometry(1,128),p=g.attributes.position,indices=[];
  for(let i=0;i<=64;i++)for(let j=0;j<2;j++){const a=i/64*Math.PI*2,rr=r+(j?width:0);p.setXYZ(i*2+j,Math.cos(a)*rr,0,Math.sin(a)*rr);}
@@ -81,7 +84,7 @@ function environment(w){
 }
 
 function resize(){
- if(!world||home.hidden)return;
+ if(!world||failed||home.hidden)return;
  const {renderer,camera}=world,rect=layer.getBoundingClientRect();
  if(rect.width<1||rect.height<1)return;
  renderer.setPixelRatio(Math.min(devicePixelRatio||1,compact.matches?1.25:1.5));
@@ -92,7 +95,7 @@ function resize(){
 }
 
 function draw(){
- if(!world)return;const {camera,renderer,scene}=world,p=ease(progress),mobile=compact.matches;
+ if(!world||failed)return;const {camera,renderer,scene}=world,p=ease(progress),mobile=compact.matches;
  // Fit the pad horizontally on a portrait full-screen background, even at closest zoom.
  const base=phone.matches?Math.max(5.6,1.25/(2*Math.tan(Math.PI/18)*camera.aspect)+.95):mobile?5.6:5.25;
  const angle=(-35+70*p)*Math.PI/180,distance=base-.95*Math.sin(Math.PI*p);
@@ -111,17 +114,33 @@ function draw(){
  canvas.dataset.progress=progress.toFixed(5);canvas.dataset.angle=(-35+70*p).toFixed(3);canvas.dataset.distance=distance.toFixed(4);
 }
 function tick(now){raf=0;if(!canMove()||!world)return;const dt=last?Math.min((now-last)/1000,.1):1/60;last=now;progress+=(target-progress)*(1-Math.exp(-dt/.16));if(Math.abs(progress-target)<.0001)progress=target;draw();if(progress!==target)raf=requestAnimationFrame(tick);else last=0;}
-function fallback(){failed=true;home.classList.remove('lobby-webgl-ready');layer.hidden=true;loadStatus.hidden=false;loadStatus.textContent='โหลดฉาก 3D ไม่สำเร็จ คุณยังเลือกเล่นเกมได้ตามปกติ';button.textContent='ฉาก 3D ไม่พร้อม';button.disabled=true;video.pause();}
+async function fallback(manual=false){
+ if(failed)return;failed=true;generation++;clearTimeout(initTimer);cancelAnimationFrame(raf);video.pause();
+ const fallbackDone=sceneSettled&&window.MRLoading?MRLoading.begin('กำลังเตรียมฉาก 2D สำหรับอุปกรณ์นี้…'):()=>{};
+ home.classList.remove('lobby-webgl-ready');layer.hidden=true;canvas.hidden=true;
+ loadStatus.hidden=false;loadStatus.textContent=manual?'ใช้ฉาก 2D ตามการตั้งค่า':'อุปกรณ์นี้ใช้ฉาก 2D สำรอง คุณยังเลือกเล่นเกมได้ตามปกติ';button.textContent='ฉาก 2D สำรอง';button.disabled=true;
+ const picture=document.createElement('picture');picture.className='lobby-fallback';
+ const source=document.createElement('source');source.media='(max-width:760px) and (orientation:portrait)';source.srcset='assets/office-fallback-portrait.png';
+ const img=document.createElement('img');img.alt='';img.src='assets/office-fallback-wide.png';picture.append(source,img);layer.append(picture);
+ try{
+  await Promise.race([img.decode(),new Promise((_,reject)=>setTimeout(()=>reject(new Error('2D timeout')),15000))]);
+  fallbackReady=true;home.classList.add('lobby-2d-ready');layer.hidden=home.hidden;
+  canvas.dataset.fallback='2d';finishScene();fallbackDone();
+ }catch(e){window.MRLoading?.fail('โหลดฉากสำรองไม่สำเร็จ กรุณาลองโหลดใหม่');}
+}
+
 async function init(){
- if(loaded||failed)return;loaded=true;
+ if(loaded||failed)return;if(sceneSettled){sceneSettled=false;sceneDone=window.MRLoading?MRLoading.begin('กำลังเตรียมฉาก 3D…'):()=>{};}loaded=true;const ticket=++generation;initTimer=setTimeout(()=>fallback(),20000);
  try{
   if(!window.MRTeacher3D||!window.MR_TEACHER_B64)throw new Error('No model');
-  world=await MRTeacher3D.create(canvas,Uint8Array.from(atob(MR_TEACHER_B64),c=>c.charCodeAt(0)));
-  environment(world);home.classList.add('lobby-webgl-ready');video.pause();resize();readScroll();sync();loadStatus.hidden=true;
- }catch(e){console.warn('Lobby 3D fallback:',e);fallback();}
+  const result=await MRTeacher3D.create(canvas,Uint8Array.from(atob(MR_TEACHER_B64),c=>c.charCodeAt(0)));
+  if(failed||ticket!==generation){result.dispose();return;}world=result;
+  environment(world);home.classList.add('lobby-webgl-ready');video.pause();resize();readScroll();sync();loadStatus.hidden=true;clearTimeout(initTimer);finishScene();
+ }catch(e){if(ticket!==generation)return;console.warn('Lobby 3D fallback:',e);fallback();}
 }
 function sync(){
- cancelAnimationFrame(raf);raf=0;last=0;layer.hidden=home.hidden||failed;
+ if(home.hidden&&!loaded&&!failed)finishScene();
+ cancelAnimationFrame(raf);raf=0;last=0;layer.hidden=home.hidden||(failed&&!fallbackReady);
  const stopped=paused||reduced.matches;home.classList.toggle('lobby-motion-off',stopped||document.hidden||home.hidden);
  if(!failed){button.textContent=reduced.matches?'ใช้มุมคงที่ตามการตั้งค่าเครื่อง':paused?'เปิดกล้องเคลื่อนไหว':'หยุดกล้องเคลื่อนไหว';button.setAttribute('aria-pressed',String(stopped));button.disabled=reduced.matches;}
  if(world)video.pause();
@@ -139,5 +158,13 @@ if(window.visualViewport)visualViewport.addEventListener('resize',scheduleResize
 compact.addEventListener('change',scheduleResize);
 phone.addEventListener('change',scheduleResize);
 if(window.ResizeObserver)new ResizeObserver(scheduleResize).observe(layer);
-sync();
+window.addEventListener('mr-config-change',()=>{
+ const next=!!cfg.lobbyBackground2d;if(next===preferred2d)return;preferred2d=next;
+ clearTimeout(initTimer);cancelAnimationFrame(raf);generation++;
+ if(world){world.dispose();world=null;}loaded=false;failed=false;fallbackReady=false;
+ layer.querySelector('.lobby-fallback')?.remove();home.classList.remove('lobby-2d-ready','lobby-webgl-ready');
+ sceneSettled=false;sceneDone=window.MRLoading?MRLoading.begin(next?'กำลังเตรียมฉาก 2D…':'กำลังเตรียมฉาก 3D…'):()=>{};
+ if(next)fallback(true);else{canvas.hidden=false;init();}
+});
+if(preferred2d)fallback(true);else sync();
 })();
