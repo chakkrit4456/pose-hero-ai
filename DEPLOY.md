@@ -69,6 +69,19 @@ transfer it.
 
 ## Verification
 
+If installation reports an asset `404` and then `restoring previous site`, the
+release was rolled back; the Nginx welcome page can still be visible. Update the
+checkout and rerun the installer. Release checks now wait for new Nginx workers
+and compare both the page and logo with the deployed release. A persistent wrong
+hostname/root still fails rather than treating the welcome page as success.
+
+For Cloudflare Tunnel on another machine, use `--domain YOUR_PUBLIC_HOST --http`,
+set the tunnel service to `http://WEB_SERVER_LAN_IP:80`, and set its HTTP Host
+Header to the same public hostname. Test from the tunnel host with
+`curl -I -H 'Host: YOUR_PUBLIC_HOST' http://WEB_SERVER_LAN_IP:80/`.
+If the check still fails, inspect duplicate `server_name` entries and confirm
+`/etc/nginx/nginx.conf` includes `/etc/nginx/sites-enabled/*`.
+
 ```bash
 nginx -t
 systemctl status nginx --no-pager

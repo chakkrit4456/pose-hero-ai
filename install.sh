@@ -154,6 +154,35 @@ ln -sfn -- "$CONF" "$ENABLED"
 nginx -t
 systemctl enable --now nginx
 systemctl reload nginx
+
+# BEGIN RELEASE CHECK
+# Reload signals the master; new workers may not be serving the new vhost yet.
+# Verify actual release bytes rather than accepting the default welcome page.
+wait_for_release() {
+  local scheme=$1 port=80 attempt
+  [[ $scheme != https ]] || port=443
+  for ((attempt=1; attempt<=20; attempt++)); do
+    if curl --noproxy '*' --fail --silent --show-error --connect-timeout 1 --max-time 2 \
+        --resolve "$DOMAIN:$port:127.0.0.1" -o "$BACKUP/check-index.html" \
+        "$scheme://$DOMAIN/index.html" 2>"$BACKUP/check-error.log" \
+      && cmp -s "$BACKUP/check-index.html" "$RELEASE/index.html" \
+      && curl --noproxy '*' --fail --silent --show-error --connect-timeout 1 --max-time 2 \
+        --resolve "$DOMAIN:$port:127.0.0.1" -o "$BACKUP/check-logo.png" \
+        "$scheme://$DOMAIN/assets/pose-hero-logo-mascot-v3.png" 2>"$BACKUP/check-error.log" \
+      && cmp -s "$BACKUP/check-logo.png" "$RELEASE/assets/pose-hero-logo-mascot-v3.png"; then
+      return 0
+    fi
+    if (( attempt == 1 )); then printf 'Waiting for Nginx to serve the new release for %s…\n' "$DOMAIN"; fi
+    sleep 0.3
+  done
+  printf 'Release check failed for %s://%s via 127.0.0.1:%s.\n' "$scheme" "$DOMAIN" "$port" >&2
+  printf 'Check for a duplicate server_name, an inactive sites-enabled include, or a wrong document root.\n' >&2
+  printf 'Expected root: %s/current; expected hostname: %s\n' "$BASE" "$DOMAIN" >&2
+  cat "$BACKUP/check-error.log" >&2
+  return 1
+}
+# END RELEASE CHECK
+
 if (( ! HTTP )); then
   certbot certonly --webroot -w "$BASE/acme" --cert-name "$DOMAIN" -d "$DOMAIN" \
     --email "$EMAIL" --agree-tos --non-interactive --keep-until-expiring
@@ -161,12 +190,10 @@ if (( ! HTTP )); then
   nginx -t
   systemctl reload nginx
   systemctl enable --now certbot.timer
-  curl --fail --silent --show-error --resolve "$DOMAIN:443:127.0.0.1" "https://$DOMAIN/" -o /dev/null
-  curl --fail --silent --show-error --resolve "$DOMAIN:443:127.0.0.1" "https://$DOMAIN/assets/pose-hero-logo-mascot-v3.png" | cmp - "$RELEASE/assets/pose-hero-logo-mascot-v3.png"
+  wait_for_release https
   URL=https://$DOMAIN
 else
-  curl --fail --silent --show-error -H "Host: $DOMAIN" http://127.0.0.1/ -o /dev/null
-  curl --fail --silent --show-error -H "Host: $DOMAIN" http://127.0.0.1/assets/pose-hero-logo-mascot-v3.png | cmp - "$RELEASE/assets/pose-hero-logo-mascot-v3.png"
+  wait_for_release http
   URL=http://$DOMAIN
 fi
 trap - ERR
