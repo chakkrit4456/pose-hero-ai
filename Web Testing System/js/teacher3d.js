@@ -85,7 +85,7 @@
         const goal = {}, tmpQ = q(), parentQ = q(), want = v(), yawAxis = new T.Vector3(0, 1, 0), yawQ = q();
         Object.keys(bones).forEach((n) => { goal[n] = bones[n].quaternion.clone(); });
         /** จัดท่าทันที (เรียก settle) หรือเกลี่ยไปหาท่าเป้าหมายตามเวลา dt วินาที */
-        function render(lm, dt, names) {
+        function render(lm, dt, names, draw = true) {
           const { dirs, yaw } = teacherBoneDirs(lm, names);
           // คำนวณท่าเป้าหมาย: หมุนจากท่า T ให้กระดูกชี้ตามทิศที่ต้องการ (ตัวละครสัดส่วนต่างจากคนจำลอง จึงใช้ทิศ ไม่ใช้ตำแหน่ง)
           Object.keys(bones).forEach((n) => bones[n].quaternion.copy(bind[n].local));
@@ -110,9 +110,9 @@
           const low = Math.min(bones.footL.getWorldPosition(v()).y, bones.footR.getWorldPosition(v()).y);
           model.position.y = baseModelY + (footY - low);
           shadow.position.set(0, footY - 0.052, 0);
-          renderer.render(scene, camera);
+          if (draw) renderer.render(scene, camera);
         }
-        resolve({ render, model, dispose() { renderer.dispose(); } });
+        resolve({ render, model, scene, camera, renderer, floorY: footY - 0.052, dispose() { renderer.dispose(); } });
       }, (e) => reject(e instanceof Error ? e : new Error("โหลดโมเดลไม่สำเร็จ")));
     });
   }

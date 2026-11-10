@@ -111,7 +111,9 @@
       if (!loaded) { this.poses = (initial && initial.length ? initial : seedPoses()).map((p) => cleanPose(JSON.parse(JSON.stringify(p)))); this.save(false); }
     }
     save(emit) {
-      try { if (this.storage) this.storage.setItem(this.key, JSON.stringify({ version: 1, origin: this.origin, poses: this.poses })); } catch (e) { /* เต็ม/ถูกบล็อก ใช้ต่อในหน่วยความจำ */ }
+      this.lastSaveError = !this.storage;
+      try { if (this.storage) this.storage.setItem(this.key, JSON.stringify({ version: 1, origin: this.origin, poses: this.poses })); } catch (e) { this.lastSaveError = true; }
+      if (this.lastSaveError && emit !== false) bus.emit('storage-error');
       if (emit !== false) bus.emit("changed");
     }
     replaceAll(list) { this.poses = list.map((p) => cleanPose(JSON.parse(JSON.stringify(p)))); this.save(); }

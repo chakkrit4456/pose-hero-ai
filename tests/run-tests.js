@@ -1032,5 +1032,27 @@ test('ทุกท่าในแคตตาล็อกตรวจด้ว�
   assert.deepStrictEqual(noAi, []);
 });
 
+test('เริ่มโดยนับถอยหลัง 0 วินาทีต้องเปิดท่าแรกและนับจนจบได้', () => {
+  const state = G.createGameState({ countdownSec: 0 });
+  S.selectExercise(state, S.getCatalog()[0].id, { reps: 1, durationSec: 60 });
+  G.startGame(state);
+  assert.strictEqual(state.status, 'playing');
+  P.tick(state, 16);
+  assert.strictEqual(state.currentIndex, 0);
+  assert.ok(state.current);
+  P.registerRep(state);
+  assert.strictEqual(state.status, 'finished');
+  assert.strictEqual(state.results[0].repsDone, 1);
+});
+
+test('สำรองและนำเข้าคะแนนเท้าไฟกับระดับเล่นต่อเนื่องได้', () => {
+  const values = { 'move-relieve-firefeet-best': '{"easy":1200}', 'move-relieve-ladder': '{"index":2}' };
+  const text = W3.exportData({ getItem: key => values[key] ?? null });
+  const restored = {};
+  const result = W3.importData({ setItem: (key, value) => { restored[key] = value; } }, text);
+  assert.strictEqual(result.ok, true);
+  assert.deepStrictEqual(restored, values);
+});
+
 console.log(`\nผ่าน ${pass} · ไม่ผ่าน ${fail}`);
 if (fail) { console.log('\nรายการที่ไม่ผ่าน:'); failures.forEach(([n, e]) => console.log(' - ' + n + '\n   ' + (e.stack || e).split('\n').slice(0, 3).join('\n   '))); process.exit(1); }

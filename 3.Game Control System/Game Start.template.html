@@ -1,6 +1,7 @@
 <!doctype html>
 <html lang="th"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>MOVE & RELIEVE</title>
+<title>Pose Hero AI — ขยับกาย ทลายเมื่อย</title>
+<link rel="icon" type="image/png" href="assets/pose-hero-logo-mascot-v3.png">
 <script>try{var t=JSON.parse(localStorage.getItem('move-relieve-settings')||'{}').theme;if(t==='dark'||t==='light')document.documentElement.setAttribute('data-theme',t)}catch(e){}</script>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Prompt:wght@400;600;700&display=swap');
@@ -679,23 +680,30 @@ main:has(#done:not([hidden])){max-width:820px}
 .chainbox{display:flex;gap:10px;align-items:center;justify-content:center;flex-wrap:wrap;border:2px dashed var(--acc,#2563eb);border-radius:14px;padding:10px 12px;margin:10px 0}
 .chainbox[hidden],.chainmsg[hidden]{display:none}
 .chainmsg{font-weight:700;color:var(--acc,#2563eb);margin:8px 0}
-</style></head><body>
+</style>
+<style>/*__BEGINNER_CSS__*/</style></head><body>
 <main>
-<h1>MOVE &amp; RELIEVE</h1><p class="s">ขยับกาย ทลายเมื่อย</p>
+<header class="site-header"><img class="brand-logo" src="assets/pose-hero-logo-mascot-v3.png" alt="Pose Hero AI — โลโก้มาสคอต" width="240" height="102"><div class="brand-text"><h1>POSE HERO AI</h1><p>ขยับกาย ทลายเมื่อย · Move &amp; Relieve</p></div><button class="help-launch" type="button">วิธีเล่น / ช่วยเหลือ</button></header>
 
-<section id="home" class="card">
-  <p class="c" id="hello" style="margin:0 0 4px"></p>
-  <p class="c" id="lvnow" style="color:var(--mut);margin:0"></p>
-  <div class="menu">
-    <button id="m-start" class="p">เริ่ม</button>
-    <button id="m-routines">ชุดท่าด่วน</button>
-    <button id="m-level">ระดับความยาก</button>
-    <button id="m-dance">โหมดแผ่นเต้น</button>
-    <button id="m-fire">โหมดนักเต้นเท้าไฟ</button>
-    <button id="m-stats">สถิติของฉัน</button>
-    <button id="m-manage">จัดการท่า</button>
-    <button id="m-set">ตั้งค่า</button>
+<section id="home" class="card game-lobby">
+  <div class="lobby-profile"><p id="hello"></p><p id="lvnow"></p><button id="lobby-motion" type="button" aria-pressed="false">หยุดฉากเคลื่อนไหว</button></div>
+  <div class="lobby-hero">
+    <div class="lobby-copy"><p class="eyebrow"><span class="lobby-dot"></span> POSE HERO AI · พร้อมออกผจญภัย</p>
+      <h2 class="home-title">ขยับร่างกาย<br><span>ปลุกฮีโร่ในตัวคุณ</span></h2>
+      <p class="page-intro">เปลี่ยนเวลาพักให้เป็นเวลาเล่น ทำท่าตามฮีโร่ หรือก้าวให้ตรงจังหวะ เลือกภารกิจด้านล่างแล้วเริ่มได้เลย</p>
+      <a class="lobby-cta" href="#lobby-missions">เลือกเกมที่จะเล่น <span aria-hidden="true">↓</span></a>
+      <div class="lobby-features"><span>3 โหมดให้เลือก</span><span>มีตัวอย่างให้ทำตาม</span><span>เล่นได้ในเบราว์เซอร์</span></div>
+    </div>
+    <div class="lobby-stage"><div class="stage-orbit orbit-one"></div><div class="stage-orbit orbit-two"></div><div class="stage-halo"></div><div id="lobby-character"></div><div class="stage-platform"></div><span class="stage-label">YOUR MOVE. YOUR HERO.</span></div>
   </div>
+  <div class="missions-heading" id="lobby-missions"><div><p class="eyebrow">CHOOSE YOUR MISSION</p><h3>วันนี้ อยากเล่นแบบไหน?</h3></div><span>เลือกเกมเพื่อเริ่มเล่น</span></div>
+  <div class="mode-grid">
+    <article class="mode-card"><span class="mode-num"><span class="mission-symbol" aria-hidden="true">◎</span> 01 · บริหารร่างกาย</span><h3>ทำท่าตามภาพ</h3><p>กล้องช่วยตรวจท่าและนับครั้ง มีตัวละครสาธิตให้ดูระหว่างเล่น</p><span class="equipment">ใช้กล้อง · ไม่ต้องมีแผ่นเต้น</span><button id="m-start" class="p">เริ่มบริหารด้วยกล้อง</button></article>
+    <article class="mode-card"><span class="mode-num"><span class="mission-symbol" aria-hidden="true">↗</span> 02 · แผ่นเต้น</span><h3>ก้าวให้ตรงจังหวะ</h3><p>เหยียบแผ่นที่สว่าง หรือใช้ปุ่มบนคีย์บอร์ดและแตะหน้าจอ</p><span class="equipment">แผ่น USB / คีย์บอร์ด / แตะจอ</span><button id="m-dance">เล่นโหมดแผ่นเต้น</button></article>
+    <article class="mode-card"><span class="mode-num"><span class="mission-symbol" aria-hidden="true">ϟ</span> 03 · นักเต้นเท้าไฟ</span><h3>ก้าวตามไอคอน</h3><p>เหยียบเมื่อไอคอนถึงแผ่น สะสมคอมโบและเกจความร้อน รอบละ 3 นาที</p><span class="equipment">ต้องใช้แผ่น USB · ไม่ใช้กล้อง</span><button id="m-fire">เล่นนักเต้นเท้าไฟ</button></article>
+  </div>
+  <div class="guide-box lobby-quick"><div><b>เริ่มครั้งแรก? ลองชุดท่าแนะนำ</b><p>เลือกตามส่วนร่างกายหรือเวลาที่มี แล้วทำตามภาพได้เลย</p></div><button id="m-routines" class="p">เลือกชุดท่าแนะนำ →</button></div>
+  <nav class="home-secondary" aria-label="เมนูเพิ่มเติม"><button id="m-level">ระดับความยาก</button><button id="m-stats">สถิติของฉัน</button><button id="m-manage">จัดการท่า</button><button id="m-set">ตั้งค่า</button></nav>
 </section>
 
   <div class="mascot" id="mascot" aria-label="มาสคอตโบกมือทักทาย">
@@ -745,7 +753,7 @@ main:has(#done:not([hidden])){max-width:820px}
 <section id="manage" class="card" hidden>
   <h2>จัดการท่าบริหาร</h2>
   <div id="mtabs"><button type="button" data-k="list">รายการท่า</button><button type="button" data-k="edit">สร้าง / แก้ไขท่า</button><button type="button" data-k="detail">รายละเอียดท่า</button><button type="button" data-k="settings">จำนวนครั้ง / ฝึกตามเวลา</button></div>
-  <p class="mut" id="mnote">ท่าที่คุณสร้างเองจะไปอยู่ในหน้า "เริ่ม" ภายใต้ชื่อ "ท่าของฉัน" (กดนับครั้งเองด้วยปุ่ม +1 เพราะ AI ตรวจเฉพาะท่ามาตรฐาน 10 ท่า)</p>
+  <p class="mut" id="mnote">ท่าที่สร้างเองจะอยู่ในหน้าเลือกท่า หมวด “ท่าของฉัน” และต้องกด +1 เพื่อนับเอง กล้องยังไม่ตรวจท่าที่สร้างเอง</p>
   <section id="mg-list"></section><section id="mg-edit" hidden></section><section id="mg-detail" hidden></section><section id="mg-settings" hidden></section>
   <div class="row" style="margin-top:12px"><button class="back">กลับ</button></div>
 </section>
@@ -830,7 +838,7 @@ main:has(#done:not([hidden])){max-width:820px}
 <section id="camsetup" class="card" hidden>
   <h2>ตรวจตำแหน่งกล้อง</h2>
   <p class="mut">ยืนในจุดที่จะเล่นจริง แล้วดูว่าผ่านครบทุกข้อสำคัญ (สีเขียว) ก่อนเริ่มเกม — ช่วยให้ AI นับครั้งได้แม่นขึ้น</p>
-  <div class="cs-wrap"><div class="cs-cam"><video id="cs-video" muted playsinline></video><canvas id="cs-ov"></canvas></div><ul id="cs-list"></ul></div>
+  <ol class="steps-strip"><li><b>1. อนุญาตกล้อง</b><small>เมื่อเบราว์เซอร์ถาม ให้กดอนุญาต</small></li><li><b>2. ยืนกลางภาพ</b><small>มีแสงด้านหน้า และพื้นที่ขยับตัว</small></li><li><b>3. ตรวจความพร้อม</b><small>ทำตามคำแนะนำ แล้วกลับไปเริ่มเกม</small></li></ol><p id="cs-status" role="status">กำลังเตรียมกล้อง</p><div class="cs-wrap"><div class="cs-cam"><div class="camera-guide-frame" aria-hidden="true"></div><video id="cs-video" muted playsinline></video><canvas id="cs-ov"></canvas></div><ul id="cs-list"></ul></div>
   <p class="c err" id="cs-msg"></p>
   <div class="row"><button id="cs-toggle" type="button" class="p">เปิดกล้อง</button><button id="cs-done" type="button">เสร็จแล้ว ไปเลือกท่า</button><button class="back">กลับ</button></div>
 </section>
@@ -849,15 +857,18 @@ main:has(#done:not([hidden])){max-width:820px}
 </section>
 
 <section id="setup" class="card" hidden>
-  <h2>เลือกท่าสำหรับผู้ที่เป็นออฟฟิศซินโดรม</h2>
-  <div class="f" id="musbox" hidden><label for="mus">เพลงประกอบ</label><span class="row"><select id="mus"></select><button id="mus-prev" type="button">▶ ฟังตัวอย่าง</button></span></div>
+  <p class="eyebrow">บริหารร่างกาย · ขั้นที่ 1 จาก 3</p><h2>เลือกท่าที่อยากทำ</h2>
+  <p class="page-intro">ดูภาพตัวอย่าง กด “เลือกท่านี้” แล้วตรวจกล้องก่อนเริ่ม เลขบนการ์ดคือลำดับที่เล่น ท่าที่มีป้าย “กดนับเอง” ต้องกด +1 ระหว่างเล่น</p>
+  <div class="row" style="justify-content:flex-start"><button id="setup-routines" type="button">ให้ระบบแนะนำชุดท่า</button><button id="setup-level" type="button">เปลี่ยนระดับความยาก</button><button id="thumb-motion" type="button" aria-pressed="false">เปิดภาพตัวอย่างเคลื่อนไหว</button></div>
+  <div id="list"></div>
+  <details class="guide-box setup-extras"><summary>เพลงประกอบและบันทึกอาการปวด (ไม่บังคับ)</summary>  <div class="f" id="musbox" hidden><label for="mus">เพลงประกอบ</label><span class="row"><select id="mus"></select><button id="mus-prev" type="button">▶ ฟังตัวอย่าง</button></span></div>
   <div class="f" id="musvolbox" hidden><label for="mus-vol">ระดับเสียงเพลง <span id="mus-volv"></span></label><span style="flex:1;max-width:340px"><input type="range" id="mus-vol" min="0" max="100" step="5" style="width:100%"></span></div>
   <div class="pain-box" data-pain></div>
-  <div id="list"></div>
+</details>
   <div class="setup-bar">
     <p class="err" id="err" style="margin:0 0 4px;min-height:0"></p>
     <div class="sum" id="sel-sum"></div>
-    <div class="row"><button class="back">กลับ</button><button id="all">เลือกทั้งหมด</button><button id="clr">ล้าง</button><button id="cam-setup" type="button">ตรวจตำแหน่งกล้อง</button><button id="go" class="p">เริ่มเกม</button></div>
+    <div class="row"><button class="back">กลับ</button><button id="all">เลือกทั้งหมด</button><button id="clr">ยกเลิกที่เลือก</button><button id="cam-setup" type="button">ตรวจตำแหน่งกล้อง</button><button id="go" class="p">เริ่มเกม</button></div>
   </div>
 </section>
 
@@ -885,19 +896,19 @@ main:has(#done:not([hidden])){max-width:820px}
   <pre id="angles" class="mut" hidden></pre>
   <div id="demo-info" hidden><h3 id="demo-title"></h3><div class="st" id="demo-steps"></div><div class="pc" id="demo-pc"></div><div class="cd" id="demo-cd"></div><button id="demoskip" type="button" class="p">เริ่มเลย (ข้ามตัวอย่าง)</button></div>
   <div class="row">
-    <button id="rep" class="p">+1 ครั้ง (จำลอง)</button><button id="skip">ข้าม</button>
-    <button id="camtog" type="button">เปิดกล้อง</button><button id="mnext" type="button" hidden>เพลงถัดไป ⏭</button><button id="pause">หยุด</button><button id="end">จบเกม</button>
+    <button id="rep" class="p">+1 ครั้ง (กดนับเอง)</button><button id="skip">ข้ามท่านี้</button>
+    <button id="camtog" type="button">เปิดกล้อง</button><button id="mnext" type="button" hidden>เพลงถัดไป ⏭</button><button id="pause">พักการเล่น</button><button id="end">จบเกม</button>
   </div>
  </div>
 </section>
 
 <section id="done" class="card" hidden>
-  <h2>จบเกม</h2>
+  <h2>ผลการบริหารร่างกาย</h2>
   <div class="chainbox" id="done-next" hidden><b>ต่อด้วยโหมดเหยียบ</b><span id="dn-stage"></span><button id="dn-go" class="p" type="button">ไปเลย</button></div>
   <div id="sum"></div>
   <div class="row" style="margin-top:12px"><button id="again" class="p">เล่นอีกครั้ง</button><button id="weak" hidden>ฝึกท่าที่อ่อนอีกรอบ</button><button id="tohome">หน้าหลัก</button></div>
   <div class="row donebtns"><button id="dl" type="button">บันทึกเป็นไฟล์ข้อความ</button><button id="prt" type="button">พิมพ์ / บันทึกเป็น PDF</button></div>
-  <div class="painbox" id="pain-after" hidden><h3>อาการปวดตอนนี้ (หลังเล่น)</h3><p class="mut" id="pa-before"></p><div class="row"><input type="range" id="pa-range" min="0" max="10" value="0"><b id="pa-val">0</b>/10<button id="pa-save" class="p" type="button">บันทึก</button></div><p class="c" id="pa-msg" style="margin:6px 0 0"></p></div>
+  <div class="painbox" id="pain-after" hidden><h3>อาการปวดหลังเล่น (ไม่บังคับ)</h3><p class="mut" id="pa-before"></p><div class="row"><input type="range" id="pa-range" min="0" max="10" value="0"><b id="pa-val">0</b>/10<button id="pa-save" class="p" type="button">บันทึก</button></div><p class="c" id="pa-msg" style="margin:6px 0 0"></p></div>
   <div class="sharebox" id="sharebox">
     <h3>การ์ดผลการเล่น — แชร์ให้เพื่อน</h3>
     <canvas id="sharecv" width="1080" height="1350"></canvas>
@@ -931,7 +942,7 @@ const mascotVid2=document.getElementById('mascot-play');
 if(mascotVid2&&mascotStill){mascotVid2.removeAttribute('src');mascotVid2.load();}
 function mascotPlay2(on){if(!mascotVid2||mascotStill)return;if(on){const p=mascotVid2.play();if(p&&p.catch)p.catch(()=>{})}else mascotVid2.pause();}
 function mascotPlay(on){if(!mascotVid||mascotStill)return;if(on){const p=mascotVid.play();if(p&&p.catch)p.catch(()=>{})}else mascotVid.pause();}
-const show=n=>{if(n!=='next')nxClear();if(n==='home'){chain.active=false;chain.pending=false;chainUiReset()}if(n!=='camsetup'&&csOn)csStop();if(n!=='dance'&&dActive)danceLeave();if(n!=='fire'&&ffActive)ffLeave();PAGES.forEach(k=>$(k).hidden=k!==n);$('mascot').hidden=n!=='home';mascotPlay(n==='home');mascotPlay2(n==='play');};
+const show=n=>{if(n!=='manage'&&!$('manage').hidden&&window.S2&&S2.confirmLeaveEditor&&!S2.confirmLeaveEditor())return false;if(n!=='next')nxClear();if(n==='home'){chain.active=false;chain.pending=false;chainUiReset()}if(n!=='camsetup'&&csOn)csStop();if(n!=='dance'&&dActive)danceLeave();if(n!=='fire'&&ffActive)ffLeave();PAGES.forEach(k=>$(k).hidden=k!==n);$('mascot').hidden=n!=='home';mascotPlay(n==='home');mascotPlay2(n==='play');if(window.MRBeginner)MRBeginner.pageChanged(n);};
 function go(page){
   if(page==='setup')renderList();
   if(page==='level')renderLevels();
@@ -946,7 +957,7 @@ function go(page){
 const KEY='move-relieve-settings';
 let cfg={playerName:'ผู้เล่น',countdownSec:3,restSec:5,difficulty:'normal',volume:60,muted:false,theme:'auto',autoCam:true,musicChoice:'auto',ai:true,showAngles:false,danceMusic:false,readSteps:true,cameraId:'',demoSec:8,ffSong:'auto',teacher3d:true,chainStep:true,remind:{enabled:false,intervalMin:60,startHour:9,endHour:18}};
 try{Object.assign(cfg,JSON.parse(localStorage.getItem(KEY)||'{}'))}catch(e){}
-const saveCfg=()=>{try{localStorage.setItem(KEY,JSON.stringify(cfg))}catch(e){}};
+const saveCfg=()=>{try{localStorage.setItem(KEY,JSON.stringify(cfg));return true}catch(e){notify('บันทึกการตั้งค่าไม่ได้ กรุณาสำรองข้อมูลหรือตรวจพื้นที่เบราว์เซอร์','warn',true);return false}};
 
 let st,last=0,raf=0;
 function newState(keepQueue){
@@ -1211,7 +1222,7 @@ $('s-save').onclick=()=>{
   cfg.demoSec=dm;cfg.playerName=name||'ผู้เล่น';cfg.countdownSec=cd;cfg.restSec=rest;
   cfg.chainStep=$('s-chain').checked;
   cfg.remind=WM.normalize({enabled:$('s-rem').checked,intervalMin:+$('s-rem-int').value,startHour:+$('s-rem-s').value,endHour:+$('s-rem-e').value});remRebuild();
-  saveCfg();
+  if(saveCfg())notify('บันทึกการตั้งค่าแล้ว','good',true);
   st.playerName=cfg.playerName;st.countdownSec=cd;st.restSec=rest;
   renderHome();show('home');
 };
@@ -1225,7 +1236,7 @@ function drawThumb(cv,c){
       const e=aiEx[c.id];g.fillStyle='#101418';g.fillRect(0,0,W,W);
       g.save();g.translate(W/2,W/2);g.scale(W/540,W/540);g.translate(-MR.SIM_W/2,-320);
       const lm=MR.poseFromAngles(MR.anglesFor(e,1,{}),[]);
-      MR.drawPlayerSkeleton(g,MR.ghostJoints(lm,MR.SIM_W,MR.SIM_H),MR.requiredJoints(e),3);g.restore();return;
+      MR.drawTeacher(g,MR.ghostJoints(lm,MR.SIM_W,MR.SIM_H),MR.teachMoving(e),1);g.restore();return;
     }
     let j=null;
     if(window.S2){
@@ -1240,7 +1251,7 @@ function renderList(){
   const list=$('list');list.innerHTML='';$('err').textContent='';fillMusic();
   const lv=G.DIFFICULTY[st.difficulty],cards=[];
   const groups=[
-    {t:'ท่าที่ AI ตรวจจับท่าทางได้',sub:'นับครั้งและให้คะแนนจากกล้อง',f:c=>isAi(c.id)},
+    {t:'ท่าที่กล้องช่วยนับได้',sub:'ทำตามตัวอย่าง ระบบช่วยนับครั้งและประเมินท่า',f:c=>isAi(c.id)},
     {t:'ท่าสำหรับคนทำงานออฟฟิศ',sub:'กดนับครั้งเอง',f:c=>!isAi(c.id)&&!c.custom},
     {t:'ท่าของฉัน',sub:'สร้างจากหน้า "จัดการท่า"',f:c=>!!c.custom},
   ];
@@ -1253,14 +1264,15 @@ function renderList(){
     items.forEach(c=>{
       const q=st.queue.find(x=>x.id===c.id),d=document.createElement('div');d.className='xc';
       const reps=q?q.reps:Math.max(1,Math.round(c.reps*lv.repsMul)),sec=q?q.durationSec:Math.round(c.durationSec*lv.timeMul);
-      const tag=c.custom?'<span class="tag me">ของฉัน</span>':isAi(c.id)?'<span class="tag">AI</span>':'';
+      const tag=c.custom?'<span class="tag me">ของฉัน · กดนับเอง</span>':isAi(c.id)?'<span class="tag">กล้องช่วยนับ</span>':'';
       const esc=x=>String(x).replace(/[&<>"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]));
       d.innerHTML=`<canvas width="240" height="240"></canvas>${tag}<span class="ord">+</span>
         <div class="nm">${esc(c.name)}</div><div class="tg">${esc(c.target)}</div>
         <div class="nums"><label>ครั้ง<input type="number" class="r" min="1" max="100" value="${reps}"></label>
-        <label>วินาที<input type="number" class="t" min="5" max="600" value="${sec}"></label></div>`;
+        <label>วินาที<input type="number" class="t" min="5" max="600" value="${sec}"></label></div><p class="pose-caption">${esc((demoInfo(c).list||[])[0]||'กดดูวิธีทำเพื่ออ่านขั้นตอน')}</p><div class="card-actions"><button class="pose-preview" type="button">ดูวิธีทำ</button><button class="pose-select" type="button">เลือกท่านี้</button></div>`;
       drawThumb(d.querySelector('canvas'),c);
-      const r=d.querySelector('.r'),t=d.querySelector('.t');
+      d.dataset.exerciseId=c.id;d.querySelector('canvas').setAttribute('aria-label','ภาพตัวละครสาธิต '+c.name);d.querySelector('canvas').setAttribute('role','img');
+      const r=d.querySelector('.r'),t=d.querySelector('.t');r.setAttribute('aria-label','จำนวนครั้ง '+c.name);t.setAttribute('aria-label','เวลาสูงสุดเป็นวินาที '+c.name);
       const isOn=()=>st.queue.some(x=>x.id===c.id);
       const apply=()=>{try{$('err').textContent='';
         if(isOn())S.setExerciseTarget(st,c.id,{reps:+r.value,durationSec:+t.value});
@@ -1268,6 +1280,7 @@ function renderList(){
       }catch(e){$('err').textContent=e.message}};
       d.onclick=ev=>{
         if(ev.target.closest('.nums'))return;
+        if(ev.target.closest('.pose-preview')){if(window.MRBeginner)MRBeginner.preview(c);return;}
         try{$('err').textContent='';
           if(isOn())S.deselectExercise(st,c.id);else S.selectExercise(st,c.id,{reps:+r.value,durationSec:+t.value});
         }catch(e){$('err').textContent=e.message}
@@ -1281,13 +1294,16 @@ function renderList(){
   function refresh(){
     cards.forEach(({id,el})=>{
       const i=st.queue.findIndex(x=>x.id===id);
-      el.classList.toggle('on',i>=0);el.querySelector('.ord').textContent=i>=0?i+1:'+';
+      el.classList.toggle('on',i>=0);el.querySelector('.ord').textContent=i>=0?'✓ '+(i+1):'+';const btn=el.querySelector('.pose-select');btn.textContent=i>=0?'✓ เลือกแล้ว':'เลือกท่านี้';btn.setAttribute('aria-pressed',String(i>=0));
     });
     const n=st.queue.length,restMul=G.DIFFICULTY[st.difficulty].restMul;
     const sec=st.queue.reduce((a,q)=>a+q.durationSec,0)+Math.max(0,n-1)*Math.round(st.restSec*restMul);
-    $('sel-sum').textContent=n?`เลือกแล้ว ${n} ท่า · ใช้เวลาสูงสุดประมาณ ${Math.ceil(sec/60)} นาที`:'แตะการ์ดเพื่อเลือกท่า (เลขบนการ์ด = ลำดับที่เล่น)';
+    $('sel-sum').textContent=n?`เลือกแล้ว ${n} ท่า · ใช้เวลาสูงสุดประมาณ ${Math.ceil(sec/60)} นาที`:'ยังไม่ได้เลือกท่า เลือกการ์ดด้านบน หรือใช้ชุดท่าแนะนำ';
+    $('go').textContent=n?'เริ่มเล่น '+n+' ท่า':'เริ่มเกม';$('go').disabled=!n;
+    if(window.MRBeginner)MRBeginner.selectionChanged();
   }
   refresh();
+  if(window.MRBeginner)MRBeginner.cardsChanged();
 }
 $('all').onclick=()=>{S.clearSelection(st);S.selectAll(st);renderList()};
 $('clr').onclick=()=>{S.clearSelection(st);renderList()};
@@ -1295,6 +1311,7 @@ $('clr').onclick=()=>{S.clearSelection(st);renderList()};
 // ---- เล่นเกม ----
 function render(){
   const p=P.getProgress(st);
+  if(window.MRBeginner)MRBeginner.playStatus(p);
   if(st.status==='countdown'){$('big').textContent=p.countdownLeftSec;$('name').textContent='เตรียมตัว '+st.playerName+'...';$('info').textContent='';return;}
   if(!p.exercise)return;
   $('big').textContent=p.resting?p.restLeftSec:p.repsDone+'/'+p.exercise.reps;
@@ -1365,7 +1382,7 @@ function teacher3Draw(lm,t){
   teacher3.render(lm,dt==null||dt>=1?null:dt,MR.LANDMARK_NAMES);return true;
 }
 function drawDemoCanvas(ex){
-  const cv=$('demo-cv'),t=performance.now()/1000,id=ex.id;
+  const cv=$('demo-cv'),t=mascotStill?1.5:performance.now()/1000,id=ex.id;
   const use3=!!(AI&&aiEx[id]&&teacher3&&cfg.teacher3d!==false)&&teacher3Draw(MR.teachPose(aiEx[id],t),t);
   $('demo-3d').hidden=!use3;cv.hidden=use3;
   if(use3)return true;
@@ -1465,8 +1482,9 @@ function aiFrame(now){
   if(cfg.showAngles){const cn=aiEx[id].counter;ang.textContent='เป้าหมาย: เริ่ม '+cn.start_angle+'° → ถึง '+cn.target_angle+'° · เฟส: '+(a.phase||'-')+'\n'+(a.angles?Object.keys(a.angles).map(k=>k+': '+(a.angles[k]==null?'-':a.angles[k].toFixed(1)+'°')).join('\n'):'');}
   $('mfill').style.width=Math.round((a.valid?a.progress:0)*100)+'%';
   const ev=r.evaluation;
-  $('aimsg').textContent=r.stage==='ready'?(r.countdown?r.countdown+' — เตรียมตัว ยืนในท่าเริ่มต้น':r.message):!r.inView?r.message:
-    ev&&ev.live_feedback.length?ev.live_feedback.join(' / '):ev&&ev.live_score!=null?'ท่าทางดี ('+ev.live_score+' คะแนน)':'';
+  const feedbackText=r.stage==='ready'?(r.countdown?r.countdown+' — เตรียมตัว ยืนในท่าเริ่มต้น':r.message):!r.inView?r.message:
+    ev&&ev.live_feedback.length?ev.live_feedback[0]:ev&&ev.live_score!=null?'ท่าทางดี ('+ev.live_score+' คะแนน)':'';
+  if(window.MRBeginner)MRBeginner.feedback(feedbackText,!r.inView);else $('aimsg').textContent=feedbackText;
   const al=poseAlert.update(r.stage==='run'&&r.inView&&ev?ev.live_feedback:[],now);
   if(al)notify(N2.guide(al).text,'warn');
   if(r.reps>c.repsDone)P.registerRep(st,r.reps-c.repsDone); // ส่งจำนวนครั้งที่ AI นับได้เข้าระบบเกม (2.3)
@@ -1475,12 +1493,12 @@ function stopCam(){$('angles').hidden=true;C.stopCamera($('cam'));if(aiCam)aiCam
 async function startPlayCam(){
   try{
     if(aiMode()){
-      $('camerr').textContent='กำลังโหลดโมเดล AI…';await aiCam.prepareModel();
+      $('camerr').textContent='กำลังเตรียมระบบตรวจท่า กรุณารอสักครู่…';await aiCam.prepareModel();
       await aiCam.open($('cam'),cfg.cameraId);aiOn=true;
     }else await C.startCamera($('cam'),cfg.cameraId);
     const vv=$('cam');if(vv.videoWidth&&vv.videoHeight)document.querySelector('.camwrap').style.setProperty('--asp',vv.videoWidth/vv.videoHeight);
     $('cam').hidden=false;$('mbar').hidden=false;detector.reset();$('camerr').textContent='';$('camtog').textContent='ปิดกล้อง';
-  }catch(e){aiOn=false;$('camerr').textContent=(e.message||'เปิดกล้องไม่ได้')+' — ใช้ปุ่มกดนับแทนได้';$('camtog').textContent='เปิดกล้อง';}
+  }catch(e){aiOn=false;$('camerr').textContent=(e.message||'เปิดกล้องไม่ได้')+' — ใช้ปุ่มกดนับแทนได้';$('camtog').textContent='ลองเปิดกล้องอีกครั้ง';}
 }
 $('camtog').onclick=()=>{if(aiOn||C.isCameraOn())stopCam();else startPlayCam()};
 function finish(){
@@ -1492,7 +1510,7 @@ function finish(){
      $('weak').hidden=!r.weakIds.length;
      if(a.stars===3&&!a.quit)[0,140,280,420].forEach((d,i)=>setTimeout(()=>beep([784,988,1175,1568][i],i===3?420:120),d));
      const li=(t,arr)=>arr.length?`<div class="sumlist"><b>${t}</b>`+arr.map(x=>`<div>• ${esc(x)}</div>`).join('')+'</div>':'';
-     let hist=[];lastHist=null;try{lastHist=H.recordSession(localStorage,r);hist=H.formatHistory(lastHist);}catch(e){}
+     let hist=[];lastHist=null;try{const before=localStorage.getItem(H.KEY);lastHist=H.recordSession(localStorage,r);hist=H.formatHistory(lastHist);if(r.scores.perExercise.length&&localStorage.getItem(H.KEY)===before)notify('บันทึกประวัติไม่ได้ ผลรอบนี้ยังดูและดาวน์โหลดได้จากหน้านี้','warn',true);}catch(e){notify('บันทึกประวัติไม่ได้ ผลรอบนี้ยังดูและดาวน์โหลดได้จากหน้านี้','warn',true);}
      setTimeout(()=>{$('share-name').value=st.playerName;renderShare()},0);
      const tips=r.tips.length?`<div class="sumlist"><b>วิธีแก้รายท่า</b>`+r.tips.map(t=>`<div>• <b>${esc(t.name)}</b>: ${t.advice.map(esc).join(' / ')}</div>`).join('')+'</div>':'';
      return (hist.length?`<div class="sumlist" style="text-align:center">${hist.map(esc).join('<br>')}</div>`:'')+r.html+li('จุดเด่น',a.strengths)+li('ควรปรับปรุง',a.improvements)+tips+li('คำแนะนำ',a.advice);
@@ -1514,7 +1532,7 @@ $('go').onclick=async()=>{
 $('rep').onclick=()=>P.registerRep(st);
 $('skip').onclick=()=>P.skipExercise(st);
 $('pause').onclick=()=>{E.togglePause(st);$('pause').textContent=st.status==='paused'?'เล่นต่อ':'หยุด'};
-$('end').onclick=()=>{E.endGame(st);finish()};
+$('end').onclick=()=>{const resume=st.status==='playing'||st.status==='countdown';if(resume)E.pauseGame(st);if(confirm('จบการเล่นรอบนี้หรือไม่? ระบบจะสรุปผลเท่าที่ทำได้')){E.endGame(st);finish()}else if(resume)E.resumeGame(st)};
 $('rep').title='ใช้เมื่อไม่ได้เปิดกล้อง หรือกล้องนับไม่ทัน';
 $('again').onclick=()=>{E.resetGame(st);renderList();show('setup')};
 
@@ -1590,7 +1608,7 @@ function renderStats(){
 }
 $('m-stats').onclick=()=>{renderStats();show('stats')};
 $('st-who').onchange=renderStats;
-$('st-clear').onclick=()=>{if(confirm('ล้างประวัติการเล่นทั้งหมดในเครื่องนี้? ย้อนกลับไม่ได้')){H.clear(localStorage);renderStats()}};
+$('st-clear').onclick=()=>{if(confirm('ล้างประวัติการเล่นทั้งหมดในเครื่องนี้? ย้อนกลับไม่ได้')){if(!H.clear(localStorage))notify('ล้างประวัติไม่ได้ กรุณาตรวจการอนุญาตเก็บข้อมูลของเบราว์เซอร์','warn',true);renderStats()}};
 
 // ---- โหมดแผ่นเต้น (โฟลเดอร์ 6.Dance Game + dance/dancepad.js จาก "ส่วน ระบบ") — แยกจากโหมดท่าออกกำลังกาย ----
 const DPAD=window.DancePad?DancePad.create({single:true}):null;
@@ -1609,7 +1627,7 @@ function buildDpad(){
     if(!id){c.className='dcell center';c.innerHTML='<div class="dring"><b id="d-center">ยืนตรงนี้</b><small id="d-centersub">แล้วก้าวไปเหยียบแผ่นที่สว่าง</small></div>';}
     else{
       const m=DIMG[id],u=(window.PAD_IMAGES&&window.PAD_IMAGES[m.img])||'';
-      c.className='dcell';c.dataset.id=id;
+      c.className='dcell';c.dataset.id=id;c.tabIndex=0;c.setAttribute('role','button');c.setAttribute('aria-label','เหยียบช่อง '+DKEYS[id]);c.addEventListener('keydown',ev=>{if(ev.key==='Enter'||ev.key===' '){ev.preventDefault();danceHit(id)}});
       c.innerHTML=`<img src="${u}" alt="${id}" style="${m.fx||''}"><div class="appr"></div><span class="key">${DKEYS[id]}</span>`;
       c.addEventListener('pointerdown',ev=>{ev.preventDefault();danceHit(id)});
       dCells[id]=c;
@@ -1723,7 +1741,7 @@ $('d-quit').onclick=danceQuit;
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&dActive&&dPhase==='play'){e.preventDefault();danceQuit()}});
 
 function danceHint(){
-  if(!DPAD)return 'ไม่พบโมดูลแผ่นเต้น — รัน build ก่อน: node "3.Game Control System/build.js"';
+  if(!DPAD)return 'ระบบอ่านแผ่นเต้นยังไม่พร้อม ลองโหลดหน้าเว็บอีกครั้ง';
   if(!DPAD.gamepad)return 'ยังไม่พบแผ่นเต้น — เสียบแผ่นแล้วเหยียบ 1 ครั้ง หรือเล่นด้วยคีย์บอร์ด (Q ↑ E ← → Z ↓ C) หรือแตะแผ่นบนจอได้เลย';
   if(!DPAD.isMapped)return 'พบแผ่นเต้นแล้ว — กด "ตั้งค่าแผ่น" ก่อนเล่น (ทำครั้งเดียว ค่าจะถูกจำไว้)';
   return 'พร้อมเล่น — เลือกระดับเพื่อเริ่ม ก้าวเหยียบแผ่นที่สว่างเป็นสีแดงให้ตรงจังหวะ';
@@ -1814,7 +1832,7 @@ function ffSprite(id){
 const ffReady=k=>!!(DPAD&&DPAD.gamepad&&DPAD.mode==='free'&&FF.LEVELS[k].panels.every(id=>DPAD.map[id]));
 function ffHint(){
   if(ffPrompt)return ffPrompt;
-  if(!DPAD)return 'ไม่พบโมดูลแผ่นเต้น — รัน build ก่อน: node "3.Game Control System/build.js"';
+  if(!DPAD)return 'ระบบอ่านแผ่นเต้นยังไม่พร้อม ลองโหลดหน้าเว็บอีกครั้ง';
   if(!DPAD.gamepad)return 'โหมดนี้เล่นด้วยแผ่นเต้นเท่านั้น — เสียบแผ่นแล้วเหยียบ 1 ครั้ง';
   if(!DPAD.isMapped)return 'พบแผ่นเต้นแล้ว — กด "ตั้งค่าแผ่น" แล้วเหยียบตามแผ่นที่ขอบสว่างบนกระดาน';
   return 'พร้อมแล้ว! เล่นรอบละ 3 นาที ยืนตรงจุดกลางแผ่น เลือกระดับ แล้วเหยียบเมื่อไอคอนแตะแผ่น เก็บความแม่นให้เกจเต็มเพื่อเข้าช่วงไฟลุก คะแนน ×2';
@@ -2110,19 +2128,20 @@ let csRaf=0,csTr=null,csSig='';
 const CS_REQ=['left_shoulder','right_shoulder','left_hip','right_hip','left_knee','right_knee','left_ankle','right_ankle'];
 function csRender(r){
   const sig=r.checks.map(c=>c.id+c.ok).join(',');if(sig===csSig)return;csSig=sig;
+  if(window.MRBeginner)MRBeginner.cameraStatus(r.ready);
   $('cs-list').innerHTML=r.checks.map(c=>`<li class="${c.ok?'ok':c.required?'bad':'opt'}">${wEsc(c.text)}</li>`).join('')+`<li class="cs-sum ${r.ready?'ok':'bad'}"><b>${wEsc(WK.summary(r))}</b></li>`;
 }
 async function csStart(){
   if(csOn)return;
-  if(typeof AI==='undefined'||!AI||!aiCam){$('cs-msg').textContent='ไม่พบระบบ AI (โฟลเดอร์ ai/) — รัน build ก่อน';return}
+  if(typeof AI==='undefined'||!AI||!aiCam){$('cs-msg').textContent='ระบบตรวจท่ายังไม่พร้อม กลับหน้าแรกแล้วลองใหม่ หรือลองโหลดหน้าเว็บอีกครั้ง';return}
   $('cs-msg').textContent='กำลังโหลดโมเดล AI และเปิดกล้อง…';$('cs-toggle').disabled=true;
   try{
     await aiCam.prepareModel();await aiCam.open($('cs-video'),cfg.cameraId);
     csOn=true;csTr=new MR.JointTracker();csSig='';$('cs-msg').textContent='';$('cs-toggle').textContent='ปิดกล้อง';csLoop();
   }catch(e){$('cs-msg').textContent='เปิดกล้องไม่ได้: '+(e.name==='NotAllowedError'?'ยังไม่ได้อนุญาตกล้อง':e.message)}
-  $('cs-toggle').disabled=false;
+  $('cs-toggle').disabled=false;if(window.MRBeginner&&!csOn)MRBeginner.cameraStatus(false,'เปิดกล้องไม่สำเร็จ กดเปิดกล้องเพื่อลองใหม่');
 }
-function csStop(){csOn=false;cancelAnimationFrame(csRaf);try{if(aiCam)aiCam.close()}catch(e){}$('cs-toggle').textContent='เปิดกล้อง';}
+function csStop(){csOn=false;cancelAnimationFrame(csRaf);try{if(aiCam)aiCam.close()}catch(e){}$('cs-toggle').textContent='เปิดกล้อง';if(window.MRBeginner)MRBeginner.cameraStatus(false,'กล้องปิดอยู่ กดเปิดกล้องเพื่อตรวจตำแหน่ง');}
 function csLoop(){
   if(!csOn)return;csRaf=requestAnimationFrame(csLoop);
   const lm=aiCam.read();if(lm===undefined)return;
@@ -2213,7 +2232,7 @@ $('prt').onclick=()=>window.print();
 
 // ---- จัดการท่า (ระบบ 2) ----
 const MG=['list','edit','detail','settings'];
-function mgTab(k){MG.forEach(x=>{$('mg-'+x).hidden=x!==k;});document.querySelectorAll('#mtabs button').forEach(b=>b.classList.toggle('on',b.dataset.k===k));}
+function mgTab(k){if(k!=='edit'&&!$('mg-edit').hidden&&window.S2&&S2.confirmLeaveEditor&&!S2.confirmLeaveEditor())return;MG.forEach(x=>{$('mg-'+x).hidden=x!==k;});document.querySelectorAll('#mtabs button').forEach(b=>b.classList.toggle('on',b.dataset.k===k));}
 function syncCustom(store){
   // ท่ามาตรฐาน (id basic-xx) มีใน AI อยู่แล้ว ส่งเฉพาะท่าที่ผู้เล่นสร้างเองเข้าเกม
   const mine=store.poses.filter(p=>!/^basic-/.test(p.id)).map(p=>({
@@ -2234,4 +2253,5 @@ try{
 
 renderHome();show('home');
 if(location.hash.startsWith('#manage')&&!$('m-manage').disabled){$('m-manage').click();const t=location.hash.split(':')[1];if(t)mgTab(t);}
-</script></body></html>
+</script>
+<script>/*__BEGINNER_JS__*/</script><script>/*__LOBBY_JS__*/</script></body></html>

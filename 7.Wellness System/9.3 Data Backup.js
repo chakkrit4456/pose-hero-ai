@@ -8,6 +8,7 @@ const MAX_VALUE_BYTES = 2 * 1024 * 1024;
 const KEYS = Object.freeze([
   'move-relieve-settings', 'move-relieve-history', 'move-relieve-dance-best', 'move-relieve-pain', 'move-relieve-remind',
   'move-relieve-notice', 'mr_sys2_poses', 'dancepad-map-v6', 'dancepad-ignore-v1', 'dancepad-hold-v1',
+  'move-relieve-firefeet-best', 'move-relieve-ladder',
 ]);
 
 // คืนข้อความ JSON ของข้อมูลทั้งหมดที่มี (ค่าเก็บเป็นข้อความดิบตามที่อยู่ใน storage เพื่อกู้คืนได้เหมือนเดิมทุกตัวอักษร)

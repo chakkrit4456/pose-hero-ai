@@ -22,7 +22,7 @@ fs.mkdirSync(OUT, { recursive: true });
 
 // ---- index.html (เพิ่ม manifest / ไอคอน / ลงทะเบียน service worker)
 let html = fs.readFileSync(path.join(__dirname, 'Game Start.html'), 'utf8');
-const headTags = '<link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#ff6b9d"><link rel="icon" href="icon.svg" type="image/svg+xml">';
+const headTags = '<link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#2563eb">';
 if (!html.includes('name="viewport"')) throw new Error('ไม่พบ meta viewport ใน Game Start.html');
 html = html.replace(/(<meta name="viewport"[^>]*>)/, `$1${headTags}`);
 const swReg = "<script>if('serviceWorker' in navigator&&location.protocol.indexOf('http')===0)navigator.serviceWorker.register('sw.js').catch(function(){});</script>";
@@ -32,6 +32,7 @@ fs.writeFileSync(path.join(OUT, 'index.html'), html);
 
 // ---- ระบบ AI
 fs.cpSync(path.join(__dirname, 'ai'), path.join(OUT, 'ai'), { recursive: true });
+fs.cpSync(path.join(__dirname, 'assets'), path.join(OUT, 'assets'), { recursive: true });
 if (fs.existsSync(path.join(__dirname, 'dance'))) fs.cpSync(path.join(__dirname, 'dance'), path.join(OUT, 'dance'), { recursive: true }); // โหมดแผ่นเต้น
 
 // ---- มาสคอตหน้าเมนู (ไม่คัดลอกวิดีโอต้นฉบับใน vid/)
@@ -59,8 +60,8 @@ fs.writeFileSync(path.join(OUT, 'music-list.js'), 'window.MR_MUSIC=' + JSON.stri
 
 // ---- manifest + ไอคอน
 fs.writeFileSync(path.join(OUT, 'manifest.webmanifest'), JSON.stringify({
-  name: 'Move & Relieve — ขยับกาย ทลายเมื่อย',
-  short_name: 'Move & Relieve',
+  name: 'Pose Hero AI — ขยับกาย ทลายเมื่อย',
+  short_name: 'Pose Hero AI',
   description: 'เกมบริหารร่างกายสำหรับคนทำงานออฟฟิศ ใช้ AI จับท่าทางจากกล้อง',
   start_url: './index.html',
   scope: './',
@@ -69,7 +70,7 @@ fs.writeFileSync(path.join(OUT, 'manifest.webmanifest'), JSON.stringify({
   background_color: '#fff7e0',
   theme_color: '#ff6b9d',
   lang: 'th',
-  icons: [{ src: 'icon.svg', sizes: 'any', type: 'image/svg+xml', purpose: 'any' }],
+  icons: [{ src: 'assets/pose-hero-logo-mascot-v3.png', sizes: '1920x819', type: 'image/png', purpose: 'any' }],
 }, null, 2));
 fs.writeFileSync(path.join(OUT, 'icon.svg'),
   '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><rect width="512" height="512" rx="110" fill="#ff6b9d"/>' +

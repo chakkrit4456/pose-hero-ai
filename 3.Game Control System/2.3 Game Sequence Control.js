@@ -87,6 +87,8 @@ function tick(state, deltaMs) {
     ensureFirstExercise(state);
     return state;
   }
+  // A zero-second countdown enters PLAYING directly, without the branch above.
+  ensureFirstExercise(state);
   if (state.status !== GAME_STATUS.PLAYING || !state.current) return state;
 
   state.totalElapsedMs += deltaMs;

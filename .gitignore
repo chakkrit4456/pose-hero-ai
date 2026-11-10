@@ -9,3 +9,7 @@ desktop.ini
 dist/
 
 3.Game Control System/dance/
+
+# Local UI verification artifacts
+.qa/
+test-results.txt

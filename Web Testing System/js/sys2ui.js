@@ -71,6 +71,19 @@
     const status = h("div", { class: "ok", style: "min-height:1.5em" });
     const redraw = () => { cv.getContext("2d").clearRect(0, 0, 460, 460); S2.drawPose(cv, joints, { color: cssv("--acc"), handles: true, active }); };
 
+    let savedSnapshot = null;
+    const snapshot = () => JSON.stringify([name.value, cat.value, desc.value, joints]);
+    const markClean = () => { savedSnapshot = snapshot(); };
+    S2.editorDirty = () => savedSnapshot !== null && savedSnapshot !== snapshot();
+    S2.confirmLeaveEditor = () => {
+      if (!S2.editorDirty()) return true;
+      if (!confirm("มีการแก้ไขท่าที่ยังไม่ได้บันทึก ต้องการออกโดยไม่บันทึกหรือไม่?")) return false;
+      const [n, c, d, j] = JSON.parse(savedSnapshot); name.value = n; cat.value = c; desc.value = d; joints = j; redraw();
+      status.textContent = "ยกเลิกการแก้ไขที่ยังไม่บันทึกแล้ว"; return true;
+    };
+    window.addEventListener("beforeunload", e => { if (S2.editorDirty()) { e.preventDefault(); e.returnValue = ""; } });
+    name.setAttribute("aria-label", "ชื่อท่าที่สร้างเอง"); cat.setAttribute("aria-label", "หมวดท่า"); desc.setAttribute("aria-label", "ขั้นตอนการทำท่า หนึ่งบรรทัดต่อขั้นตอน");
+    status.setAttribute("role", "status");
     function refresh() {
       list.innerHTML = "";
       store.poses.forEach((p) => list.append(h("button", { "aria-pressed": String(p.id === curId), onclick: () => loadId(p.id) }, p.name, h("span", { class: "mut", text: "  · " + p.category }))));
@@ -78,9 +91,9 @@
       if (curId && !store.get(curId)) curId = null;
     }
     function loadId(id) {
-      const p = store.get(id); if (!p) return;
+      const p = store.get(id); if (!p || !S2.confirmLeaveEditor()) return;
       curId = id; joints = JSON.parse(JSON.stringify(p.joints)); name.value = p.name; cat.value = p.category; desc.value = p.description;
-      status.textContent = `กำลังแก้ไข: ${p.name}`; refresh(); redraw();
+      status.textContent = `กำลังแก้ไข: ${p.name}`; refresh(); redraw(); markClean();
     }
     function nearest(x, y) {
       let best = null, bd = 18;
@@ -100,40 +113,45 @@
       const n = name.value.trim(); if (!n) { alert("กรุณาตั้งชื่อท่าก่อนบันทึก"); return null; }
       return [n, cat.value.trim() || S2.CATEGORIES[S2.CATEGORIES.length - 1], desc.value.trim(), joints];
     };
-    function newPose() { curId = null; joints = S2.neutral(); name.value = ""; desc.value = ""; status.textContent = "ท่าใหม่ (ยังไม่ได้บันทึก)"; refresh(); redraw(); }
+    function newPose(force) { if (!force && !S2.confirmLeaveEditor()) return; curId = null; joints = S2.neutral(); name.value = ""; desc.value = ""; status.textContent = "ท่าใหม่ (ยังไม่ได้บันทึก)"; refresh(); redraw(); markClean(); }
     function saveNew() {
       const f = form(); if (!f) return;
       const dup = store.findByName(f[0]);
       if (dup) {
         if (confirm(`มีท่า "${dup.name}" อยู่แล้ว\n\nตกลง = บันทึกทับท่าเดิม\nยกเลิก = ไปเลือกต่อ`)) {
-          const p = store.overwrite(dup.id, ...f); curId = p.id; status.textContent = `บันทึกทับ "${p.name}" แล้ว`; return;
+          const p = store.overwrite(dup.id, ...f); curId = p.id; status.textContent = `บันทึกทับ "${p.name}" แล้ว`; markClean(); return;
         }
         if (!confirm("เพิ่มเป็นท่าใหม่อีกท่าที่ชื่อซ้ำหรือไม่?\n\nตกลง = เพิ่ม  ยกเลิก = ไม่บันทึก")) return;
       }
-      const p = store.add(...f); curId = p.id; refresh(); status.textContent = `เพิ่มท่าใหม่ "${p.name}" แล้ว`;
+      const p = store.add(...f); curId = p.id; refresh(); status.textContent = `เพิ่มท่าใหม่ "${p.name}" แล้ว`; markClean();
     }
     function saveOver() {
       if (!curId || !store.get(curId)) { alert('เลือกท่าจากรายการด้านซ้ายก่อน หรือใช้ "บันทึกเป็นท่าใหม่"'); return; }
       const f = form(); if (!f) return;
-      if (confirm(`บันทึกทับท่า "${store.get(curId).name}" ด้วยท่าที่กำลังแก้ไข?`)) { const p = store.overwrite(curId, ...f); status.textContent = `บันทึกทับ "${p.name}" แล้ว`; }
+      if (confirm(`บันทึกทับท่า "${store.get(curId).name}" ด้วยท่าที่กำลังแก้ไข?`)) { const p = store.overwrite(curId, ...f); status.textContent = `บันทึกทับ "${p.name}" แล้ว`; markClean(); }
     }
     function del() {
       const p = curId && store.get(curId); if (!p) return;
-      if (confirm(`ลบท่า "${p.name}" ?`)) { store.delete(p.id); newPose(); status.textContent = "ลบท่าแล้ว"; }
+      if (confirm(`ลบท่า "${p.name}" ?`)) { store.delete(p.id); newPose(true); status.textContent = "ลบท่าแล้ว"; }
     }
+    const jointSelect = h("select", { "aria-label": "ข้อต่อที่ต้องการปรับ" });
+    S2.JOINTS.forEach(k => jointSelect.append(h("option", { value: k, text: S2.JOINT_TH[k] || k })));
+    const nudge = (dx, dy) => { const k = jointSelect.value, q = joints[k], r = S2.dragJoint(joints, k, [q[0] + dx, q[1] + dy], snap.checked); if (r) { joints = r.joints; info.textContent = r.msg; redraw(); } };
+    const keyboardTools = h("details", { class: "guide-box" }, h("summary", { text: "ปรับข้อต่อโดยไม่ต้องลาก" }), jointSelect,
+      h("div", { class: "row" }, h("button", { type: "button", text: "เลื่อนซ้าย", onclick: () => nudge(-0.02, 0) }), h("button", { type: "button", text: "เลื่อนขวา", onclick: () => nudge(0.02, 0) }), h("button", { type: "button", text: "เลื่อนขึ้น", onclick: () => nudge(0, -0.02) }), h("button", { type: "button", text: "เลื่อนลง", onclick: () => nudge(0, 0.02) })));
     const B = (t, fn, pri) => h("button", { class: "btn" + (pri ? " pri" : ""), style: "width:100%;margin-top:4px", onclick: fn, text: t });
     el.append(h("div", { class: "grid3" },
       h("div", {}, h("h2", { text: "ท่าทั้งหมด" }), list),
-      h("div", {}, cv, info, h("label", {}, snap, " ล็อกมุมทีละ 5° (ทำซ้ำให้ตรงเป๊ะ)"), h("div", { class: "mut", text: "ภาพแบบส่องกระจก: ซ้ายของจอ = ซ้ายของผู้ทำท่า" })),
+      h("div", {}, cv, info, keyboardTools, h("label", {}, snap, " ล็อกมุมทีละ 5° (ทำซ้ำให้ตรงเป๊ะ)"), h("div", { class: "mut", text: "ภาพแบบส่องกระจก: ซ้ายของจอ = ซ้ายของผู้ทำท่า" })),
       h("div", {}, h("h2", { text: "ชื่อท่า" }), name, h("h2", { text: "หมวด", style: "margin-top:8px" }), cat, datalist,
         h("h2", { text: "วิธีทำ (หนึ่งบรรทัด = หนึ่งขั้นตอน)", style: "margin-top:8px" }), desc, status,
-        B("＋ ท่าใหม่ (เริ่มจากท่ายืนตรง)", newPose),
+        B("＋ ท่าใหม่ (เริ่มจากท่ายืนตรง)", () => newPose(false)),
         B("คัดลอกท่านี้เป็นฉบับร่าง", () => { const o = name.value.trim(); curId = null; name.value = o ? o + " (สำเนา)" : ""; status.textContent = "ฉบับร่างจากสำเนา (ยังไม่ได้บันทึก)"; refresh(); }),
         B("สลับซ้าย ↔ ขวา", () => { joints = S2.mirrorJoints(joints); redraw(); }),
         B("รีเซ็ตเป็นท่ายืนตรง", () => { joints = S2.neutral(); redraw(); }),
         B("บันทึกเป็นท่าใหม่ (เพิ่มเข้าไป)", saveNew, true), B("บันทึกทับท่าที่เลือก", saveOver, true), B("ลบท่าที่เลือก", del))));
     bus.on("changed", refresh); bus.on("edit_pose", loadId);
-    refresh(); redraw();
+    refresh(); redraw(); markClean();
   }
 
   // ================================================================ 4.3 รายละเอียด / ทำตามท่า

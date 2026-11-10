@@ -65,4 +65,8 @@ for(const[k,f]of Object.entries(files)){
   m+=`__src['${k}']=function(module,exports,require){${src}\n};\n`;
 }
 const t=fs.readFileSync(path.join(__dirname,'Game Start.template.html'),'utf8');
-fs.writeFileSync(path.join(__dirname,'Game Start.html'),t.replace('/*__MODULES__*/',()=>m));
+const page=t.replace('/*__MODULES__*/',()=>m)
+  .replace('/*__BEGINNER_CSS__*/',()=>fs.readFileSync(path.join(__dirname,'beginner-ui.css'),'utf8'))
+  .replace('/*__BEGINNER_JS__*/',()=>fs.readFileSync(path.join(__dirname,'beginner-ui.js'),'utf8').replace(/<\/script/gi,'<\\/script'))
+  .replace('/*__LOBBY_JS__*/',()=>fs.readFileSync(path.join(__dirname,'lobby-scene.js'),'utf8').replace(/<\/script/gi,'<\\/script'));
+fs.writeFileSync(path.join(__dirname,'Game Start.html'),page);
