@@ -122,10 +122,16 @@ const S4 = R('5.Game Results Summary', '7.4 Gameplay Summary.js');
 const S5 = R('5.Game Results Summary', '7.5 Play History.js');
 const S6 = R('5.Game Results Summary', '7.6 Share Card.js');
 const S7 = R('5.Game Results Summary', '7.7 Stats View.js');
+const W1 = R('7.Wellness System', '9.1 Health Notice.js');
+const W2 = R('7.Wellness System', '9.2 Routines.js');
+const W3 = R('7.Wellness System', '9.3 Data Backup.js');
+const W4 = R('7.Wellness System', '9.4 Pain Log.js');
+const W5 = R('7.Wellness System', '9.5 Break Reminder.js');
+const W6 = R('7.Wellness System', '9.6 Camera Check.js');
 const D1 = R('6.Dance Game', '8.1 Dance Chart.js');
+const D6 = R('6.Dance Game', '8.6 Step Ladder.js');
 const D2 = R('6.Dance Game', '8.2 Dance Judge.js');
 const D3 = R('6.Dance Game', '8.3 Dance Result.js');
-const D4 = R('6.Dance Game', '8.4 Arrow Game.js');
 const D5 = R('6.Dance Game', '8.5 Fire Feet.js');
 
 const res = (o) => ({ id: 'a', name: 'ท่า', targetReps: 10, repsDone: 10, targetDurationSec: 60, elapsedMs: 60000, completed: true, reason: 'timeout', ...o });
@@ -234,6 +240,106 @@ test('7.5 ล้างประวัติ', () => {
   const m = { d: { [S5.KEY]: '[1]' }, getItem(k) { return this.d[k] ?? null; }, setItem(k, v) { this.d[k] = v; }, removeItem(k) { delete this.d[k]; } };
   assert.ok(S5.clear(m)); assert.strictEqual(S5.load(m).length, 0);
   assert.strictEqual(S5.clear({ removeItem() { throw new Error('x'); } }), false);
+});
+
+group('ระบบสุขภาพ 9.1-9.6');
+const memS = () => ({ d: {}, getItem(k) { return this.d[k] ?? null; }, setItem(k, v) { this.d[k] = String(v); }, removeItem(k) { delete this.d[k]; } });
+test('9.1 ข้อความเตือนสุขภาพ: ถามจนกว่าจะยอมรับ และถามใหม่เมื่อเนื้อหาเปลี่ยนรุ่น', () => {
+  const m = memS();
+  assert.strictEqual(W1.needsNotice(m), true);
+  assert.ok(W1.accept(m)); assert.strictEqual(W1.needsNotice(m), false);
+  m.setItem(W1.KEY, JSON.stringify({ version: W1.VERSION - 1, accepted: true }));
+  assert.strictEqual(W1.needsNotice(m), true);
+  const bad = { getItem() { throw new Error('x'); }, setItem() { throw new Error('x'); } };
+  assert.strictEqual(W1.needsNotice(bad), true); assert.strictEqual(W1.accept(bad), false);
+  assert.ok(W1.NOTICE.points.length >= 4 && W1.NOTICE.privacy.includes('ไม่ส่ง'));
+});
+test('9.2 ชุดท่าสำเร็จรูป: ทุกท่ามีในแคตตาล็อก, ไม่ซ้ำในชุดเดียวกัน, ประมาณเวลาสมเหตุสมผล', () => {
+  const ids = S.getCatalog().map((c) => c.id);
+  assert.ok(W2.ROUTINES.length >= 5);
+  W2.ROUTINES.forEach((r) => {
+    assert.strictEqual(W2.resolve(r, ids).length, r.ids.length, 'ท่าหายในชุด ' + r.id);
+    assert.strictEqual(new Set(r.ids).size, r.ids.length);
+    const items = W2.resolve(r, ids).map((x) => { const c = S.getCatalog().find((q) => q.id === x.id); return { reps: x.reps || c.reps }; });
+    const mins = W2.estimateMinutes(items);
+    assert.ok(mins >= 1 && mins <= 8, `${r.id}: ${mins} นาที`);
+  });
+  assert.strictEqual(W2.resolve({ ids: ['neck-tilt', 'ไม่มีท่านี้'] }, ids).length, 1);
+  assert.strictEqual(W2.estimateMinutes([]), 0);
+});
+test('9.3 สำรอง/นำเข้า: ส่งออกแล้วนำเข้ากลับได้เหมือนเดิมทุกตัวอักษร และไม่แตะคีย์อื่น', () => {
+  const a = memS();
+  a.setItem('move-relieve-settings', '{"playerName":"เจ","demoSec":8}'); a.setItem('move-relieve-history', '[{"totalScore":90}]'); a.setItem('other-site-key', 'x');
+  const text = W3.exportData(a, 123);
+  assert.ok(!text.includes('other-site-key'));
+  const b = memS(); b.setItem('other-site-key', 'keep'); b.setItem('move-relieve-pain', '[1]');
+  const r = W3.importData(b, text);
+  assert.ok(r.ok); assert.deepStrictEqual(r.restored.sort(), ['move-relieve-history', 'move-relieve-settings']);
+  assert.strictEqual(b.getItem('move-relieve-settings'), '{"playerName":"เจ","demoSec":8}');
+  assert.strictEqual(b.getItem('other-site-key'), 'keep'); assert.strictEqual(b.getItem('move-relieve-pain'), '[1]');
+});
+test('9.3 ไฟล์สำรองที่ผิด: ไม่ใช่ JSON / คนละรูปแบบ / เวอร์ชันใหม่กว่า / คีย์แปลก / ค่าเสียหาย ถูกปฏิเสธหรือข้ามอย่างปลอดภัย', () => {
+  assert.strictEqual(W3.parseBackup('ไม่ใช่ json').ok, false);
+  assert.strictEqual(W3.parseBackup('{"format":"x"}').ok, false);
+  assert.ok(/ใหม่กว่า/.test(W3.parseBackup(JSON.stringify({ format: W3.FORMAT, version: 99, data: {} })).error));
+  const mix = W3.parseBackup(JSON.stringify({ format: W3.FORMAT, version: 1, data: { 'move-relieve-history': '[]', evil: '1', 'move-relieve-pain': '{ไม่ใช่ json', 'move-relieve-settings': 5 } }));
+  assert.ok(mix.ok); assert.deepStrictEqual(Object.keys(mix.data), ['move-relieve-history']); assert.strictEqual(mix.skipped.length, 3);
+  assert.strictEqual(W3.parseBackup(JSON.stringify({ format: W3.FORMAT, version: 1, data: {} })).ok, false);
+  const m = memS(); const w = W3.importData({ getItem() { return null; }, setItem() { throw new Error('เต็ม'); } }, W3.exportData(Object.assign(m, {})));
+  assert.strictEqual(w.ok, false);
+});
+test('9.4 บันทึกอาการปวด: ตรวจช่วง 0-10, สรุปค่าเฉลี่ยที่ลดลง, ข้อความสรุป', () => {
+  const m = memS();
+  assert.strictEqual(W4.record(m, { player: 'เจ', before: 11, after: 2 }).ok, false);
+  assert.strictEqual(W4.record(m, { player: 'เจ' }).ok, false);
+  assert.strictEqual(W4.record(m, { player: 'เจ', before: 1.5 }).ok, false);
+  assert.ok(W4.record(m, { player: 'เจ', before: 7, after: 4 }).ok); assert.ok(W4.record(m, { player: 'เจ', before: 5, after: 4 }).ok);
+  assert.ok(W4.record(m, { player: 'เจ', before: 6 }).ok); assert.ok(W4.record(m, { player: 'คนอื่น', before: 3, after: 5 }).ok);
+  const s = W4.summarize(W4.load(m), 'เจ');
+  assert.strictEqual(s.count, 3); assert.strictEqual(s.pairs, 2); assert.strictEqual(s.avgDrop, 2); assert.strictEqual(s.improved, 2);
+  assert.ok(W4.headline(s).includes('ลดลงเฉลี่ย 2'));
+  assert.ok(W4.headline(W4.summarize(W4.load(m), 'คนอื่น')).includes('เพิ่มขึ้น'));
+  assert.strictEqual(W4.headline(W4.summarize([], '')), '');
+  for (let i = 0; i < 250; i++) W4.record(m, { player: 'x', after: 3 });
+  assert.strictEqual(W4.load(m).length, 200);
+});
+test('9.5 เตือนให้พัก: ครบรอบเวลา/ช่วงเวลาทำงาน/เลื่อน/ปิดวันนี้/เริ่มรอบใหม่หลังเล่น', () => {
+  const at = (h, mi = 0) => new Date(2026, 0, 5, h, mi).getTime();
+  const r = W5.createReminder({ enabled: true, intervalMin: 60, startHour: 9, endHour: 18 }, null, at(10, 0));
+  assert.strictEqual(r.due(at(10, 59)), false); assert.strictEqual(r.minutesLeft(at(10, 30)), 30);
+  assert.strictEqual(r.due(at(11, 0)), true);
+  r.snooze(at(11, 0), 10); assert.strictEqual(r.due(at(11, 5)), false); assert.strictEqual(r.due(at(11, 11)), true);
+  r.markActive(at(11, 20)); assert.strictEqual(r.due(at(12, 0)), false); assert.strictEqual(r.due(at(12, 20)), true);
+  r.dismissToday(at(12, 20)); assert.strictEqual(r.due(at(14, 0)), false);
+  const next = new Date(2026, 0, 6, 10).getTime(); assert.strictEqual(r.due(next), true);
+  const late = W5.createReminder({ enabled: true, intervalMin: 30 }, { lastAt: at(16, 0) }, at(17, 0)); assert.strictEqual(late.due(at(18, 30)), false);
+  assert.strictEqual(W5.createReminder({ enabled: false }, { lastAt: 0 }, at(10)).due(at(15)), false);
+  assert.strictEqual(W5.createReminder({ enabled: true }, { lastAt: at(23) }, at(10)).state.lastAt, at(10)); // เวลาในอนาคต = เริ่มนับใหม่
+});
+test('9.5 ช่วงเวลาทำงาน (รวมข้ามเที่ยงคืน) และค่าตั้งผิดปกติถูกปรับเป็นค่าเริ่มต้น', () => {
+  const at = (h) => new Date(2026, 0, 5, h, 30).getTime();
+  assert.ok(W5.inWorkHours(at(9), 9, 18) && !W5.inWorkHours(at(18), 9, 18) && !W5.inWorkHours(at(8), 9, 18));
+  assert.ok(W5.inWorkHours(at(23), 22, 6) && W5.inWorkHours(at(3), 22, 6) && !W5.inWorkHours(at(12), 22, 6));
+  const n = W5.normalize({ enabled: 1, intervalMin: 7, startHour: 99, endHour: 'x' });
+  assert.deepStrictEqual(n, { enabled: true, intervalMin: 60, startHour: 9, endHour: 18 });
+  const m = memS(); assert.ok(W5.saveState(m, { lastAt: 5 })); assert.strictEqual(W5.loadState(m).lastAt, 5); assert.strictEqual(W5.loadState(memS()), null);
+});
+const mkLm = (o = {}) => {
+  const lm = Array.from({ length: 33 }, () => ({ x: 0.5, y: 0.5, visibility: 0 }));
+  const set = (i, x, y, v = 0.99) => { lm[i] = { x, y, visibility: v }; };
+  set(0, 0.5, 0.15); set(11, o.lx ?? 0.42, 0.3); set(12, o.rx ?? 0.58, 0.3);
+  set(23, 0.45, 0.62, o.hips === false ? 0.1 : 0.99); set(24, 0.55, 0.62, o.hips === false ? 0.1 : 0.99);
+  set(27, 0.45, 0.93, o.feet === false ? 0.1 : 0.99); set(28, 0.55, 0.93, o.feet === false ? 0.1 : 0.99);
+  return lm;
+};
+test('9.6 ตัวช่วยตั้งกล้อง: ตำแหน่งดีผ่านครบ, ไกล/ใกล้/ชิดซ้าย/ไม่เห็นสะโพก บอกวิธีแก้ถูกทาง', () => {
+  const ok = W6.evaluate(mkLm()); assert.strictEqual(ok.ready, true); assert.ok(ok.checks.every((c) => c.ok)); assert.strictEqual(W6.summary(ok), 'พร้อมเล่นแล้ว ✓');
+  const far = W6.evaluate(mkLm({ lx: 0.47, rx: 0.53 })); assert.strictEqual(far.ready, false); assert.ok(far.checks.find((c) => c.id === 'distance').text.includes('เข้าใกล้'));
+  const near = W6.evaluate(mkLm({ lx: 0.2, rx: 0.8 })); assert.ok(near.checks.find((c) => c.id === 'distance').text.includes('ถอย'));
+  const left = W6.evaluate(mkLm({ lx: 0.1, rx: 0.3 })); assert.ok(left.checks.find((c) => c.id === 'center').text.includes('ขวา'));
+  const nohip = W6.evaluate(mkLm({ hips: false })); assert.strictEqual(nohip.ready, false); assert.ok(W6.summary(nohip).includes('สะโพก'));
+  const nofeet = W6.evaluate(mkLm({ feet: false })); assert.strictEqual(nofeet.ready, true); assert.strictEqual(nofeet.checks.find((c) => c.id === 'feet').ok, false);
+  const none = W6.evaluate(null); assert.strictEqual(none.ready, false); assert.ok(none.checks[0].text.includes('ยังไม่พบ'));
 });
 
 group('โหมดแผ่นเต้น 8.1-8.3');
@@ -356,77 +462,32 @@ test('7.5 เก็บสูงสุด 50 รอบ และ storage พั�
 });
 
 // ---------------------------------------------------------------- ระบบ AI (ไม่ใช้กล้อง: คนจำลองขยับตามท่า)
-group('มินิเกมลูกศร 8.4');
-test('8.4 ลูกศรอยู่ในเวลาทำท่า ระยะตามระดับ ไม่ซ้ำช่องติดกัน และ seed เดิมได้ผลเดิม', () => {
-  for (const k of Object.keys(D4.INTERVAL_MS)) {
-    const n = D4.makeChart(60000, k, 7);
-    assert.deepStrictEqual(n, D4.makeChart(60000, k, 7));
-    assert.ok(n.length > 10 && n.every((x) => x.t <= 60000 && D4.LANES.includes(x.id)));
-    n.forEach((x, i) => { if (i) { assert.notStrictEqual(x.id, n[i - 1].id); assert.strictEqual(x.t - n[i - 1].t, D4.INTERVAL_MS[k]); } });
-  }
-  assert.throws(() => D4.makeChart(1000, 'nope'));
+group('บันไดความยากโหมดเหยียบ 8.6');
+test('8.6 ขั้นบันได: เริ่มง่ายไปยาก ครบ 6 ขั้น ตรงกับระดับที่มีจริงของแผ่นเต้นและเท้าไฟ', () => {
+  const D5l = R('6.Dance Game', '8.5 Fire Feet.js').LEVELS;
+  assert.strictEqual(D6.STAGES.length, 6);
+  assert.deepStrictEqual(D6.STAGES.map((s) => s.mode), ['dance', 'dance', 'dance', 'fire', 'fire', 'fire']);
+  D6.STAGES.forEach((s) => assert.ok(s.mode === 'dance' ? D1.LEVELS[s.level] : D5l[s.level], 'ไม่มีระดับ ' + s.id));
+  assert.strictEqual(D6.lastDanceIndex(), 2);
 });
-test('8.4 เวลาเดินเฉพาะตอนเรียก advance: หยุดเวลาแล้วลูกศรไม่พลาด เล่นต่อแล้วตัดสินตรงจังหวะ', () => {
-  const g = new D4.ArrowGame([{ id: 'l', t: 1000, step: 0 }, { id: 'r', t: 2000, step: 1 }]);
-  assert.strictEqual(g.press('l'), null, 'เหยียบก่อนเวลามากไม่นับ');
-  g.advance(1000);
-  assert.strictEqual(g.press('l').result, 'perfect');
-  assert.strictEqual(g.combo, 1);
-  assert.strictEqual(g.press('x'), null, 'แผ่นที่ไม่ใช่ลูกศรไม่นับ');
-  assert.strictEqual(g.advance(1000 + 351).length, 1, 'เลยเวลาแล้วเป็น MISS');
-  assert.strictEqual(g.combo, 0);
+test('8.6 ผ่านขึ้นขั้น / ต่ำมากลงขั้น / กลางๆ อยู่ที่เดิม และไม่หลุดขอบ', () => {
+  assert.strictEqual(D6.advance(0, 70), 1); assert.strictEqual(D6.advance(0, 69), 0); assert.strictEqual(D6.advance(3, 40), 3);
+  assert.strictEqual(D6.advance(3, 39), 2); assert.strictEqual(D6.advance(0, 10), 0); assert.strictEqual(D6.advance(5, 100), 5);
+  assert.strictEqual(D6.advance(99, 100), 5); assert.strictEqual(D6.advance('x', 100), 1);
 });
-test('8.4 ความแม่นยำคิดจากลูกศรที่ตัดสินแล้ว (ท่าจบก่อนเวลา ลูกศรที่ยังไม่ถึงไม่ถูกนับเป็นพลาด)', () => {
-  const g = new D4.ArrowGame([{ id: 'l', t: 500, step: 0 }, { id: 'r', t: 9000, step: 1 }]);
-  g.advance(500); g.press('l');
-  const s = g.summary();
-  assert.strictEqual(s.judged, 1); assert.strictEqual(s.accuracy, 100);
-});
-test('8.4 บล็อก: เหยียบตอนลูกศรอยู่ในบล็อกนับว่าโดนเสมอ นอกบล็อกไม่นับ และตรงกลางได้คะแนนดีกว่า', () => {
-  const at = (ms, target = 2000) => { const g = new D4.ArrowGame([{ id: 'l', t: target, step: 0 }]); g.advance(target + ms); return { g, r: g.press('l') }; };
-  assert.strictEqual(at(-D4.BLOCK_EARLY_MS).r.result, 'good', 'ขอบล่างของบล็อก');
-  assert.strictEqual(at(D4.BLOCK_LATE_MS).r.result, 'good', 'ขอบบนของบล็อก');
-  assert.strictEqual(at(0).r.result, 'perfect', 'กลางบล็อก');
-  const early = at(-D4.BLOCK_EARLY_MS - 10);
-  assert.strictEqual(early.r, null, 'ยังไม่แตะบล็อก');
-  assert.strictEqual(early.g.notes[0].done, false, 'เหยียบก่อนแตะบล็อก ลูกศรยังอยู่ให้เหยียบใหม่ได้');
-  const g = new D4.ArrowGame([{ id: 'l', t: 1000, step: 0 }]);
-  assert.strictEqual(g.advance(1000 + D4.BLOCK_LATE_MS).length, 0, 'ยังอยู่ในบล็อก ยังไม่พลาด');
-  assert.strictEqual(g.advance(1).length, 1, 'พ้นบล็อกแล้วเป็น MISS');
-  const v = new D4.ArrowGame([{ id: 'u', t: 1000, step: 0 }]);
-  assert.strictEqual(v.visible().length, 1); assert.strictEqual(v.visible()[0].inBlock, false, 'ยังไม่แตะบล็อก');
-  v.advance(500); assert.strictEqual(v.visible()[0].inBlock, true, 'แตะบล็อกแล้ว');
-  const dance = new D2.DanceGame([{ id: 'l', t: 1000, step: 0 }]);
-  assert.strictEqual(dance.press('l', 1000 - D2.WINDOWS.good - 10), null, 'โหมดแผ่นเต้นเดิมยังใช้ช่วงเวลาเดิม');
-});
-test('8.4 ชดเชยเวลาจริงของการเหยียบ: นาฬิกาเดินตามเฟรมแต่การตัดสินใช้เวลาที่เท้าแตะแผ่น', () => {
-  const g = new D4.ArrowGame([{ id: 'l', t: 1000, step: 0 }]);
-  g.advance(800);
-  assert.strictEqual(g.press('l', 200).delta, 0);
-});
-test('8.4 เท้าวางค้างบนแผ่นตอนลูกศรถึงจังหวะ นับเป็น GOOD เฉพาะช่องที่ตรง และไม่นับก่อนถึงจังหวะ', () => {
-  const g = new D4.ArrowGame([{ id: 'l', t: 1000, step: 0 }, { id: 'r', t: 2000, step: 1 }]);
-  const isDown = (id) => id === 'l';
-  g.advance(900);
-  assert.strictEqual(g.holdHits(isDown).length, 0, 'ยังไม่ถึงจังหวะ');
-  g.advance(100);
-  assert.strictEqual(g.holdHits(isDown).length, 1);
-  assert.strictEqual(g.notes[0].result, 'good');
-  g.advance(1000);
-  assert.strictEqual(g.holdHits(isDown).length, 0, 'ลูกศร r ต้องเหยียบช่อง r');
-});
-test('8.4 แสดงลูกศรเฉพาะช่วงใกล้ถึงเวลา', () => {
-  const g = new D4.ArrowGame([{ id: 'u', t: D4.LEAD_MS + 500, step: 0 }]);
-  assert.strictEqual(g.visible().length, 0);
-  g.advance(600);
-  assert.strictEqual(g.visible().length, 1);
-  assert.ok(g.visible()[0].pos < 1);
-});
-test('8.4 ท่าที่ขาหรือสะโพกต้องนิ่ง ลูกศรหยุดรอ ส่วนท่าแขนเล่นได้', () => {
-  const list = JSON.parse(fs.readFileSync(path.join(root, 'Web Testing System', 'data', 'src', 'exercises.json'), 'utf8')).exercises;
-  const busy = list.filter(D4.usesLegs).map((e) => e.id).sort();
-  assert.deepStrictEqual(busy, ['basic_04', 'basic_05', 'basic_06', 'basic_08', 'basic_09', 'seated-twist'].sort());
-  assert.strictEqual(D4.usesLegs(undefined), false, 'ท่าของฉันไม่มีนิยามมุม เล่นได้');
+test('8.6 บันทึก/โหลดขั้น และข้อความผลลัพธ์ storage พังก็ไม่ล้ม', () => {
+  const m = memS();
+  assert.strictEqual(D6.load(m).index, 0);
+  const r = D6.record(m, 0, 85, 111); assert.deepStrictEqual([r.from, r.to, r.moved], [0, 1, 1]);
+  assert.strictEqual(D6.load(m).index, 1); assert.strictEqual(D6.load(m).last.stage, 'dance-easy');
+  assert.ok(D6.message(r).includes('เลื่อนขึ้น') && D6.message(r).includes('ปานกลาง'));
+  const dn = D6.record(m, 1, 20); assert.ok(D6.message(dn).includes('ลดมาเล่น')); assert.strictEqual(D6.load(m).index, 0);
+  assert.ok(D6.message(D6.record(m, 0, 55)).includes('อีกครั้ง'));
+  m.setItem(D6.KEY, '{พัง'); assert.strictEqual(D6.load(m).index, 0);
+  m.setItem(D6.KEY, JSON.stringify({ index: 99 })); assert.strictEqual(D6.load(m).index, 5);
+  assert.ok(D6.message(D6.record(m, 5, 90)).includes('ขั้นสูงสุด'));
+  const bad = { getItem() { throw new Error('x'); }, setItem() { throw new Error('x'); } };
+  assert.strictEqual(D6.load(bad).index, 0); assert.doesNotThrow(() => D6.record(bad, 0, 90));
 });
 
 group('โหมดนักเต้นเท้าไฟ 8.5');
@@ -830,7 +891,7 @@ test('สคริปต์ในหน้าเกมไม่มี syntax err
   scripts.forEach((m) => new Function(m[1]));
 });
 test('ฝังโมดูล 6.x และ 7.x ครบ', () => {
-  for (const k of ['6.1', '6.2', '6.3', '6.4', '7.1', '7.2', '7.3', '7.4', '7.5', '7.6', '7.7', '8.1', '8.2', '8.3']) assert.ok(html.includes(`__src['${k}']`), 'ขาด ' + k);
+  for (const k of ['6.1', '6.2', '6.3', '6.4', '7.1', '7.2', '7.3', '7.4', '7.5', '7.6', '7.7', '8.1', '8.2', '8.3', '8.6', '9.1', '9.2', '9.3', '9.4', '9.5', '9.6']) assert.ok(html.includes(`__src['${k}']`), 'ขาด ' + k);
 });
 // จำลองแผ่นเต้น: ควบคุมเวลาและสัญญาณเอง เพื่อทดสอบลูปอ่านแผ่นโดยไม่ต้องมีฮาร์ดแวร์
 function fakePad(map) {
