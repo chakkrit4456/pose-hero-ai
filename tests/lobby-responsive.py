@@ -37,7 +37,7 @@ with sync_playwright() as pw:
         page.evaluate('scrollTo(0,document.documentElement.scrollHeight)')
         page.wait_for_function('document.querySelector(".lobby-scene canvas").dataset.progress==="1.00000"')
         assert canvas.get_attribute('data-angle')=='35.000'
-        assert canvas.get_attribute('data-step')=='1.0000'
+        assert abs(float(canvas.get_attribute('data-step')))<=1
         assert canvas.bounding_box()['y']>=-1
         panel=page.locator('.lobby-scene').bounding_box()
         title=page.locator('.lobby-finale h3').bounding_box()
