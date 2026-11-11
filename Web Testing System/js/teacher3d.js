@@ -39,8 +39,63 @@
   // ลำดับต้องเริ่มจากกระดูกต้นทาง เพราะกระดูกลูกคิดจากตำแหน่งกระดูกพ่อ
   const ORDER = ["spine", "chest", "neck", "head", "clavicleL", "upperarmL", "forearmL", "handL", "clavicleR", "upperarmR", "forearmR", "handR", "thighL", "shinL", "thighR", "shinR"];
 
+  // Replace the damaged facial shell and bandana with smooth surfaces on the original rig.
+  function cleanHeadSurface(model) {
+    const meshes=[];model.traverse(o=>{if(o.isSkinnedMesh)meshes.push(o);});
+    meshes.forEach(source=>{
+      const old=source.geometry,pos=old.attributes.position,mat=Array.isArray(source.material)?source.material[0]:source.material;
+      const keep=[],indices=old.index.array;
+      for(let i=0;i<indices.length;i+=3){
+        const a=indices[i],b=indices[i+1],c=indices[i+2],y=(pos.getY(a)+pos.getY(b)+pos.getY(c))/3;
+        if(y<=.09)keep.push(a,b,c);
+      }
+      const geometry=old.clone();geometry.setIndex(keep);source.geometry=geometry;old.dispose();
+      const headIndex=source.skeleton.bones.findIndex(b=>b.name==='head');if(headIndex<0)return;
+      const material=mat.clone();material.map=null;material.color.setRGB(.55,.30,.16);material.roughnessMap=null;material.metalnessMap=null;
+      material.onBeforeCompile=mat.onBeforeCompile;material.customProgramCacheKey=mat.customProgramCacheKey;
+      const cloth=material.clone();cloth.color.setRGB(.52,.018,.024);cloth.roughness=.95;
+      cloth.customProgramCacheKey=()=> 'mascot-bandana-v1';
+      cloth.onBeforeCompile=shader=>{
+        shader.vertexShader=shader.vertexShader.replace('#include <common>','#include <common>\nvarying vec3 vClothRest;').replace('#include <begin_vertex>','#include <begin_vertex>\nvClothRest=position;');
+        shader.fragmentShader=shader.fragmentShader.replace('#include <common>','#include <common>\nvarying vec3 vClothRest;').replace('#include <map_fragment>',`#include <map_fragment>
+vec2 cell=vec2(atan(vClothRest.x,vClothRest.z)*2.8,vClothRest.y*18.0);
+vec2 f=fract(cell)-.5;
+float petals=min(min(length(f-vec2(.085,0.0)),length(f+vec2(.085,0.0))),min(length(f-vec2(0.0,.085)),length(f+vec2(0.0,.085))));
+float flower=1.0-smoothstep(.058,.072,petals);
+float diamond=(1.0-smoothstep(.14,.155,abs(f.x)+abs(f.y)))*smoothstep(.08,.095,abs(f.x)+abs(f.y));
+float pattern=mix(flower,diamond,mod(floor(cell.x)+floor(cell.y),2.0));
+diffuseColor.rgb=mix(diffuseColor.rgb,vec3(.91,.89,.83),pattern*.95);
+`);
+      };
+      function ellipsoid(name,cx,cy,cz,rx,ry,rz,lat=32,lon=64,skinMaterial=material,minLat=-Math.PI/2){
+        const p=[],n=[],j=[],weights=[],ix=[];
+        for(let a=0;a<=lat;a++)for(let b=0;b<=lon;b++){
+          const v=minLat+(Math.PI/2-minLat)*a/lat,u=2*Math.PI*b/lon,x=Math.cos(v)*Math.cos(u),y=Math.sin(v),z=Math.cos(v)*Math.sin(u);
+          const breadth=name==='smooth-head'?Math.pow(Math.max(0,Math.cos(v)),.55):Math.cos(v);
+          const px=cx+Math.cos(u)*breadth*rx,py=cy+y*ry,pz=cz+Math.sin(u)*breadth*rz;
+          const nose=name==='smooth-head'&&z>0?.012*Math.exp(-Math.pow(px/.025,2)-Math.pow((py-.205)/.03,2)):0;
+          p.push(px,py,pz+nose);const q=name==='smooth-head'?.55:1,factor=Math.pow(Math.max(1e-12,breadth),2/q-2)/q,nz=Math.sin(u)*breadth*factor/rz,nx=Math.cos(u)*breadth*factor/rx+nz*2*px*nose/(.025*.025),ny=y/ry+nz*2*(py-.205)*nose/(.03*.03),len=Math.hypot(nx,ny,nz);n.push(nx/len,ny/len,nz/len);j.push(headIndex,0,0,0);weights.push(1,0,0,0);
+          if(a<lat&&b<lon){const i=a*(lon+1)+b;ix.push(i,i+lon+1,i+1,i+1,i+lon+1,i+lon+2);}
+        }
+        const g=new geometry.constructor(),Attribute=geometry.attributes.position.constructor;
+        g.setAttribute('position',new Attribute(new Float32Array(p),3));g.setAttribute('normal',new Attribute(new Float32Array(n),3));
+        g.setAttribute('skinIndex',new geometry.attributes.skinIndex.constructor(new Uint16Array(j),4));
+        g.setAttribute('skinWeight',new geometry.attributes.skinWeight.constructor(new Float32Array(weights),4));g.setIndex(ix);g.computeBoundingSphere();
+        const mesh=source.clone(false);mesh.name=name;mesh.geometry=g;mesh.material=skinMaterial;source.parent.add(mesh);
+      }
+      ellipsoid('smooth-head',0,.207,.015,.182,.139,.182);
+      ellipsoid('smooth-ear-left',-.173,.205,.005,.029,.042,.035,16,24);
+      ellipsoid('smooth-ear-right',.173,.205,.005,.029,.042,.035,16,24);
+      ellipsoid('smooth-neck',0,.095,.015,.045,.065,.05,16,24);
+      ellipsoid('smooth-bandana',0,.20,.015,.195,.225,.195,24,64,cloth,.43);
+      ellipsoid('bandana-knot',.165,.325,-.09,.055,.05,.05,16,24,cloth);
+      ellipsoid('bandana-tie-upper',.21,.345,-.10,.095,.027,.035,16,32,cloth);
+      ellipsoid('bandana-tie-lower',.205,.287,-.13,.08,.06,.025,16,32,cloth);
+    });
+  }
+
   /** สร้างหุ่นบน canvas คืน Promise ของ { render(lm, dt), dispose() } */
-  function create(canvas, bytes) {
+  function create(canvas, bytes, options = {}) {
     const T = root.MR_THREE;
     const renderer = new T.WebGLRenderer({ canvas, antialias: true, alpha: true, powerPreference: "high-performance" });
     renderer.setPixelRatio(1);
@@ -62,8 +117,63 @@
         const bones = {};
         model.traverse((o) => {
           if (o.isBone) bones[o.name] = o;
-          if (o.isMesh || o.isSkinnedMesh) { o.frustumCulled = false; if (o.material) { o.material.metalness = 0; o.material.roughness = 0.75; } }
+          if (o.isMesh || o.isSkinnedMesh) {
+            o.frustumCulled = false;
+            const materials=o.material?(Array.isArray(o.material)?o.material:[o.material]):[];
+            materials.forEach(material=>{
+              material.metalness=0;material.roughness=options.cleanFace?0.88:0.75;material.flatShading=false;
+              if(options.cleanFace){
+                // The source atlas contains painted triangle seams and duplicated facial marks.
+                // A coherent face in bind-space follows the rigid head without stretching UVs.
+                material.roughnessMap=null;material.metalnessMap=null;
+                material.customProgramCacheKey=()=> 'mascot-clean-face-v1';
+                material.onBeforeCompile=shader=>{
+                  const varying='\nvarying vec3 vMascotRest;\n';
+                  shader.vertexShader=shader.vertexShader.replace('#include <common>','#include <common>'+varying).replace('#include <begin_vertex>','#include <begin_vertex>\nvMascotRest=position;');
+                  shader.fragmentShader=shader.fragmentShader.replace('#include <common>','#include <common>'+varying+`
+float mascotOval(vec2 p,vec2 c,vec2 r){return 1.0-smoothstep(.93,1.0,length((p-c)/r));}
+`);
+                  shader.fragmentShader=shader.fragmentShader.replace('#include <map_fragment>',`#include <map_fragment>
+vec3 rp=vMascotRest;vec2 fp=rp.xy;float ax=abs(rp.x);
+float faceMask=smoothstep(.105,.12,rp.y)*(1.0-smoothstep(.285,.30,rp.y))*(1.0-smoothstep(.18,.21,ax))*smoothstep(-.01,.035,rp.z);
+vec3 skin=vec3(.55,.30,.16)*(1.0-.10*smoothstep(.07,.17,ax));
+// Replace baked skin noise with a consistent matte skin material. Lighting now
+// describes the muscles; the green costume, shoes and silver pendant keep their atlas.
+float skinTone=step(.055,diffuseColor.r)*step(diffuseColor.g*1.1,diffuseColor.r)*step(diffuseColor.b*1.15,diffuseColor.g);
+float armSkin=step(.185,ax)*step(-.07,rp.y)*(1.0-step(.075,rp.y));
+float legSkin=step(-.425,rp.y)*(1.0-step(-.24,rp.y));
+float bodySkin=skinTone*(1.0-step(.105,rp.y));
+diffuseColor.rgb=mix(diffuseColor.rgb,skin,max(bodySkin,max(armSkin,legSkin)));
+float greenTone=step(diffuseColor.r*1.3,diffuseColor.g)*step(diffuseColor.b*1.1,diffuseColor.g)*step(.01,diffuseColor.g);
+diffuseColor.rgb=mix(diffuseColor.rgb,vec3(.014,.16,.035),greenTone);
+vec3 face=skin;
+for(int side=0;side<2;side++){
+ float ex=side==0?-.076:.076;
+ float eye=mascotOval(fp,vec2(ex,.226),vec2(.038,.025));
+ face=mix(face,vec3(.025,.012,.007),eye);
+ face=mix(face,vec3(.83,.85,.81),mascotOval(fp,vec2(ex,.226),vec2(.034,.021)));
+ face=mix(face,vec3(.16,.064,.02),mascotOval(fp,vec2(ex,.225),vec2(.014,.017)));
+ face=mix(face,vec3(.008,.005,.003),mascotOval(fp,vec2(ex,.225),vec2(.007,.012)));
+ face=mix(face,vec3(1.0),mascotOval(fp,vec2(ex-.004,.232),vec2(.0035,.004)));
+ float cheek=mascotOval(fp,vec2(ex*1.5,.185),vec2(.024,.013));face=mix(face,vec3(.7,.22,.16),cheek*.12);
+}
+float browX=(ax-.076)/.042;float browY=.268+.007*(1.0-browX*browX);
+float brow=(1.0-smoothstep(.002,.004,abs(rp.y-browY)))*smoothstep(.031,.038,ax)*(1.0-smoothstep(.113,.122,ax));
+face=mix(face,vec3(.035,.014,.007),brow);
+float upper=.172+.012*pow(ax/.092,2.0),lower=.136+.043*pow(ax/.092,2.0);
+float mouth=smoothstep(lower-.002,lower+.001,rp.y)*(1.0-smoothstep(upper,upper+.003,rp.y))*(1.0-smoothstep(.088,.095,ax));
+face=mix(face,vec3(.07,.018,.012),mouth);
+float teeth=smoothstep(lower+.003,lower+.005,rp.y)*(1.0-smoothstep(upper-.004,upper-.002,rp.y))*(1.0-smoothstep(.083,.089,ax));
+face=mix(face,vec3(.86,.83,.74),teeth);
+diffuseColor.rgb=mix(diffuseColor.rgb,face,faceMask);
+`);
+                };
+              }
+              material.needsUpdate=true;
+            });
+          }
         });
+        if(options.cleanFace)cleanHeadSurface(model);
         const missing = ORDER.concat(["hips", "footL", "footR"]).filter((n) => !bones[n]);
         if (missing.length) return reject(new Error("โมเดลขาดกระดูก: " + missing.join(", ")));
         model.updateMatrixWorld(true);

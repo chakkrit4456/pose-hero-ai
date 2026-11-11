@@ -141,7 +141,7 @@ async function init(){
  if(loaded||failed)return;if(sceneSettled){sceneSettled=false;sceneDone=window.MRLoading?MRLoading.begin('กำลังเตรียมฉาก 3D…'):()=>{};}loaded=true;const ticket=++generation;initTimer=setTimeout(()=>fallback(),20000);
  try{
   if(!window.MRTeacher3D||!window.MR_TEACHER_B64)throw new Error('No model');
-  const result=await MRTeacher3D.create(canvas,Uint8Array.from(atob(MR_TEACHER_B64),c=>c.charCodeAt(0)));
+  const result=await MRTeacher3D.create(canvas,Uint8Array.from(atob(MR_TEACHER_B64),c=>c.charCodeAt(0)),{cleanFace:true});
   if(failed||ticket!==generation){result.dispose();return;}world=result;
   environment(world);home.classList.add('lobby-webgl-ready');video.pause();resize();readScroll();sync();loadStatus.hidden=true;clearTimeout(initTimer);finishScene();
  }catch(e){if(ticket!==generation)return;console.warn('Lobby 3D fallback:',e);fallback();}
