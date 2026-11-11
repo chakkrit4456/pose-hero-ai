@@ -22,10 +22,26 @@ fs.mkdirSync(OUT, { recursive: true });
 
 // ---- index.html (เพิ่ม manifest / ไอคอน / ลงทะเบียน service worker)
 let html = fs.readFileSync(path.join(__dirname, 'Game Start.html'), 'utf8');
+// Pin every external script to its actual contents. Also fail the build rather
+// than publishing HTML that references a missing script.
+const scriptFiles=[];
+html=html.replace(/<script src="([^"]+)"/g,(tag,src)=>{
+  const file=path.join(__dirname,src);
+  if(!fs.existsSync(file)||!fs.statSync(file).size)throw new Error('Missing release script: '+src);
+  scriptFiles.push(src);
+  const revision=crypto.createHash('sha256').update(fs.readFileSync(file)).digest('hex').slice(0,16);
+  return '<script data-cfasync="false" src="'+src+'?v='+revision+'"';
+});
+// Preserve script execution order when the site is behind Cloudflare Rocket Loader.
+html=html.replace(/<script>/g,'<script data-cfasync="false">');
 const headTags = '<link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#2563eb">';
 if (!html.includes('name="viewport"')) throw new Error('ไม่พบ meta viewport ใน Game Start.html');
 html = html.replace(/(<meta name="viewport"[^>]*>)/, `$1${headTags}`);
-const swReg = "<script>if('serviceWorker' in navigator&&location.protocol.indexOf('http')===0)navigator.serviceWorker.register('sw.js').catch(function(){});</script>";
+const swReg = `<script data-cfasync="false">if('serviceWorker' in navigator&&location.protocol.indexOf('http')===0){
+  const hadController=!!navigator.serviceWorker.controller;let refreshed=false;
+  navigator.serviceWorker.addEventListener('controllerchange',()=>{if(hadController&&!refreshed){refreshed=true;location.reload();}});
+  navigator.serviceWorker.register('sw.js',{updateViaCache:'none'}).then(r=>r.update()).catch(()=>{});
+}</script>`;
 const endBody = html.lastIndexOf('</body>');
 html = html.slice(0, endBody) + swReg + html.slice(endBody);
 fs.writeFileSync(path.join(OUT, 'index.html'), html);
@@ -57,6 +73,10 @@ if (withMusic) {
   ['slow', 'mid', 'fast'].forEach((g) => add(path.join(src, g), g));
 }
 fs.writeFileSync(path.join(OUT, 'music-list.js'), 'window.MR_MUSIC=' + JSON.stringify(tracks) + ';\n');
+// music-list.js differs in a web release (Music/ instead of ../Music/).
+html=html.replace(/music-list\.js\?v=[a-f0-9]+/,'music-list.js?v='+crypto.createHash('sha256').update(fs.readFileSync(path.join(OUT,'music-list.js'))).digest('hex').slice(0,16));
+fs.writeFileSync(path.join(OUT,'index.html'),html);
+fs.writeFileSync(path.join(OUT,'release-manifest.json'),JSON.stringify({scripts:scriptFiles},null,2));
 
 // ---- manifest + ไอคอน
 fs.writeFileSync(path.join(OUT, 'manifest.webmanifest'), JSON.stringify({
@@ -83,7 +103,7 @@ const walk = (d, base = '') => fs.readdirSync(d, { withFileTypes: true }).flatMa
   e.isDirectory() ? walk(path.join(d, e.name), base + e.name + '/') : [base + e.name]);
 const files = walk(OUT).filter((f) => !f.startsWith('Music/') && f !== 'sw.js' && f !== '.nojekyll');
 const hash = crypto.createHash('sha1');
-files.forEach((f) => { const st = fs.statSync(path.join(OUT, f)); hash.update(f + ':' + st.size); });
+files.forEach((f) => { hash.update(f);hash.update(fs.readFileSync(path.join(OUT,f))); });
 hash.update(html);
 const version = 'mr-' + hash.digest('hex').slice(0, 10);
 const pre = files.map((f) => (f === 'index.html' ? './' : f.split('/').map(encodeURIComponent).join('/')));
@@ -98,11 +118,24 @@ self.addEventListener('activate', (e) => {
 });
 self.addEventListener('fetch', (e) => {
   const r = e.request;
-  if (r.method !== 'GET' || new URL(r.url).origin !== location.origin || r.headers.has('range')) return; // เพลง/สตรีม ปล่อยผ่านเครือข่าย
-  e.respondWith(caches.match(r, { ignoreSearch: true }).then((hit) => hit || fetch(r).then((res) => {
-    if (res.ok) { const copy = res.clone(); caches.open(VERSION).then((c) => c.put(r, copy)); }
-    return res;
-  }).catch(() => caches.match('./'))));
+  const url=new URL(r.url);
+  if (r.method !== 'GET' || url.origin !== location.origin || r.headers.has('range') || url.pathname.includes('/Music/')) return;
+  e.respondWith((async()=>{
+    const cache=await caches.open(VERSION).catch(()=>null);
+    // Network first prevents a previous deployment from pinning HTML/JS forever.
+    try{
+      const res=await fetch(r);
+      if(cache&&res.ok&&(!url.pathname.endsWith('.js')||!(res.headers.get('content-type')||'').includes('text/html'))){try{await cache.put(r,res.clone());}catch(error){/* Full storage must not break a successful network response. */}}
+      return res;
+    }catch(error){
+      const hit=cache&&await cache.match(r);if(hit)return hit;
+      // Precache uses unversioned paths; only this exact release may supply them.
+      if(cache&&url.pathname.endsWith('.js')){url.search='';const script=await cache.match(url.href);if(script)return script;}
+      if(cache&&r.mode==='navigate'){const home=await cache.match('./');if(home)return home;}
+      // Never return index.html in place of JavaScript or images.
+      return Response.error();
+    }
+  })());
 });
 `);
 

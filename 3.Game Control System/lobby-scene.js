@@ -134,7 +134,11 @@ async function fallback(manual=false){
   await Promise.race([img.decode(),new Promise((_,reject)=>setTimeout(()=>reject(new Error('2D timeout')),15000))]);
   fallbackReady=true;home.classList.add('lobby-2d-ready');layer.hidden=home.hidden;
   canvas.dataset.fallback='2d';finishScene();fallbackDone();
- }catch(e){window.MRLoading?.fail('โหลดฉากสำรองไม่สำเร็จ กรุณาลองโหลดใหม่');}
+ }catch(e){
+  // Both visual renderers are optional: keep a plain background and usable menus.
+  picture.remove();layer.hidden=true;loadStatus.textContent='โหลดฉากไม่ได้ คุณยังเลือกเล่นเกมได้ตามปกติ';
+  canvas.dataset.fallback='plain';window.MRLoading?.warn('โหลดฉากสำรองไม่ได้');
+ }finally{finishScene();fallbackDone();}
 }
 
 async function init(){

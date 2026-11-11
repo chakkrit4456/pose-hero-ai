@@ -2270,5 +2270,6 @@ try{
 
 renderHome();show('home');
 if(location.hash.startsWith('#manage')&&!$('m-manage').disabled){$('m-manage').click();const t=location.hash.split(':')[1];if(t)mgTab(t);}
+if(window.MRLoading)MRLoading.ready();
 </script>
 <script>/*__BEGINNER_JS__*/</script><script>/*__LOBBY_JS__*/</script><script>/*__LOBBY_AUDIO_JS__*/</script></body></html>

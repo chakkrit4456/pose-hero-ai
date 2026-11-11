@@ -183,6 +183,21 @@ wait_for_release() {
   cat "$BACKUP/check-error.log" >&2
   return 1
 }
+verify_release_scripts() {
+  local scheme=$1 port=80 asset
+  [[ $scheme != https ]] || port=443
+  # Check every browser bootstrap script through Nginx, not just index/logo.
+  node -e 'for(const file of require(process.argv[1]).scripts)console.log(file)' \
+    "$RELEASE/release-manifest.json" > "$BACKUP/scripts.txt"
+  while IFS= read -r asset; do
+    if ! curl --noproxy '*' --fail --silent --show-error --connect-timeout 2 --max-time 15 \
+      --resolve "$DOMAIN:$port:127.0.0.1" -o "$BACKUP/check-script.js" \
+      "$scheme://$DOMAIN/$asset" || ! cmp -s "$BACKUP/check-script.js" "$RELEASE/$asset"; then
+      printf 'Release script is missing or incorrect: %s\n' "$asset" >&2
+      return 1
+    fi
+  done < "$BACKUP/scripts.txt"
+}
 # END RELEASE CHECK
 
 if (( ! HTTP )); then
@@ -193,9 +208,11 @@ if (( ! HTTP )); then
   systemctl reload nginx
   systemctl enable --now certbot.timer
   wait_for_release https
+  verify_release_scripts https
   URL=https://$DOMAIN
 else
   wait_for_release http
+  verify_release_scripts http
   URL=http://$DOMAIN
 fi
 trap - ERR

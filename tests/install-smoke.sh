@@ -31,9 +31,11 @@ printf 'PASS installer syntax, help, flag rejection, HTTP and HTTPS config rende
 # Reproduce the old-worker response after reload without touching system Nginx.
 source <(sed -n '/^# BEGIN RELEASE CHECK/,/^# END RELEASE CHECK/p' "$ROOT/install.sh")
 RELEASE=$WORK/release; BACKUP=$WORK/checks
-mkdir -p "$RELEASE/assets" "$BACKUP"
+mkdir -p "$RELEASE/assets" "$RELEASE/ai/vendor" "$BACKUP"
 printf 'new game page' > "$RELEASE/index.html"
 printf 'new mascot logo' > "$RELEASE/assets/pose-hero-logo-mascot-v3.png"
+printf 'new core' > "$RELEASE/ai/core.js"
+printf 'new model' > "$RELEASE/ai/vendor/teacher-data.js"
 MODE=warming; CALLS=0
 sleep() { :; }
 curl() {
@@ -45,6 +47,10 @@ curl() {
   if [[ $MODE == missing || ( $MODE == warming && $CALLS -le 2 ) ]]; then return 22; fi
   if [[ $MODE == wrong ]]; then printf 'Welcome to nginx!' > "$out"; return 0; fi
   if [[ $url == */index.html ]]; then cp "$RELEASE/index.html" "$out";
+  elif [[ $url == */ai/*.js ]]; then
+    if [[ $MODE == wrong-script ]]; then printf 'old script' > "$out";
+    elif [[ $MODE == missing-script ]]; then return 22;
+    else cp "$RELEASE/${url#*://*/}" "$out"; fi
   elif [[ $MODE == wrong-logo ]]; then printf 'old logo' > "$out";
   else cp "$RELEASE/assets/pose-hero-logo-mascot-v3.png" "$out"; fi
 }
@@ -58,3 +64,13 @@ for MODE in wrong wrong-logo missing; do
   fi
 done
 printf 'PASS reload delay, HTTPS check, default-page rejection, wrong-logo rejection, persistent 404 rejection\n'
+# Stub only the manifest reader so this pure shell test also works in Git Bash.
+node() { printf 'ai/core.js\nai/vendor/teacher-data.js\n'; }
+MODE=ready;CALLS=0;verify_release_scripts http;[[ $CALLS -eq 2 ]]
+MODE=ready;CALLS=0;verify_release_scripts https;[[ $CALLS -eq 2 ]]
+for MODE in wrong-script missing-script; do
+  if verify_release_scripts http >/dev/null 2>&1; then
+    printf 'Release check accepted invalid JavaScript: %s\n' "$MODE" >&2;exit 1
+  fi
+done
+printf 'PASS script bytes verified over HTTP/HTTPS; missing/stale scripts rejected\n'

@@ -74,6 +74,24 @@ release was rolled back; the Nginx welcome page can still be visible. Update the
 checkout and rerun the installer. Release checks now wait for new Nginx workers
 and compare both the page and logo with the deployed release. A persistent wrong
 hostname/root still fails rather than treating the welcome page as success.
+The installer also downloads and compares every bootstrap JavaScript file listed
+in `release-manifest.json`; missing/stale scripts trigger rollback.
+
+The loading screen waits for core initialization and bounded resource tasks.
+Unavailable 3D assets fall back to 2D; if that image also fails, menus remain
+usable on a plain background. Images, fonts and optional script failures cannot
+permanently lock a working game. Slow script downloads show a retry option
+without marking the session permanently failed. A real core initialization
+failure stays on the error screen: **ลองโหลดใหม่** clears this game's offline
+cache and service worker before requesting the latest release. It preserves
+settings and play history. On the first update from an older deployment, use
+Ctrl+Shift+R if the old loading screen remains cached.
+
+Web releases version script URLs by content, keep script order when Cloudflare
+Rocket Loader is enabled, and use network-first service-worker updates with an
+offline fallback limited to the current release. HTML is never returned as a
+replacement for a failed JavaScript request. Run `python tests/loading.py` and
+`python tests/deploy-cache.py` after building `dist` to verify recovery.
 
 For Cloudflare Tunnel on another machine, use `--domain YOUR_PUBLIC_HOST --http`,
 set the tunnel service to `http://WEB_SERVER_LAN_IP:80`, and set its HTTP Host
