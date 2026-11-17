@@ -65,9 +65,9 @@ test('คัดแคตตาล็อกท่าที่ผู้เล่�
   S.syncCustomExercises([]);
   assert.ok(!S.getCatalog().some((c) => c.custom));
 });
-test('แคตตาล็อกมีท่า AI พื้นฐานครบ 10 ท่า (basic_01..basic_10)', () => {
+test('แคตตาล็อกมีท่า AI พื้นฐาน 9 ท่า (basic_01..basic_10 ยกเว้น basic_09 ที่รวมกับนั่งบิดลำตัวแล้ว)', () => {
   const ids = S.getCatalog().map((c) => c.id);
-  for (let i = 1; i <= 10; i++) assert.ok(ids.includes('basic_' + String(i).padStart(2, '0')));
+  for (let i = 1; i <= 10; i++) assert.strictEqual(ids.includes('basic_' + String(i).padStart(2, '0')), i !== 9);
 });
 
 // ---------------------------------------------------------------- แจ้งเตือน 6.x
@@ -1023,13 +1023,46 @@ test('ไม่มีฟังก์ชัน speak ซ้ำ (ตัวหล�
 });
 test('ท่าที่ AI ตรวจได้ครบ: ท่าในแคตตาล็อกที่มี AI ต้องมีข้อมูลใน exercises-data', () => {
   const dataIds = new Set(data.exercises.map((e) => e.id));
-  const ai = ['basic_01','basic_02','basic_03','basic_04','basic_05','basic_06','basic_07','basic_08','basic_09','basic_10','neck-tilt','shoulder-roll','arm-stretch','seated-twist','upper-trap','wrist-stretch','wrist-circle'];
+  const ai = ['basic_01','basic_02','basic_03','basic_04','basic_05','basic_06','basic_07','basic_08','basic_10','neck-tilt','shoulder-roll','seated-twist','upper-trap','wrist-stretch','wrist-circle'];
   ai.forEach((id) => { assert.ok(dataIds.has(id), 'ไม่มีข้อมูล AI: ' + id); assert.ok(S.getCatalog().some((c) => c.id === id), 'ไม่อยู่ในแคตตาล็อก: ' + id); });
 });
-test('ทุกท่าในแคตตาล็อกตรวจด้วย AI ได้ (หรือเป็นท่าของฉัน) — ท่าที่ AI ตรวจไม่ได้ถูกเอาออกแล้ว', () => {
+test('ท่าในแคตตาล็อกที่ไม่มี AI ตรวจ (กดนับเอง) ต้องมีข้อมูลท่าตัวอย่างใน DESK ของหน้าเกม', () => {
   const dataIds = new Set(data.exercises.map((e) => e.id));
   const noAi = S.getCatalog().filter((c) => !c.custom && !dataIds.has(c.id)).map((c) => c.id);
-  assert.deepStrictEqual(noAi, []);
+  assert.deepStrictEqual(noAi.sort(), ['chin-tuck', 'scapular-squeeze']);
+  const desk = html.slice(html.indexOf('const DESK={'));
+  noAi.forEach((id) => assert.ok(desk.slice(0, desk.indexOf('};') + 2).includes("'" + id + "':{"), 'DESK ไม่มี ' + id));
+});
+test('ท่าซ้ำถูกรวมแล้ว: ไม่มี arm-stretch และ basic_09 ในแคตตาล็อกและข้อมูล AI', () => {
+  ['arm-stretch', 'basic_09'].forEach((id) => {
+    assert.ok(!S.getCatalog().some((c) => c.id === id), 'ยังมีในแคตตาล็อก: ' + id);
+    assert.ok(!data.exercises.some((e) => e.id === id), 'ยังมีในข้อมูล AI: ' + id);
+  });
+});
+test('ท่าค้างทุกท่าใช้เวลาค้าง ≥ 15 วินาที (ยกเว้นท่าอื่น) และเวลาต่อท่าพอสำหรับระดับยาก', () => {
+  data.exercises.filter((e) => e.counter.mode === 'hold').forEach((e) => {
+    assert.ok(e.counter.hold_sec >= 15, 'ค้างสั้นเกินไป: ' + e.id);
+    const c = S.getCatalog().find((q) => q.id === e.id);
+    const hard = Math.round(c.reps * 1.5) * (e.counter.hold_sec + 4), limit = Math.round(c.durationSec * 0.8);
+    assert.ok(hard <= limit, `ระดับยากเวลาไม่พอ ${e.id}: ต้อง ${hard} วินาที มี ${limit}`);
+  });
+});
+test('ทุกท่าในแคตตาล็อก (ไม่นับท่าของฉัน) มีข้อมูลแจ้งก่อนเริ่ม: ได้อะไร ช่วยแก้อะไร ทำเท่าไหร่พอ', () => {
+  const start = html.indexOf('const BENEFIT={'), block = html.slice(start, html.indexOf('};', start));
+  assert.ok(start > 0, 'ไม่พบ BENEFIT');
+  S.getCatalog().filter((c) => !c.custom).forEach((c) => {
+    const m = block.match(new RegExp("(?:'" + c.id + "'|" + c.id + "):\\{([^}]*)\\}"));
+    assert.ok(m, 'BENEFIT ไม่มีท่า ' + c.id);
+    assert.ok(/gain:'[^']+'/.test(m[1]) && /fix:'[^']+'/.test(m[1]), 'BENEFIT ท่า ' + c.id + ' ไม่ครบ gain/fix');
+  });
+  assert.ok(html.includes('id="demo-bn"') && html.includes("$('demo-bn').textContent=benefitText(ex)"), 'หน้าดูท่าตัวอย่างไม่แสดงข้อมูล');
+  assert.ok(html.includes('ทำเท่าไหร่ถึงพอ'));
+  // ป๊อปอัปกลางจอก่อนเริ่มท่า: มี element, หยุดเวลาเกมระหว่างแสดง, ปิดได้ในตั้งค่า, ปิดเมื่อเกมจบ/รีเซ็ต
+  ['id="bn-ov"', 'id="bn-ok"', 'id="bn-off"', 'id="s-bn"', 'cfg.benefitPopup', 'if(bnTick(c,idx,d))return true;', 'bnIdx=-2;bnLeft=0;closeBn();'].forEach((k) => assert.ok(html.includes(k), 'ไม่พบ ' + k));
+});
+test('ก้มตัวแตะปลายเท้ามีคำเตือนคนปวดหลัง ทั้งในรายการท่าและข้อควรระวัง', () => {
+  assert.ok(S.getCatalog().find((c) => c.id === 'basic_08').target.includes('ปวดหลัง'));
+  assert.ok(data.exercises.find((e) => e.id === 'basic_08').precautions[0].includes('ปวดหลัง'));
 });
 
 test('เริ่มโดยนับถอยหลัง 0 วินาทีต้องเปิดท่าแรกและนับจนจบได้', () => {

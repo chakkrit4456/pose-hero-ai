@@ -3,18 +3,18 @@
 'use strict';
 
 const ROUTINES = Object.freeze([
-  { id: 'neck',    name: 'แก้ปวดคอ-บ่า',        desc: 'เอียงคอ ยืดบ่า หมุนไหล่ ยกไหล่ — เหมาะเวลาก้มหน้าจอนาน ๆ',
-    ids: ['neck-tilt', 'upper-trap', 'shoulder-roll', 'basic_07'] },
+  { id: 'neck',    name: 'แก้ปวดคอ-บ่า',        desc: 'เก็บคาง เอียงคอ ยืดบ่า หมุนไหล่ ยกไหล่ — เหมาะเวลาก้มหน้าจอนาน ๆ',
+    ids: ['chin-tuck', 'neck-tilt', 'upper-trap', 'shoulder-roll', 'basic_07'] },
   { id: 'meeting', name: 'ก่อนประชุม (สั้น ๆ)',    desc: 'ปลุกไหล่และคอให้ตื่นก่อนเข้าห้องประชุม ใช้เวลาไม่นาน',
     ids: ['basic_02', 'neck-tilt', 'shoulder-roll'], reps: { basic_02: 5, 'neck-tilt': 4, 'shoulder-roll': 5 } },
   { id: 'wrist',   name: 'พักข้อมือ-แขน',       desc: 'หมุนและยืดข้อมือ งอศอก ยืดแขน — หลังพิมพ์งานนาน ๆ',
-    ids: ['wrist-circle', 'wrist-stretch', 'basic_03', 'arm-stretch'] },
-  { id: 'back',    name: 'ยืดหลัง-เอว',          desc: 'เอียงและบิดลำตัว ก้มตัว — คลายหลังที่นั่งติดเก้าอี้',
-    ids: ['basic_05', 'seated-twist', 'basic_09', 'basic_08'] },
+    ids: ['wrist-circle', 'wrist-stretch', 'basic_03', 'basic_10'] },
+  { id: 'back',    name: 'ยืดหลัง-เอว',          desc: 'เอียงและบิดลำตัว บีบสะบัก ก้มตัว — คลายหลังที่นั่งติดเก้าอี้ (ท่าก้มตัวคนปวดหลังควรงด)',
+    ids: ['basic_05', 'seated-twist', 'scapular-squeeze', 'basic_08'] },
   { id: 'legs',    name: 'ปลุกขา-สะโพก',         desc: 'ย่อเข่า ยกเข่าสลับ — กระตุ้นเลือดลมหลังนั่งนาน',
     ids: ['basic_04', 'basic_06'] },
   { id: 'full',    name: 'ยืดทั้งตัว',    desc: 'ครบทั้งคอ ไหล่ แขน หลัง และขา — ทำสบาย ๆ วันละครั้ง',
-    ids: ['basic_10', 'neck-tilt', 'arm-stretch', 'basic_05', 'seated-twist', 'basic_08', 'basic_04'] },
+    ids: ['basic_10', 'chin-tuck', 'neck-tilt', 'scapular-squeeze', 'basic_05', 'seated-twist', 'basic_08', 'basic_04'] },
 ]);
 
 const SEC_PER_REP = 4;     // ประมาณเวลาต่อ 1 ครั้ง (วินาที)

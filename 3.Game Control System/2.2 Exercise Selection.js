@@ -7,10 +7,9 @@ const { GAME_STATUS, DIFFICULTY, emit } = require('./2.1 Start Game.js');
 const EXERCISE_CATALOG = [
   { id: 'neck-tilt',      name: 'เอียงคอซ้าย-ขวา',        target: 'คอ / บ่า · AI ตรวจท่า', reps: 8,  durationSec: 90 },
   { id: 'shoulder-roll',  name: 'หมุนไหล่',               target: 'ไหล่ / บ่า · AI ตรวจท่า', reps: 10, durationSec: 90 },
-  { id: 'upper-trap',     name: 'ยืดกล้ามเนื้อบ่า',       target: 'บ่า · AI ตรวจท่า (ทดลอง)', reps: 3,  durationSec: 90 },
-  { id: 'arm-stretch',    name: 'ยืดแขนเหนือศีรษะ',       target: 'แขน / สะบัก · AI ตรวจท่า', reps: 8,  durationSec: 90 },
+  { id: 'upper-trap',     name: 'ยืดกล้ามเนื้อบ่า (ค้าง 15 วินาที)', target: 'บ่า · AI ตรวจท่า (ทดลอง)', reps: 4,  durationSec: 180 },
   { id: 'seated-twist',   name: 'นั่งบิดลำตัว',           target: 'หลังส่วนล่าง · AI ตรวจท่า', reps: 10, durationSec: 90 },
-  { id: 'wrist-stretch',  name: 'ยืดข้อมือและนิ้วมือ',    target: 'ข้อมือ · AI ตรวจท่า (ทดลอง)', reps: 3,  durationSec: 90 },
+  { id: 'wrist-stretch',  name: 'ยืดข้อมือและนิ้วมือ (ค้าง 15 วินาที)', target: 'ข้อมือ · AI ตรวจท่า (ทดลอง)', reps: 2,  durationSec: 90 },
   { id: 'wrist-circle',   name: 'หมุนข้อมือ',             target: 'ข้อมือ · AI ตรวจท่า (ทดลอง)', reps: 12, durationSec: 90 },
   // ท่าที่ระบบ AI (โฟลเดอร์ 1) ตรวจจับท่าทางและนับครั้งจากกล้องได้ — id ตรงกับ ai/data/exercises-data.js
   { id: 'basic_01', name: 'ยกแขนด้านข้าง',         target: 'ไหล่ · AI ตรวจท่า',     reps: 10, durationSec: 90 },
@@ -18,11 +17,13 @@ const EXERCISE_CATALOG = [
   { id: 'basic_03', name: 'งอศอกยกมือแตะไหล่',     target: 'แขน · AI ตรวจท่า',       reps: 10, durationSec: 90 },
   { id: 'basic_04', name: 'ย่อเข่า',               target: 'ขา / สะโพก · AI',        reps: 10, durationSec: 90 },
   { id: 'basic_05', name: 'เอียงลำตัวด้านข้าง',    target: 'ข้างลำตัว · AI',         reps: 10, durationSec: 90 },
-  { id: 'basic_06', name: 'ยกเข่าสลับข้าง',        target: 'ขา / หน้าท้อง · AI',     reps: 10, durationSec: 90 },
+  { id: 'basic_06', name: 'ยกเข่าสลับข้าง',        target: 'ขา / หน้าท้อง · AI',     reps: 20, durationSec: 90 },
   { id: 'basic_07', name: 'ยกไหล่ขึ้น-ลง',         target: 'บ่า · AI ตรวจท่า',       reps: 10, durationSec: 90 },
-  { id: 'basic_08', name: 'ก้มตัวแตะปลายเท้า',     target: 'หลังล่าง · AI',          reps: 10, durationSec: 90 },
-  { id: 'basic_09', name: 'บิดลำตัว',              target: 'เอว · AI ตรวจท่า',       reps: 10, durationSec: 90 },
-  { id: 'basic_10', name: 'ยืดแขนเหนือศีรษะ (ค้าง 8 วินาที)', target: 'ไหล่ / สะบัก · AI', reps: 3, durationSec: 90 },
+  { id: 'basic_08', name: 'ก้มตัวแตะปลายเท้า',     target: 'หลังล่าง · AI · ⚠ คนปวดหลังควรงด/ก้มตื้น', reps: 6, durationSec: 90 },
+  { id: 'basic_10', name: 'ยืดแขนเหนือศีรษะ (ค้าง 15 วินาที)', target: 'ไหล่ / สะบัก · AI', reps: 2, durationSec: 90 },
+  // ท่าที่กล้องหน้าวัดไม่ได้ (การเคลื่อนไหวเข้า-ออกลึก) — ผู้เล่นกดนับเอง ข้อมือท่าตัวอย่างอยู่ที่ DESK ใน Game Start.template.html
+  { id: 'chin-tuck',        name: 'เก็บคาง (แก้คอยื่น)',     target: 'ต้นคอ · กดนับเอง (ค้างครั้งละ 5 วินาที)', reps: 10, durationSec: 150 },
+  { id: 'scapular-squeeze', name: 'บีบสะบัก (ท่าตัว W)',     target: 'สะบัก / ไหล่ห่อ · กดนับเอง (ค้างครั้งละ 3 วินาที)', reps: 10, durationSec: 120 },
 ];
 
 // เปลี่ยนระดับความยาก: ปรับท่าที่เลือกไว้ทั้งหมดใหม่ตามระดับ

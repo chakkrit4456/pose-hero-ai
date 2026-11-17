@@ -159,6 +159,8 @@ main:has(#setup:not([hidden])){max-width:1100px}
 #demo-info .st{white-space:pre-line;font-size:17px;line-height:1.6}
 #demo-info .pc{margin-top:8px;font-size:15px;color:var(--mut);white-space:pre-line}
 #demo-info .cd{font-weight:700;margin:8px 0}
+#demo-info .bn{margin:0 0 8px;font-size:15px;line-height:1.6;white-space:pre-line}
+#demo-info .bn:empty{display:none}
 #demo[hidden],#demo-info[hidden]{display:none}
 #demo-cap{margin:8px 0 4px;text-align:center;font-weight:700;color:var(--acc)}
 .pl-under{display:flex;gap:10px;justify-content:center;align-items:flex-start}
@@ -473,6 +475,7 @@ video.cam{border:0;border-radius:var(--radius-md);box-shadow:var(--shadow-sm)}
 #demo-info .st{font-size:14px;line-height:1.6}
 #demo-info .pc{font-size:13px;color:var(--text-secondary)}
 #demo-info .cd{font-size:14px;color:var(--primary);font-weight:600}
+#demo-info .bn{font-size:14px;line-height:1.6;padding:10px 12px;background:var(--surface);border-radius:var(--radius-md)}
 #demoskip{width:100%}
 #angles{border:1px solid var(--border);border-radius:var(--radius-sm);font-size:12px}
 @media(max-width:820px){
@@ -659,6 +662,12 @@ main:has(#done:not([hidden])){max-width:820px}
 .notice-card h2{margin:0 0 8px}.notice-card ul{margin:8px 0 10px;padding-left:22px}.notice-card li{margin:5px 0}
 .notice-priv{font-size:14px;color:var(--mut,#667);background:rgba(120,130,160,.12);border-radius:12px;padding:10px 12px}
 .notice-card button{width:100%;margin-top:6px}
+.bn-card{max-width:600px;text-align:left}
+.bn-kicker{margin:0;font-size:14px;color:var(--mut,#667);font-weight:700}
+.bn-card h2{font-size:26px;margin:2px 0 12px;color:var(--acc,#2563eb)}
+.bn-row{display:flex;flex-direction:column;gap:2px;padding:10px 12px;margin:8px 0;border-radius:12px;background:rgba(120,130,160,.12);font-size:18px;line-height:1.5}
+.bn-row b{font-size:14px;color:var(--acc,#2563eb)}
+.bn-foot{font-size:13px;color:var(--mut,#667);margin:8px 0 4px}
 .remind{position:fixed;top:12px;left:50%;transform:translateX(-50%);z-index:150;max-width:min(94vw,520px);width:max-content;background:var(--card,#fff);color:var(--ink,#222);border:2px solid var(--acc,#2563eb);border-radius:16px;padding:12px 16px;box-shadow:0 10px 30px rgba(0,0,0,.25);display:flex;flex-direction:column;gap:6px;text-align:center}
 .remind[hidden]{display:none}
 .pain-box{display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:center;margin:8px 0;padding:8px 12px;border:1px dashed var(--line,#ccd);border-radius:14px;font-size:15px}
@@ -753,6 +762,7 @@ main:has(#done:not([hidden])){max-width:820px}
   <div class="f"><label for="s-ai">ใช้ AI จับท่าทาง (โครงกระดูก + ให้คะแนน)</label><input type="checkbox" id="s-ai"></div>
   <div class="row" style="margin:4px 0"><button id="s-camtest" type="button">ทดสอบกล้อง</button></div>
   <video id="s-prev" class="cam" hidden></video>
+  <div class="f"><label for="s-bn">แสดงป๊อปอัปกลางจอก่อนเริ่มแต่ละท่า (ทำแล้วได้อะไร ช่วยแก้อะไร ทำเท่าไหร่ถึงพอ)</label><input type="checkbox" id="s-bn"></div>
   <div class="f"><label for="s-chain">จบท่าบริหารแล้วต่อด้วยโหมดเหยียบ (เริ่มจากง่าย ค่อยยากขึ้นตามผลการเล่น)</label><input type="checkbox" id="s-chain"></div>
   <div class="f"><label for="s-rem">เตือนให้พักเป็นระยะ (ต้องเปิดหน้าเกมค้างไว้)</label><input type="checkbox" id="s-rem"></div>
   <div class="f"><label>ทุก <select id="s-rem-int"><option value="30">30</option><option value="45">45</option><option value="60">60</option><option value="90">90</option></select> นาที · ช่วง <input type="number" id="s-rem-s" min="0" max="23" style="width:64px"> – <input type="number" id="s-rem-e" min="1" max="24" style="width:64px"> น.</label><button id="s-rem-perm" type="button">อนุญาตการแจ้งเตือน</button></div>
@@ -888,6 +898,9 @@ main:has(#done:not([hidden])){max-width:820px}
 <div id="notice" class="notice-ov" role="dialog" aria-modal="true" aria-labelledby="notice-title" hidden>
   <div class="notice-card"><h2 id="notice-title"></h2><p id="notice-intro"></p><ul id="notice-pts"></ul><p class="notice-priv" id="notice-priv"></p><button id="notice-ok" class="p" type="button"></button></div>
 </div>
+<div id="bn-ov" class="notice-ov" role="dialog" aria-modal="true" aria-labelledby="bn-title" hidden>
+  <div class="notice-card bn-card"><p class="bn-kicker">ก่อนเริ่มท่านี้</p><h2 id="bn-title"></h2><div id="bn-rows"></div><p class="notice-priv" id="bn-warn" hidden></p><p class="bn-foot" id="bn-foot"></p><button id="bn-ok" class="p" type="button">เข้าใจแล้ว เริ่มท่าเลย</button><button id="bn-off" type="button">ไม่ต้องแสดงอีก</button></div>
+</div>
 <div id="remind" class="remind" role="alert" hidden><b>ถึงเวลาพักแล้ว</b><span id="remind-msg"></span><div class="row"><button id="rem-go" class="p" type="button">ชุดท่าด่วน</button><button id="rem-snz" type="button">เลื่อน 10 นาที</button><button id="rem-off" type="button">ปิดวันนี้</button></div></div>
 <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
 <section id="play" class="card" hidden>
@@ -907,7 +920,7 @@ main:has(#done:not([hidden])){max-width:820px}
   <p class="c" id="info"></p>
   <p class="c mut" id="nowp" style="min-height:1.4em;margin:2px 0"></p>
   <pre id="angles" class="mut" hidden></pre>
-  <div id="demo-info" hidden><h3 id="demo-title"></h3><div class="st" id="demo-steps"></div><div class="pc" id="demo-pc"></div><div class="cd" id="demo-cd"></div><button id="demoskip" type="button" class="p">เริ่มเลย (ข้ามตัวอย่าง)</button></div>
+  <div id="demo-info" hidden><h3 id="demo-title"></h3><div class="bn" id="demo-bn"></div><div class="st" id="demo-steps"></div><div class="pc" id="demo-pc"></div><div class="cd" id="demo-cd"></div><button id="demoskip" type="button" class="p">เริ่มเลย (ข้ามตัวอย่าง)</button></div>
   <div class="row">
     <button id="rep" class="p">+1 ครั้ง (กดนับเอง)</button><button id="skip">ข้ามท่านี้</button>
     <button id="camtog" type="button">เปิดกล้อง</button><button id="mnext" type="button" hidden>เพลงถัดไป ⏭</button><button id="pause">พักการเล่น</button><button id="end">จบเกม</button>
@@ -959,7 +972,7 @@ const show=n=>{if(n!=='manage'&&!$('manage').hidden&&window.S2&&S2.confirmLeaveE
 function go(page){
   if(page==='setup')renderList();
   if(page==='level')renderLevels();
-  if(page==='settings'){$('s-lobby-2d').checked=!!cfg.lobbyBackground2d;$('s-lobby-music').checked=cfg.lobbyMusicEnabled!==false;$('s-lobby-vol').value=cfg.lobbyMusicVolume??25;$('s-game-vol').value=cfg.gameMusicVolume??60;$('s-lobby-volv').textContent=$('s-lobby-vol').value+'%';$('s-game-volv').textContent=$('s-game-vol').value+'%';$('s-name').value=cfg.playerName;$('s-cd').value=cfg.countdownSec;$('s-rest').value=cfg.restSec;$('s-demo').value=cfg.demoSec;$('s-err').textContent='';syncVol();$('s-cam').checked=cfg.autoCam;$('s-ai').checked=cfg.ai;$('s-ang').checked=cfg.showAngles;$('s-read').checked=cfg.readSteps;$('s-3d').checked=cfg.teacher3d!==false;$('s-chain').checked=cfg.chainStep!==false;{const rm=WM.normalize(cfg.remind);$('s-rem').checked=rm.enabled;$('s-rem-int').value=rm.intervalMin;$('s-rem-s').value=rm.startHour;$('s-rem-e').value=rm.endHour;$('s-bk-msg').textContent='';$('s-rem-msg').textContent=''}fillCameras();}
+  if(page==='settings'){$('s-lobby-2d').checked=!!cfg.lobbyBackground2d;$('s-lobby-music').checked=cfg.lobbyMusicEnabled!==false;$('s-lobby-vol').value=cfg.lobbyMusicVolume??25;$('s-game-vol').value=cfg.gameMusicVolume??60;$('s-lobby-volv').textContent=$('s-lobby-vol').value+'%';$('s-game-volv').textContent=$('s-game-vol').value+'%';$('s-name').value=cfg.playerName;$('s-cd').value=cfg.countdownSec;$('s-rest').value=cfg.restSec;$('s-demo').value=cfg.demoSec;$('s-err').textContent='';syncVol();$('s-cam').checked=cfg.autoCam;$('s-ai').checked=cfg.ai;$('s-ang').checked=cfg.showAngles;$('s-read').checked=cfg.readSteps;$('s-3d').checked=cfg.teacher3d!==false;$('s-bn').checked=cfg.benefitPopup!==false;$('s-chain').checked=cfg.chainStep!==false;{const rm=WM.normalize(cfg.remind);$('s-rem').checked=rm.enabled;$('s-rem-int').value=rm.intervalMin;$('s-rem-s').value=rm.startHour;$('s-rem-e').value=rm.endHour;$('s-bk-msg').textContent='';$('s-rem-msg').textContent=''}fillCameras();}
   if(page!=='settings'){C.stopCamera($('s-prev'));$('s-prev').hidden=true;$('s-camtest').textContent='ทดสอบกล้อง';}
   if(page==='home')renderHome();
   if(st.status==='finished')E.resetGame(st);
@@ -1233,7 +1246,7 @@ $('s-save').onclick=()=>{
   cfg.autoCam=$('s-cam').checked;cfg.ai=$('s-ai').checked;cfg.showAngles=$('s-ang').checked;cfg.readSteps=$('s-read').checked;cfg.teacher3d=$('s-3d').checked;if(!cfg.readSteps&&activeUtt&&activeUtt.isSteps)stopSpeech();cfg.cameraId=$('s-camid').value;C.stopCamera($('s-prev'));$('s-prev').hidden=true;$('s-camtest').textContent='ทดสอบกล้อง';
   const dm=+$('s-demo').value;if(!Number.isInteger(dm)||dm<0||dm>30)return $('s-err').textContent='เวลาท่าตัวอย่างต้องเป็นจำนวนเต็ม 0-30';
   cfg.demoSec=dm;cfg.playerName=name||'ผู้เล่น';cfg.countdownSec=cd;cfg.restSec=rest;
-  cfg.chainStep=$('s-chain').checked;cfg.lobbyBackground2d=$('s-lobby-2d').checked;cfg.lobbyMusicEnabled=$('s-lobby-music').checked;cfg.lobbyMusicVolume=+$('s-lobby-vol').value;cfg.gameMusicVolume=+$('s-game-vol').value;
+  cfg.benefitPopup=$('s-bn').checked;cfg.chainStep=$('s-chain').checked;cfg.lobbyBackground2d=$('s-lobby-2d').checked;cfg.lobbyMusicEnabled=$('s-lobby-music').checked;cfg.lobbyMusicVolume=+$('s-lobby-vol').value;cfg.gameMusicVolume=+$('s-game-vol').value;
   cfg.remind=WM.normalize({enabled:$('s-rem').checked,intervalMin:+$('s-rem-int').value,startHour:+$('s-rem-s').value,endHour:+$('s-rem-e').value});remRebuild();
   if(saveCfg())notify('บันทึกการตั้งค่าแล้ว','good',true);
   st.playerName=cfg.playerName;st.countdownSec=cd;st.restSec=rest;
@@ -1277,7 +1290,7 @@ function renderList(){
     items.forEach(c=>{
       const q=st.queue.find(x=>x.id===c.id),d=document.createElement('div');d.className='xc';
       const reps=q?q.reps:Math.max(1,Math.round(c.reps*lv.repsMul)),sec=q?q.durationSec:Math.round(c.durationSec*lv.timeMul);
-      const tag=c.custom?'<span class="tag me">ของฉัน · กดนับเอง</span>':isAi(c.id)?'<span class="tag">กล้องช่วยนับ</span>':'';
+      const tag=c.custom?'<span class="tag me">ของฉัน · กดนับเอง</span>':isAi(c.id)?'<span class="tag">กล้องช่วยนับ</span>':'<span class="tag">กดนับเอง</span>';
       const esc=x=>String(x).replace(/[&<>"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]));
       d.innerHTML=`<canvas width="240" height="240"></canvas>${tag}<span class="ord">+</span>
         <div class="nm">${esc(c.name)}</div><div class="tg">${esc(c.target)}</div>
@@ -1358,7 +1371,70 @@ const poseAlert=N1.createPoseAlert(),countAlerts=N3.createCountAlerts();
 
 // ท่าสำหรับคนทำงานออฟฟิศ (ไม่มี AI ตรวจ) — ข้อมูลแอนิเมชันตัวอย่าง: pose = ตัวเลือกของ S2.buildPose (โครงกระดูกแสดงเฉพาะลำตัวและแขนขา ไม่มีศีรษะ/นิ้ว)
 const DESK={
+  'chin-tuck':{
+    steps:['นั่งหรือยืนหลังตรง มองตรงไปข้างหน้า','ใช้นิ้วชี้แตะที่คางเบา ๆ แล้วดึงคางถอยตรง ๆ ไปด้านหลัง (เหมือนทำคางซ้อน) ห้ามก้มหรือเงยหน้า','ค้างไว้ 5 วินาที หายใจตามปกติ แล้วผ่อนกลับ กด +1 ครั้งทุกครั้งที่ทำครบ 1 รอบ'],
+    pc:'ทำเบา ๆ ไม่ดันแรง หยุดทันทีหากปวดร้าวลงแขน ชา หรือเวียนศีรษะ',
+    pose:{r_arm:[30,-150]}},
+  'scapular-squeeze':{
+    steps:['นั่งหรือยืนหลังตรง งอศอกทั้งสองข้างให้เป็นรูปตัว W ฝ่ามือหันไปด้านหน้า','เก็บคางเล็กน้อย บีบสะบักสองข้างเข้าหากัน ดึงศอกลงและไปด้านหลัง ไม่ยกไหล่','ค้างไว้ 3 วินาที แล้วผ่อนกลับ กด +1 ครั้งทุกครั้งที่ทำครบ 1 รอบ'],
+    pc:'ไม่ยกไหล่เข้าหาหู ไม่แอ่นหลัง หยุดทันทีหากปวดหรือชาที่แขน',
+    pose:{l_arm:[-55,-165],r_arm:[55,165]}},
 };
+// ข้อมูล "ทำแล้วได้อะไร / ช่วยแก้อาการไหน / ทำเท่าไหร่พอ" แสดงในหน้าดูท่าตัวอย่างก่อนเริ่มทุกท่า
+// เป็นแนวทางทั่วไปสำหรับบรรเทาอาการ ไม่ใช่คำแนะนำทางการแพทย์ unit = หน่วยของ 1 ครั้ง hold = วินาทีที่ต้องค้าง note = ข้อควรระวังเฉพาะท่า
+const BENEFIT={
+  'neck-tilt':{gain:'คลายกล้ามเนื้อคอและบ่าด้านข้าง เพิ่มการเคลื่อนไหวของคอ',fix:'ปวดคอ ต้นคอตึง จากการก้มหรือจ้องจอนาน ๆ',unit:'ครั้ง (นับทีละข้าง)'},
+  'shoulder-roll':{gain:'คลายไหล่และสะบัก เพิ่มเลือดไหลเวียนบริเวณบ่า',fix:'ไหล่ติด ไหล่ห่อ บ่าตึง',unit:'ครั้ง'},
+  'upper-trap':{gain:'ยืดกล้ามเนื้อบ่าส่วนบน (Trapezius) ให้คลายตัว',fix:'ปวดบ่า คอตึง ไหล่ยก',unit:'ครั้ง (สลับซ้าย-ขวา)',hold:15},
+  'seated-twist':{gain:'ทำให้หลังส่วนล่างและเอวยืดหยุ่นขึ้น',fix:'ปวดหลังล่าง เอวแข็ง จากการนั่งนาน',unit:'ครั้ง (นับทีละข้าง)'},
+  'wrist-stretch':{gain:'ยืดข้อมือ ปลายแขน และนิ้วมือ',fix:'ข้อมือล้า นิ้วล็อก ปลายแขนตึง จากการพิมพ์งานหรือใช้เมาส์',unit:'ครั้ง',hold:15},
+  'wrist-circle':{gain:'ขยับข้อมือและเพิ่มเลือดไหลเวียนที่ข้อมือ',fix:'ข้อมือล้า เมื่อยจากการพิมพ์งาน',unit:'ครั้ง'},
+  basic_01:{gain:'ขยับไหล่และเพิ่มเลือดไหลเวียน ลดความเมื่อยล้า',fix:'ไหล่ล้า ต้นคอตึง จากการนั่งยกแขนพิมพ์งาน',unit:'ครั้ง'},
+  basic_02:{gain:'บริหารไหล่และสะบัก เปิดช่วงการเคลื่อนไหวของไหล่',fix:'ไหล่ติด สะบักตึง',unit:'ครั้ง'},
+  basic_03:{gain:'ขยับข้อศอกและกล้ามเนื้อต้นแขน',fix:'ข้อศอกและต้นแขนเมื่อยจากการวางแขนบนโต๊ะนาน ๆ',unit:'ครั้ง'},
+  basic_04:{gain:'เสริมกล้ามเนื้อต้นขาและสะโพก กระตุ้นเลือดไหลเวียนที่ขา',fix:'ขาและสะโพกอ่อนแรง ขาล้า จากการนั่งนาน',unit:'ครั้ง'},
+  basic_05:{gain:'ยืดกล้ามเนื้อข้างลำตัว คลายเอว',fix:'เอวตึง ข้างลำตัวตึง',unit:'ครั้ง (สลับซ้าย-ขวา)'},
+  basic_06:{gain:'บริหารต้นขาและหน้าท้อง กระตุ้นเลือดไหลเวียน',fix:'ขาล้า ขาชาจากการนั่งนาน',unit:'ก้าว (ซ้าย-ขวา นับรวม)'},
+  basic_07:{gain:'คลายกล้ามเนื้อบ่า',fix:'บ่าแข็ง ปวดบ่า',unit:'ครั้ง'},
+  basic_08:{gain:'ยืดหลังและกล้ามเนื้อขาด้านหลัง',fix:'หลังล่างและต้นขาด้านหลังตึง',unit:'ครั้ง',note:'คนปวดหลังหรือมีหมอนรองกระดูกทับเส้นประสาทควรงดท่านี้ หรือก้มตื้น ๆ เท่าที่สบาย'},
+  basic_10:{gain:'ยืดไหล่ สะบัก และข้างลำตัว',fix:'ไหล่และสะบักตึงจากการนั่งหลังงอ',unit:'ครั้ง',hold:15},
+  'chin-tuck':{gain:'ฝึกกล้ามเนื้อต้นคอด้านหน้า ช่วยให้ศีรษะกลับมาอยู่เหนือลำตัว',fix:'คอยื่นไปข้างหน้า ปวดต้นคอ จากการก้มหน้าหรือจ้องจอ',unit:'ครั้ง',hold:5},
+  'scapular-squeeze':{gain:'ฝึกกล้ามเนื้อสะบักและหลังส่วนบนให้ดึงไหล่ไปด้านหลัง',fix:'ไหล่ห่อ หลังค่อม ปวดสะบัก',unit:'ครั้ง',hold:3},
+};
+// ข้อความแจ้งก่อนเริ่มท่า: ทำแล้วได้อะไร / ช่วยแก้อะไร / ทำเท่าไหร่ถึงพอ (ท่าที่ผู้เล่นสร้างเองไม่มีข้อมูล จะไม่แสดง)
+function benefitRows(ex){
+  const b=BENEFIT[ex.id];if(!b)return null;
+  const aiHold=AI&&aiEx[ex.id]&&aiEx[ex.id].counter&&aiEx[ex.id].counter.mode==='hold'?aiEx[ex.id].counter.hold_sec:0,hold=aiHold||b.hold||0;
+  return{rows:[['ทำแล้วได้อะไร',b.gain],['ช่วยแก้อาการ',b.fix],
+    ['ทำเท่าไหร่ถึงพอ',ex.reps+' '+(b.unit||'ครั้ง')+(hold?' ค้างครั้งละ '+hold+' วินาที':'')+' ต่อรอบ · วันละ 2 รอบ สัปดาห์ละ 3–5 วัน ต่อเนื่องอย่างน้อย 4 สัปดาห์']],
+    note:b.note||'',foot:'แนวทางทั่วไปที่ใกล้เคียงกับงานวิจัย ไม่ใช่คำสั่งแพทย์'};
+}
+function benefitText(ex){
+  const r=benefitRows(ex);if(!r)return'';
+  const l=r.rows.map(x=>x[0]+': '+x[1]);l[2]+=' ('+r.foot+')';
+  if(r.note)l.push('⚠ '+r.note);
+  return l.join('\n');
+}
+// ป๊อปอัปกลางจอก่อนเริ่มแต่ละท่า: หยุดเวลาเกมไว้ อ่านแล้วกดเริ่ม หรือรอให้นับถอยหลังจบ (ผู้เล่นยืนห่างกล้อง อาจกดไม่ได้)
+const BN_MS=12000;let bnIdx=-2,bnLeft=0,bnOpen=false,bnSec=-1;
+function openBn(ex){
+  const r=benefitRows(ex);if(!r)return false;
+  $('bn-title').textContent=ex.name;
+  const box=$('bn-rows');box.textContent='';
+  r.rows.forEach(x=>{const d=document.createElement('div');d.className='bn-row';const b=document.createElement('b'),t=document.createElement('span');b.textContent=x[0];t.textContent=x[1];d.append(b,t);box.append(d);});
+  const w=$('bn-warn');w.textContent=r.note?'⚠ '+r.note:'';w.hidden=!r.note;
+  $('bn-foot').textContent=r.foot+' · ท่านี้ยังไม่เริ่มนับจนกว่าจะกดเริ่มหรือครบเวลา';
+  $('bn-ov').hidden=false;bnOpen=true;bnSec=-1;
+  try{$('bn-ok').focus({preventScroll:true});}catch(e){}
+  return true;
+}
+function closeBn(){if(!bnOpen)return;bnOpen=false;$('bn-ov').hidden=true;}
+function bnTickText(){const sec=Math.ceil(bnLeft/1000);if(sec!==bnSec){bnSec=sec;$('bn-ok').textContent='เข้าใจแล้ว เริ่มท่าเลย ('+sec+')';}}
+function bnTick(c,idx,d){
+  if(bnIdx!==idx){bnIdx=idx;if(cfg.benefitPopup!==false&&openBn(c.exercise))bnLeft=BN_MS;else bnLeft=0;}
+  if(bnLeft>0){bnLeft-=d;if(bnLeft>0){bnTickText();return true;}}
+  closeBn();return false;
+}
 // ---- ท่าตัวอย่างก่อนเล่น (แอนิเมชันโครงกระดูกทำท่า) ----
 let poseStore=null,demoIdx=-2,previewIdx=-2,previewMs=0,demoLeft=0,demoShown=null,teachJ=null,teachT=0;
 const teachMove={};
@@ -1438,14 +1514,14 @@ function showDemo(on,ex,pause,leftMs){
     return;
   }
   if(!duckDemo){duckDemo=true;applyMusicVol()}
-  if(demoShown!==ex.id){demoShown=ex.id;const inf=demoInfo(ex);$('demo-title').textContent='ดูท่าตัวอย่าง: '+ex.name;$('demo-steps').textContent=inf.steps;$('demo-pc').textContent=inf.pc;speakSteps(ex,inf);}
+  if(demoShown!==ex.id){demoShown=ex.id;const inf=demoInfo(ex);$('demo-title').textContent='ดูท่าตัวอย่าง: '+ex.name;$('demo-bn').textContent=benefitText(ex);$('demo-steps').textContent=inf.steps;$('demo-pc').textContent=inf.pc;speakSteps(ex,inf);}
   $('demo-cd').textContent=pause?'เริ่มใน '+Math.ceil(leftMs/1000)+' วินาที':'พักก่อน — เตรียมท่าถัดไปนี้';
   $('demoskip').hidden=!pause;
 }
 // เรียกทุกเฟรม: คืน true เมื่อต้องหยุดเวลาเกมเพื่อโชว์ท่าตัวอย่าง (ช่วงพักแสดงท่าถัดไปโดยไม่หยุดนาฬิกา)
 function demoTick(d){
   const c=st.current;
-  if(st.status==='finished'||!c){if(st.status!=='paused'){showDemo(false);showTeach(null);}return false;}
+  if(st.status==='finished'||!c){if(st.status!=='paused'){showDemo(false);showTeach(null);closeBn();}return false;}
   if(st.status!=='playing')return false;
   const idx=st.currentIndex;
   if(c.resting){
@@ -1454,11 +1530,15 @@ function demoTick(d){
     previewMs+=d;showTeach(c.exercise);showDemo(true,c.exercise,false,0);return false;
   }
   showTeach(c.exercise);
+  if(bnTick(c,idx,d))return true;
   if(demoIdx!==idx){demoIdx=idx;demoLeft=Math.max(0,demoSecs()*1000-(previewIdx===idx?previewMs:0));}
   if(demoLeft>0){demoLeft-=d;if(demoLeft>0){showDemo(true,c.exercise,true,demoLeft);return true;}}
   showDemo(false);return false;
 }
 $('demoskip').onclick=()=>{demoLeft=0;};
+$('bn-ok').onclick=()=>{bnLeft=0;closeBn();};
+$('bn-off').onclick=()=>{cfg.benefitPopup=false;saveCfg();bnLeft=0;closeBn();notify('ปิดป๊อปอัปแจ้งก่อนเริ่มท่าแล้ว เปิดได้ที่ตั้งค่า','info',true);};
+document.addEventListener('keydown',e=>{if(bnOpen&&(e.key==='Enter'||e.key===' '||e.key==='Escape')){e.preventDefault();bnLeft=0;closeBn();}});
 // ---- ระบบ AI จับท่าทาง (โฟลเดอร์ 1: ai/core.js + ai/camera.js) ----
 const AI=!!(window.MR&&window.MRCam&&window.MR_EXERCISES_DATA&&window.MR_MODEL_B64);
 const aiCam=AI?new MRCam.CameraSource():null;
@@ -1535,7 +1615,7 @@ function finish(){
 $('go').onclick=async()=>{
   try{
     if(!st.queue.length)throw new Error('กรุณาเลือกท่าบริหารอย่างน้อย 1 ท่าก่อนเริ่มเกม');
-    $('camerr').textContent='';formScores={};adviceById={};scoresById={};runner=null;runnerIdx=-2;demoIdx=-2;previewIdx=-2;previewMs=0;demoLeft=0;showDemo(false);showTeach(null);poseAlert.reset();countAlerts.reset();
+    $('camerr').textContent='';formScores={};adviceById={};scoresById={};runner=null;runnerIdx=-2;demoIdx=-2;previewIdx=-2;previewMs=0;demoLeft=0;bnIdx=-2;bnLeft=0;closeBn();showDemo(false);showTeach(null);poseAlert.reset();countAlerts.reset();
     show('play');
     teacher3Init();
     musicStop();mLoaded=null;musicStart(); // เริ่มเพลงทันทีที่กดเริ่ม ไม่ต้องรอโหลดกล้องและนับถอยหลัง
