@@ -1,9 +1,12 @@
 /* Runs in the head, before app scripts: no page is exposed until its tasks settle. */
 (() => {
-  const tasks=new Map(),issues=[];let next=0,boot=true,failed=false,lastFocus=null,ready=false,slow=false;
+  const tasks=new Map(),issues=[];let next=0,boot=true,failed=false,lastFocus=null,ready=false,slow=false,entered=false;
   const el=id=>document.getElementById(id);
   function paint(){
-    const busy=boot||tasks.size>0||failed;
+    // The overlay belongs to entering the game only. After the first load settles, later background
+    // work (music, camera, 3D teacher, scene switches) continues without covering the screen.
+    if(!boot&&!tasks.size)entered=true;
+    const busy=failed||(!entered&&(boot||tasks.size>0));
     document.documentElement.classList.toggle('app-loading',busy);
     const main=document.querySelector('main');if(main)main.inert=busy;
     const screen=el('app-loading');if(!screen)return;screen.hidden=!busy;screen.setAttribute('aria-busy',String(busy));

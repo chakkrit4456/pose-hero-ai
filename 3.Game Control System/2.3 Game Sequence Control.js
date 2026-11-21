@@ -55,7 +55,10 @@ function advance(state, reason) {
   const prev = state.queue[state.currentIndex];
   beginExercise(state, next);
   state.current.resting = true;
-  const restMs = Math.round(state.restSec * DIFFICULTY[state.difficulty].restMul * 1000);
+  const nextEx = state.queue[next];
+  // A queue item may set its own rest before it (Hero Workout: 0 inside a phase, a few seconds between phases).
+  const restMs = nextEx.restBeforeSec != null ? Math.round(nextEx.restBeforeSec * 1000)
+    : Math.round(state.restSec * DIFFICULTY[state.difficulty].restMul * 1000);
   state.current.restLeftMs = restMs;
   emit(state, 'rest', { seconds: restMs / 1000, from: prev, next: state.queue[next] });
 }
@@ -64,9 +67,10 @@ function advance(state, reason) {
 function registerRep(state, count = 1) {
   const c = state.current;
   if (state.status !== GAME_STATUS.PLAYING || !c || c.resting) return false;
-  c.repsDone = Math.min(c.exercise.reps, c.repsDone + count);
+  // timeBoxed: the block always lasts its full time; reps keep counting past the target.
+  c.repsDone = c.exercise.timeBoxed ? c.repsDone + count : Math.min(c.exercise.reps, c.repsDone + count);
   emit(state, 'rep', { repsDone: c.repsDone, target: c.exercise.reps });
-  if (c.repsDone >= c.exercise.reps) {
+  if (!c.exercise.timeBoxed && c.repsDone >= c.exercise.reps) {
     advance(state, 'reps');
     return true;
   }

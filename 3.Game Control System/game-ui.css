@@ -1,0 +1,102 @@
+/* Full-screen game shell: no page scrolling, one visible primary action per scene, the rest in ☰ menus. */
+html,body{height:100%;overflow:hidden!important;overscroll-behavior:none}
+body{background:#080c20}
+main{position:fixed!important;inset:0;max-width:none!important;margin:0!important;padding:0!important;overflow:hidden}
+.site-header{display:none!important}
+.lobby-finale,.lobby-load-status{display:none!important}
+
+/* Every screen is a full-screen scene; long content scrolls inside the scene only. */
+main>section.card{position:absolute;inset:0;margin:0!important;border-radius:0!important;border:0!important;box-shadow:none!important;
+  overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;padding:64px max(16px,calc((100vw - 1180px)/2)) 24px!important;
+  animation:gm-scene-in .28s ease-out}
+main>section.card[hidden]{display:none!important}
+@keyframes gm-scene-in{from{opacity:0;transform:scale(.985)}to{opacity:1;transform:none}}
+@media(prefers-reduced-motion:reduce){main>section.card,.gl-start{animation:none!important}}
+#play,#dance,#fire{padding-top:56px!important}
+
+/* Lobby */
+#home.game-lobby{position:absolute!important;inset:0!important;height:auto!important;background:transparent!important;padding:0!important;overflow:hidden;display:block;color:#f3f5ff}
+.gl-hud{position:absolute;top:14px;left:16px;display:flex;align-items:center;gap:12px;z-index:3}
+.gl-logo{width:88px;height:auto;border-radius:12px;background:#fff;border:2px solid #ffffff40}
+.gl-player p{margin:0!important;line-height:1.35}
+#home #hello{font-size:15px!important;font-weight:700;color:#fff}
+#home #lvnow{font-size:12px!important;color:#9fe9ef!important;padding:0;border:0;background:none}
+.gl-center{position:absolute;left:0;right:0;top:16%;text-align:center;pointer-events:none;z-index:2}
+.gl-title{display:block!important;text-align:center!important;width:100%;margin:0;font:900 clamp(40px,8vw,96px)/1 Prompt,system-ui,sans-serif;letter-spacing:.04em;color:#fff;
+  text-shadow:0 4px 0 #3b2c8f,0 8px 30px #6f7dff88}
+.gl-title::before{display:none!important}
+.gl-title span{color:#7ff0f5}
+.gl-sub{margin:10px 0 0;font-size:clamp(14px,2vw,20px);color:#c8d4f5;letter-spacing:.12em}
+.gl-bottom{position:absolute;left:0;right:0;bottom:max(28px,6vh);display:flex;flex-direction:column;align-items:center;gap:10px;z-index:3}
+.gl-start{font:800 clamp(22px,3.2vw,34px)/1 Prompt,system-ui,sans-serif!important;padding:20px 64px!important;min-width:min(320px,80vw);
+  border-radius:999px!important;border:3px solid #fff!important;color:#10162d!important;cursor:pointer;
+  background:linear-gradient(180deg,#a6fbff,#62d6e8 55%,#3fb0d0)!important;box-shadow:0 7px 0 #1f6f8f,0 12px 40px #59e6ff80!important;
+  animation:gl-pulse 1.8s ease-in-out infinite;transition:transform .1s}
+.gl-start:hover{filter:brightness(1.08)}
+.gl-start:active{transform:translateY(5px);box-shadow:0 2px 0 #1f6f8f,0 6px 20px #59e6ff80!important}
+@keyframes gl-pulse{50%{transform:scale(1.05)}}
+.gl-mode{margin:0;font-size:13px;color:#b9c8e7;background:#0b1230b0;padding:4px 14px;border-radius:99px;border:1px solid #9fb5ff40}
+
+/* ☰ dropdown menu (lobby + every scene) */
+.gm{position:fixed;top:12px;right:16px;z-index:50}
+.gm-toggle{width:48px;height:48px;padding:0!important;border-radius:14px!important;font-size:24px!important;line-height:1;cursor:pointer;
+  color:#fff!important;background:#1a2550e0!important;border:2px solid #9fb5ff80!important;box-shadow:0 4px 0 #0b1230}
+.gm-panel{position:absolute;right:0;top:56px;width:min(300px,calc(100vw - 32px));max-height:calc(100dvh - 90px);overflow:auto;
+  display:flex;flex-direction:column;gap:6px;padding:12px;border-radius:18px;background:#121a3cf5;border:2px solid #9fb5ff60;
+  box-shadow:0 20px 50px #0009;animation:gm-drop .16s ease-out}
+.gm-panel[hidden]{display:none}
+@keyframes gm-drop{from{opacity:0;transform:translateY(-8px)}}
+.gm-panel button{width:100%;text-align:left;margin:0!important;padding:10px 14px!important;min-height:44px;border-radius:12px!important;font-size:15px!important;
+  color:#e6edff!important;background:#ffffff0d!important;border:1px solid #ffffff1f!important;box-shadow:none!important;flex:none!important}
+.gm-panel button:hover{background:#ffffff22!important}
+.gm-panel button[hidden]{display:none}
+.gm-panel button small{display:block;font-size:11px;color:#9fb0d8}
+.gm-panel button[aria-checked=true]{background:linear-gradient(90deg,#3fb0d0,#6f7dff)!important;color:#fff!important;border-color:#fff8!important}
+.gm-panel button[aria-checked=true] small{color:#e6f4ff}
+.gm-label{margin:6px 4px 0;font-size:11px;letter-spacing:.14em;color:#7ff0f5;font-weight:700}
+.gm-label:first-child{margin-top:0}
+
+/* Back icon on sub-scenes */
+.gm-back{position:fixed;top:12px;left:16px;z-index:50;width:48px;height:48px;padding:0!important;border-radius:14px!important;font-size:22px!important;
+  color:#fff!important;background:#1a2550e0!important;border:2px solid #9fb5ff80!important;box-shadow:0 4px 0 #0b1230;cursor:pointer}
+main>section.card .row:empty{display:none}
+main>section.card .back{display:none!important}
+
+/* Trainer mascot pop-up */
+.coach{position:fixed;right:max(12px,2vw);bottom:max(12px,3vh);z-index:120;display:flex;align-items:flex-end;gap:6px;pointer-events:none;max-width:min(420px,calc(100vw - 24px))}
+.coach[hidden]{display:none}
+.coach video{width:clamp(90px,14vw,150px);height:auto;filter:drop-shadow(0 8px 16px #0008);animation:coach-bob .9s ease-in-out infinite}
+.coach-say{order:-1;margin:0 0 50%;padding:12px 16px;border-radius:18px 18px 4px 18px;background:#fff;color:#14183a;font:700 clamp(15px,1.9vw,20px)/1.4 Prompt,system-ui,sans-serif;
+  border:3px solid #6f7dff;box-shadow:0 8px 24px #0006}
+.coach-in{animation:coach-pop .45s cubic-bezier(.2,1.6,.4,1)}
+@keyframes coach-pop{from{opacity:0;transform:translateY(60px) scale(.7)}}
+@keyframes coach-bob{50%{transform:translateY(-8px) rotate(-3deg)}}
+
+/* Lobby background always covers the whole viewport on every device and orientation (overrides older panel layouts). */
+html body:has(#home:not([hidden])) .lobby-scene,html body .lobby-scene{position:fixed!important;inset:0!important;top:0!important;left:0!important;
+  width:100vw!important;height:100vh!important;height:100dvh!important;margin:0!important;border:0!important;z-index:-1!important;pointer-events:none!important}
+html body .lobby-scene canvas,html body .lobby-scene picture,html body .lobby-scene img{position:absolute;inset:0;width:100%!important;height:100%!important;object-fit:cover}
+html body .lobby-scene::after{display:block!important;background:linear-gradient(0deg,#080c20b0 0%,transparent 35%)!important}
+/* Short landscape screens: tighten the overlay so nothing overlaps. */
+@media(max-height:500px){.gl-center{top:12%}.gl-title{font-size:clamp(28px,7vh,48px)}.gl-sub{margin-top:4px;font-size:13px}
+  .gl-start{padding:12px 40px!important;font-size:20px!important}.gl-bottom{bottom:12px;gap:6px}.gl-logo{width:64px}}
+@media(max-width:380px){.gl-start{padding:16px 36px!important}}
+
+/* Hero Workout HUD + step cue pad */
+#hero-hud{position:fixed;top:12px;left:50%;transform:translateX(-50%);z-index:45;display:flex;align-items:center;gap:12px;padding:8px 16px;border-radius:99px;
+  background:#121a3ce8;border:2px solid #9fb5ff60;color:#e6edff;font-size:14px;white-space:nowrap;max-width:calc(100vw - 140px);overflow:hidden}
+#hero-hud[hidden],#hero-pad[hidden]{display:none}
+#hero-total{font:800 20px/1 Prompt,system-ui,sans-serif;color:#7ff0f5;font-variant-numeric:tabular-nums}
+#hero-acc{color:#ffd27f}
+#hero-pad{position:fixed;left:max(12px,2vw);bottom:max(12px,3vh);z-index:44;width:clamp(150px,22vw,230px);padding:10px;border-radius:18px;background:#121a3cee;border:2px solid #9fb5ff60}
+#hero-cue{margin:0 0 8px;font-size:12px;line-height:1.4;color:#c8d4f5}
+.hp-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.hp-grid i{aspect-ratio:1;border-radius:10px;background:#ffffff10;border:2px solid #ffffff22;display:grid;place-items:center;font:800 clamp(18px,2.6vw,28px)/1 system-ui;font-style:normal;color:#ffffff50;transition:background .12s}
+.hp-grid i.hp-c{background:transparent;border-style:dashed}
+.hp-grid i.soon{background:#6f7dff55;border-color:#9fb5ff;color:#fff}
+.hp-grid i.on{background:#3fd0e0;border-color:#fff;color:#10162d;box-shadow:0 0 18px #59e6ff}
+.hp-grid i.hit{animation:hp-hit .35s}
+.hp-grid i.miss{animation:hp-miss .35s}
+@keyframes hp-hit{50%{background:#5cf08a;transform:scale(1.12)}}
+@keyframes hp-miss{50%{background:#ff6b6b}}
+@media(max-height:500px){#hero-pad{width:120px;padding:6px}#hero-cue{display:none}}

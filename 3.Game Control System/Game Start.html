@@ -8,10 +8,13 @@ html.app-loading{overflow:hidden}html.app-loading main{visibility:hidden}
 @keyframes loading-turn{to{transform:rotate(360deg)}}@media(prefers-reduced-motion:reduce){#app-loading .loading-ring{animation:none}}
 </style><script>/* Runs in the head, before app scripts: no page is exposed until its tasks settle. */
 (() => {
-  const tasks=new Map(),issues=[];let next=0,boot=true,failed=false,lastFocus=null,ready=false,slow=false;
+  const tasks=new Map(),issues=[];let next=0,boot=true,failed=false,lastFocus=null,ready=false,slow=false,entered=false;
   const el=id=>document.getElementById(id);
   function paint(){
-    const busy=boot||tasks.size>0||failed;
+    // The overlay belongs to entering the game only. After the first load settles, later background
+    // work (music, camera, 3D teacher, scene switches) continues without covering the screen.
+    if(!boot&&!tasks.size)entered=true;
+    const busy=failed||(!entered&&(boot||tasks.size>0));
     document.documentElement.classList.toggle('app-loading',busy);
     const main=document.querySelector('main');if(main)main.inert=busy;
     const screen=el('app-loading');if(!screen)return;screen.hidden=!busy;screen.setAttribute('aria-busy',String(busy));
@@ -986,31 +989,137 @@ body:has(#home:not([hidden])) .site-header button{color:#dce6ff;background:#ffff
 .lobby-audio label{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 .lobby-audio input{width:120px;min-height:44px}
 .lobby-audio span{color:#a0b5d7;overflow-wrap:anywhere}
+</style>
+<style>/* Full-screen game shell: no page scrolling, one visible primary action per scene, the rest in ☰ menus. */
+html,body{height:100%;overflow:hidden!important;overscroll-behavior:none}
+body{background:#080c20}
+main{position:fixed!important;inset:0;max-width:none!important;margin:0!important;padding:0!important;overflow:hidden}
+.site-header{display:none!important}
+.lobby-finale,.lobby-load-status{display:none!important}
+
+/* Every screen is a full-screen scene; long content scrolls inside the scene only. */
+main>section.card{position:absolute;inset:0;margin:0!important;border-radius:0!important;border:0!important;box-shadow:none!important;
+  overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;padding:64px max(16px,calc((100vw - 1180px)/2)) 24px!important;
+  animation:gm-scene-in .28s ease-out}
+main>section.card[hidden]{display:none!important}
+@keyframes gm-scene-in{from{opacity:0;transform:scale(.985)}to{opacity:1;transform:none}}
+@media(prefers-reduced-motion:reduce){main>section.card,.gl-start{animation:none!important}}
+#play,#dance,#fire{padding-top:56px!important}
+
+/* Lobby */
+#home.game-lobby{position:absolute!important;inset:0!important;height:auto!important;background:transparent!important;padding:0!important;overflow:hidden;display:block;color:#f3f5ff}
+.gl-hud{position:absolute;top:14px;left:16px;display:flex;align-items:center;gap:12px;z-index:3}
+.gl-logo{width:88px;height:auto;border-radius:12px;background:#fff;border:2px solid #ffffff40}
+.gl-player p{margin:0!important;line-height:1.35}
+#home #hello{font-size:15px!important;font-weight:700;color:#fff}
+#home #lvnow{font-size:12px!important;color:#9fe9ef!important;padding:0;border:0;background:none}
+.gl-center{position:absolute;left:0;right:0;top:16%;text-align:center;pointer-events:none;z-index:2}
+.gl-title{display:block!important;text-align:center!important;width:100%;margin:0;font:900 clamp(40px,8vw,96px)/1 Prompt,system-ui,sans-serif;letter-spacing:.04em;color:#fff;
+  text-shadow:0 4px 0 #3b2c8f,0 8px 30px #6f7dff88}
+.gl-title::before{display:none!important}
+.gl-title span{color:#7ff0f5}
+.gl-sub{margin:10px 0 0;font-size:clamp(14px,2vw,20px);color:#c8d4f5;letter-spacing:.12em}
+.gl-bottom{position:absolute;left:0;right:0;bottom:max(28px,6vh);display:flex;flex-direction:column;align-items:center;gap:10px;z-index:3}
+.gl-start{font:800 clamp(22px,3.2vw,34px)/1 Prompt,system-ui,sans-serif!important;padding:20px 64px!important;min-width:min(320px,80vw);
+  border-radius:999px!important;border:3px solid #fff!important;color:#10162d!important;cursor:pointer;
+  background:linear-gradient(180deg,#a6fbff,#62d6e8 55%,#3fb0d0)!important;box-shadow:0 7px 0 #1f6f8f,0 12px 40px #59e6ff80!important;
+  animation:gl-pulse 1.8s ease-in-out infinite;transition:transform .1s}
+.gl-start:hover{filter:brightness(1.08)}
+.gl-start:active{transform:translateY(5px);box-shadow:0 2px 0 #1f6f8f,0 6px 20px #59e6ff80!important}
+@keyframes gl-pulse{50%{transform:scale(1.05)}}
+.gl-mode{margin:0;font-size:13px;color:#b9c8e7;background:#0b1230b0;padding:4px 14px;border-radius:99px;border:1px solid #9fb5ff40}
+
+/* ☰ dropdown menu (lobby + every scene) */
+.gm{position:fixed;top:12px;right:16px;z-index:50}
+.gm-toggle{width:48px;height:48px;padding:0!important;border-radius:14px!important;font-size:24px!important;line-height:1;cursor:pointer;
+  color:#fff!important;background:#1a2550e0!important;border:2px solid #9fb5ff80!important;box-shadow:0 4px 0 #0b1230}
+.gm-panel{position:absolute;right:0;top:56px;width:min(300px,calc(100vw - 32px));max-height:calc(100dvh - 90px);overflow:auto;
+  display:flex;flex-direction:column;gap:6px;padding:12px;border-radius:18px;background:#121a3cf5;border:2px solid #9fb5ff60;
+  box-shadow:0 20px 50px #0009;animation:gm-drop .16s ease-out}
+.gm-panel[hidden]{display:none}
+@keyframes gm-drop{from{opacity:0;transform:translateY(-8px)}}
+.gm-panel button{width:100%;text-align:left;margin:0!important;padding:10px 14px!important;min-height:44px;border-radius:12px!important;font-size:15px!important;
+  color:#e6edff!important;background:#ffffff0d!important;border:1px solid #ffffff1f!important;box-shadow:none!important;flex:none!important}
+.gm-panel button:hover{background:#ffffff22!important}
+.gm-panel button[hidden]{display:none}
+.gm-panel button small{display:block;font-size:11px;color:#9fb0d8}
+.gm-panel button[aria-checked=true]{background:linear-gradient(90deg,#3fb0d0,#6f7dff)!important;color:#fff!important;border-color:#fff8!important}
+.gm-panel button[aria-checked=true] small{color:#e6f4ff}
+.gm-label{margin:6px 4px 0;font-size:11px;letter-spacing:.14em;color:#7ff0f5;font-weight:700}
+.gm-label:first-child{margin-top:0}
+
+/* Back icon on sub-scenes */
+.gm-back{position:fixed;top:12px;left:16px;z-index:50;width:48px;height:48px;padding:0!important;border-radius:14px!important;font-size:22px!important;
+  color:#fff!important;background:#1a2550e0!important;border:2px solid #9fb5ff80!important;box-shadow:0 4px 0 #0b1230;cursor:pointer}
+main>section.card .row:empty{display:none}
+main>section.card .back{display:none!important}
+
+/* Trainer mascot pop-up */
+.coach{position:fixed;right:max(12px,2vw);bottom:max(12px,3vh);z-index:120;display:flex;align-items:flex-end;gap:6px;pointer-events:none;max-width:min(420px,calc(100vw - 24px))}
+.coach[hidden]{display:none}
+.coach video{width:clamp(90px,14vw,150px);height:auto;filter:drop-shadow(0 8px 16px #0008);animation:coach-bob .9s ease-in-out infinite}
+.coach-say{order:-1;margin:0 0 50%;padding:12px 16px;border-radius:18px 18px 4px 18px;background:#fff;color:#14183a;font:700 clamp(15px,1.9vw,20px)/1.4 Prompt,system-ui,sans-serif;
+  border:3px solid #6f7dff;box-shadow:0 8px 24px #0006}
+.coach-in{animation:coach-pop .45s cubic-bezier(.2,1.6,.4,1)}
+@keyframes coach-pop{from{opacity:0;transform:translateY(60px) scale(.7)}}
+@keyframes coach-bob{50%{transform:translateY(-8px) rotate(-3deg)}}
+
+/* Lobby background always covers the whole viewport on every device and orientation (overrides older panel layouts). */
+html body:has(#home:not([hidden])) .lobby-scene,html body .lobby-scene{position:fixed!important;inset:0!important;top:0!important;left:0!important;
+  width:100vw!important;height:100vh!important;height:100dvh!important;margin:0!important;border:0!important;z-index:-1!important;pointer-events:none!important}
+html body .lobby-scene canvas,html body .lobby-scene picture,html body .lobby-scene img{position:absolute;inset:0;width:100%!important;height:100%!important;object-fit:cover}
+html body .lobby-scene::after{display:block!important;background:linear-gradient(0deg,#080c20b0 0%,transparent 35%)!important}
+/* Short landscape screens: tighten the overlay so nothing overlaps. */
+@media(max-height:500px){.gl-center{top:12%}.gl-title{font-size:clamp(28px,7vh,48px)}.gl-sub{margin-top:4px;font-size:13px}
+  .gl-start{padding:12px 40px!important;font-size:20px!important}.gl-bottom{bottom:12px;gap:6px}.gl-logo{width:64px}}
+@media(max-width:380px){.gl-start{padding:16px 36px!important}}
+
+/* Hero Workout HUD + step cue pad */
+#hero-hud{position:fixed;top:12px;left:50%;transform:translateX(-50%);z-index:45;display:flex;align-items:center;gap:12px;padding:8px 16px;border-radius:99px;
+  background:#121a3ce8;border:2px solid #9fb5ff60;color:#e6edff;font-size:14px;white-space:nowrap;max-width:calc(100vw - 140px);overflow:hidden}
+#hero-hud[hidden],#hero-pad[hidden]{display:none}
+#hero-total{font:800 20px/1 Prompt,system-ui,sans-serif;color:#7ff0f5;font-variant-numeric:tabular-nums}
+#hero-acc{color:#ffd27f}
+#hero-pad{position:fixed;left:max(12px,2vw);bottom:max(12px,3vh);z-index:44;width:clamp(150px,22vw,230px);padding:10px;border-radius:18px;background:#121a3cee;border:2px solid #9fb5ff60}
+#hero-cue{margin:0 0 8px;font-size:12px;line-height:1.4;color:#c8d4f5}
+.hp-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.hp-grid i{aspect-ratio:1;border-radius:10px;background:#ffffff10;border:2px solid #ffffff22;display:grid;place-items:center;font:800 clamp(18px,2.6vw,28px)/1 system-ui;font-style:normal;color:#ffffff50;transition:background .12s}
+.hp-grid i.hp-c{background:transparent;border-style:dashed}
+.hp-grid i.soon{background:#6f7dff55;border-color:#9fb5ff;color:#fff}
+.hp-grid i.on{background:#3fd0e0;border-color:#fff;color:#10162d;box-shadow:0 0 18px #59e6ff}
+.hp-grid i.hit{animation:hp-hit .35s}
+.hp-grid i.miss{animation:hp-miss .35s}
+@keyframes hp-hit{50%{background:#5cf08a;transform:scale(1.12)}}
+@keyframes hp-miss{50%{background:#ff6b6b}}
+@media(max-height:500px){#hero-pad{width:120px;padding:6px}#hero-cue{display:none}}
 </style></head><body>
 <div id="app-loading" role="status" aria-live="polite" aria-busy="true"><div><div class="loading-ring" aria-hidden="true"></div><h2>POSE HERO AI</h2><p id="loading-message">กำลังเตรียมหน้าเกม…</p><p id="loading-detail">กรุณารอสักครู่</p><button id="loading-retry" type="button" hidden>ลองโหลดใหม่</button></div></div>
 <noscript><style>#app-loading{display:none}html.app-loading{overflow:auto}html.app-loading main{visibility:visible}</style><p>กรุณาเปิด JavaScript เพื่อเล่นเกมนี้</p></noscript>
 <main inert>
-<header class="site-header"><img class="brand-logo" src="assets/pose-hero-logo-mascot-v3.png" alt="Pose Hero AI — โลโก้มาสคอต" width="240" height="102"><div class="brand-text"><h1>POSE HERO AI</h1><p>ขยับกาย ทลายเมื่อย · Move &amp; Relieve</p></div><button class="help-launch" type="button">วิธีเล่น / ช่วยเหลือ</button></header>
+<header class="site-header" aria-hidden="true"></header>
 
 <section id="home" class="card game-lobby">
-  <div class="lobby-profile"><p id="hello"></p><p id="lvnow"></p><button id="lobby-motion" type="button" aria-pressed="false">หยุดฉากเคลื่อนไหว</button></div>
-  <div class="lobby-hero">
-    <div class="lobby-copy"><p class="eyebrow"><span class="lobby-dot"></span> POSE HERO AI · พร้อมออกผจญภัย</p>
-      <h2 class="home-title">ขยับร่างกาย<br><span>ปลุกฮีโร่ในตัวคุณ</span></h2>
-      <p class="page-intro">เปลี่ยนเวลาพักให้เป็นเวลาเล่น ทำท่าตามฮีโร่ หรือก้าวให้ตรงจังหวะ เลือกภารกิจด้านล่างแล้วเริ่มได้เลย</p>
-      <a class="lobby-cta" href="#lobby-missions">เลือกเกมที่จะเล่น <span aria-hidden="true">↓</span></a>
-      <div class="lobby-features"><span>3 โหมดให้เลือก</span><span>มีตัวอย่างให้ทำตาม</span><span>เล่นได้ในเบราว์เซอร์</span></div>
+  <div class="gl-hud"><img class="gl-logo" src="assets/pose-hero-logo-mascot-v3.png" alt="Pose Hero AI" width="240" height="102"><div class="gl-player"><p id="hello"></p><p id="lvnow"></p></div></div>
+  <div class="gm" id="home-menu">
+    <button class="gm-toggle" type="button" aria-haspopup="true" aria-expanded="false" aria-label="เมนู">☰</button>
+    <div class="gm-panel" role="menu" hidden>
+      <p class="gm-label">โหมดเกม</p>
+      <div class="gm-modes" role="radiogroup" aria-label="เลือกโหมดเกม">
+        <button type="button" role="radio" data-mode="m-hero">⚡ ฮีโร่เวิร์กเอาต์ 20 นาที <small>โหมดหลัก · กล้อง + แผ่นเต้น</small></button>
+        <button type="button" role="radio" data-mode="m-start">◎ ทำท่าตามภาพ <small>ใช้กล้อง</small></button>
+        <button type="button" role="radio" data-mode="m-routines">★ ชุดท่าแนะนำ <small>เลือกตามส่วนร่างกาย</small></button>
+        <button type="button" role="radio" data-mode="m-dance">↗ แผ่นเต้น <small>แผ่น / คีย์บอร์ด / แตะจอ</small></button>
+        <button type="button" role="radio" data-mode="m-fire">ϟ นักเต้นเท้าไฟ <small>ต้องใช้แผ่น USB</small></button>
+      </div>
+      <p class="gm-label">เมนู</p>
+      <button id="m-level" type="button">ระดับความยาก</button><button id="m-stats" type="button">สถิติของฉัน</button><button id="m-manage" type="button">จัดการท่า</button><button id="m-set" type="button">ตั้งค่า</button><button class="help-launch" type="button">วิธีเล่น / ช่วยเหลือ</button><button id="lobby-motion" type="button" aria-pressed="false">หยุดฉากเคลื่อนไหว</button>
     </div>
-    <div class="lobby-stage"><div class="stage-orbit orbit-one"></div><div class="stage-orbit orbit-two"></div><div class="stage-halo"></div><div id="lobby-character"></div><div class="stage-platform"></div><span class="stage-label">YOUR MOVE. YOUR HERO.</span></div>
   </div>
-  <div class="missions-heading" id="lobby-missions"><div><p class="eyebrow">CHOOSE YOUR MISSION</p><h3>วันนี้ อยากเล่นแบบไหน?</h3></div><span>เลือกเกมเพื่อเริ่มเล่น</span></div>
-  <div class="mode-grid">
-    <article class="mode-card"><span class="mode-num"><span class="mission-symbol" aria-hidden="true">◎</span> 01 · บริหารร่างกาย</span><h3>ทำท่าตามภาพ</h3><p>กล้องช่วยตรวจท่าและนับครั้ง มีตัวละครสาธิตให้ดูระหว่างเล่น</p><span class="equipment">ใช้กล้อง · ไม่ต้องมีแผ่นเต้น</span><button id="m-start" class="p">เริ่มบริหารด้วยกล้อง</button></article>
-    <article class="mode-card"><span class="mode-num"><span class="mission-symbol" aria-hidden="true">↗</span> 02 · แผ่นเต้น</span><h3>ก้าวให้ตรงจังหวะ</h3><p>เหยียบแผ่นที่สว่าง หรือใช้ปุ่มบนคีย์บอร์ดและแตะหน้าจอ</p><span class="equipment">แผ่น USB / คีย์บอร์ด / แตะจอ</span><button id="m-dance">เล่นโหมดแผ่นเต้น</button></article>
-    <article class="mode-card"><span class="mode-num"><span class="mission-symbol" aria-hidden="true">ϟ</span> 03 · นักเต้นเท้าไฟ</span><h3>ก้าวตามไอคอน</h3><p>เหยียบเมื่อไอคอนถึงแผ่น สะสมคอมโบและเกจความร้อน รอบละ 3 นาที</p><span class="equipment">ต้องใช้แผ่น USB · ไม่ใช้กล้อง</span><button id="m-fire">เล่นนักเต้นเท้าไฟ</button></article>
-  </div>
-  <div class="guide-box lobby-quick"><div><b>เริ่มครั้งแรก? ลองชุดท่าแนะนำ</b><p>เลือกตามส่วนร่างกายหรือเวลาที่มี แล้วทำตามภาพได้เลย</p></div><button id="m-routines" class="p">เลือกชุดท่าแนะนำ →</button></div>
-  <nav class="home-secondary" aria-label="เมนูเพิ่มเติม"><button id="m-level">ระดับความยาก</button><button id="m-stats">สถิติของฉัน</button><button id="m-manage">จัดการท่า</button><button id="m-set">ตั้งค่า</button></nav>
+  <div class="lobby-copy" hidden></div>
+  <div class="lobby-stage"><div class="stage-halo"></div><div id="lobby-character"></div><div class="stage-platform"></div></div>
+  <div class="gl-center"><h1 class="gl-title">POSE HERO <span>AI</span></h1><p class="gl-sub">ขยับกาย ทลายเมื่อย</p></div>
+  <div class="gl-bottom"><button id="gl-start" class="gl-start" type="button">▶ เริ่มเล่น</button><p class="gl-mode" id="gl-mode"></p></div>
+  <div hidden><button id="m-hero" type="button"></button><button id="m-start" type="button"></button><button id="m-dance" type="button"></button><button id="m-fire" type="button"></button><button id="m-routines" type="button"></button></div>
 </section>
 
   <div class="mascot" id="mascot" aria-label="มาสคอตโบกมือทักทาย">
@@ -1193,7 +1302,8 @@ body:has(#home:not([hidden])) .site-header button{color:#dce6ff;background:#ffff
 <div id="remind" class="remind" role="alert" hidden><b>ถึงเวลาพักแล้ว</b><span id="remind-msg"></span><div class="row"><button id="rem-go" class="p" type="button">ชุดท่าด่วน</button><button id="rem-snz" type="button">เลื่อน 10 นาที</button><button id="rem-off" type="button">ปิดวันนี้</button></div></div>
 <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
 <section id="play" class="card" hidden>
- <div class="pl-mascot" aria-hidden="true"><video id="mascot-play" src="vid/mascot.webm" poster="vid/mascot.png" muted loop playsinline></video></div>
+ <div id="hero-hud" hidden><span id="hero-phase"></span><b id="hero-total"></b><span id="hero-acc"></span></div>
+ <div id="hero-pad" hidden aria-label="แผ่นเต้น: เหยียบช่องที่สว่าง"><p id="hero-cue"></p><div class="hp-grid"><i data-p="x"></i><i data-p="u">↑</i><i data-p="o"></i><i data-p="l">←</i><i class="hp-c"></i><i data-p="r">→</i><i data-p="tri"></i><i data-p="d">↓</i><i data-p="sq"></i></div></div>
  <div class="pl-cam">
   <div class="camwrap"><video id="cam" class="cam" hidden></video><canvas id="ov"></canvas></div>
   <div class="mbar" id="mbar" hidden><i id="mfill"></i></div>
@@ -1219,6 +1329,7 @@ body:has(#home:not([hidden])) .site-header button{color:#dce6ff;background:#ffff
 
 <section id="done" class="card" hidden>
   <h2>ผลการบริหารร่างกาย</h2>
+  <p id="hero-sum" class="c" hidden></p>
   <div class="chainbox" id="done-next" hidden><b>ต่อด้วยโหมดเหยียบ</b><span id="dn-stage"></span><button id="dn-go" class="p" type="button">ไปเลย</button></div>
   <div id="sum"></div>
   <div class="row" style="margin-top:12px"><button id="again" class="p">เล่นอีกครั้ง</button><button id="weak" hidden>ฝึกท่าที่อ่อนอีกรอบ</button><button id="tohome">หน้าหลัก</button></div>
@@ -1333,6 +1444,102 @@ function tickCountdown(state, deltaMs) {
 }
 
 module.exports = { DIFFICULTY, GAME_STATUS, createGameState, on, emit, startGame, tickCountdown };
+
+};
+__src['2.6']=function(module,exports,require){// 2.6 โหมดหลัก "ฮีโร่เวิร์กเอาต์ 20 นาที" — ยืดเหยียด 5 นาที → ท่าบริหารช่วงบน (กล้อง) พร้อมเหยียบแผ่นเต้น 10 นาที → ยืดเหยียด 5 นาที
+// ท่ามาจากโปสเตอร์ "ท่าออกกำลังกายในเกม ลดอาการออฟฟิศซินโดรม" (ไม่รวมท่าที่ถูกตัดออก: นั่งบิดลำตัว, ยืดข้อมือและนิ้วมือ, ก้มตัวแตะปลายเท้า) + ท่าเดิมในเกม
+'use strict';
+
+const BLOCK_SEC = 60;      // ทุกท่า 1 นาที
+const PHASE_GAP_SEC = 5;   // พักเปลี่ยนช่วง
+
+const PHASES = {
+  warmup: 'ยืดเหยียดวอร์มอัพ',
+  combo: 'ออกกำลังกาย + แผ่นเต้น',
+  cooldown: 'ยืดเหยียดคูลดาวน์',
+};
+
+// ยืดเหยียดก่อนเล่น (โปสเตอร์ข้อ 1, 2, 3, 4, 7)
+const WARMUP = ['neck-tilt', 'shoulder-roll', 'upper-trap', 'basic_10', 'wrist-circle'];
+
+// ท่าคอมโบ: ท่าช่วงบนที่กล้องตรวจ + รูปแบบก้าวบนแผ่นที่ร่างกายทำพร้อมกันได้จริง (ท่าแอโรบิกมาตรฐาน)
+// steps = ลำดับแผ่นที่ต้องเหยียบ วนซ้ำ 1 ก้าวต่อ 1 จังหวะท่า (u=บน d=ล่าง l=ซ้าย r=ขวา)
+const COMBOS = [
+  { id: 'basic_01', title: 'สเต็ปทัชกางแขน', steps: ['l', 'r'], cue: 'ก้าวเท้าออกด้านข้าง พร้อมกางแขนขึ้นระดับไหล่ แล้วลดแขนลงตอนชิดเท้า' },
+  { id: 'basic_06', title: 'ย่ำเท้ายกเข่า', steps: ['l', 'r'], cue: 'ยกเข่าขึ้นสลับข้าง แล้ววางเท้าลงบนแผ่นซ้าย/ขวาตามลูกศร' },
+  { id: 'basic_02', title: 'ก้าวหน้าเหยียดแขนขึ้น', steps: ['u', 'd'], cue: 'ก้าวเท้าไปข้างหน้าพร้อมเหยียดแขนขึ้นเหนือศีรษะ แล้วถอยกลับพร้อมลดแขน' },
+  { id: 'basic_07', title: 'ก้าวหน้า-หลังยกไหล่', steps: ['u', 'd'], cue: 'ก้าวหน้า-ถอยหลังเป็นจังหวะ ยกไหล่ขึ้นทุกครั้งที่ก้าว' },
+  { id: 'seated-twist', title: 'ก้าวข้างบิดลำตัว', steps: ['l', 'r'], cue: 'ยืนตรง บิดลำตัวไปทางซ้ายพร้อมก้าวเท้าซ้าย แล้วบิดไปขวาพร้อมก้าวเท้าขวา' },
+];
+const COMBO_ROUNDS = 2;
+
+// ยืดเหยียดปิดท้าย
+const COOLDOWN = ['basic_10', 'upper-trap', 'neck-tilt', 'shoulder-roll', 'scapular-squeeze'];
+
+/**
+ * สร้างคิว 20 ท่า (ท่าละ 60 วินาที) จากแคตตาล็อกท่าของเกม
+ * @param {Array} catalog รายการจาก getCatalog() — ใช้ชื่อ/จำนวนครั้งเดิมของท่า
+ */
+function buildQueue(catalog) {
+  const byId = (id) => {
+    const c = catalog.find((x) => x.id === id);
+    if (!c) throw new Error('ไม่พบท่า ' + id);
+    return c;
+  };
+  const item = (id, phase, extra, first) => {
+    const c = byId(id);
+    return Object.assign({
+      id: c.id, name: c.name, target: c.target,
+      reps: Math.max(1, Math.round((c.reps || 10) * BLOCK_SEC / Math.max(BLOCK_SEC, c.durationSec || BLOCK_SEC))),
+      durationSec: BLOCK_SEC, timeBoxed: true, hero: true, phase, phaseLabel: PHASES[phase], steps: null,
+      restBeforeSec: first ? PHASE_GAP_SEC : 0,
+    }, extra || {});
+  };
+  const q = [];
+  WARMUP.forEach((id, i) => q.push(item(id, 'warmup', null, false)));
+  for (let r = 0; r < COMBO_ROUNDS; r++) {
+    COMBOS.forEach((m, i) => q.push(item(m.id, 'combo', { name: m.title + ' (' + byId(m.id).name + ')', steps: m.steps.slice(), stepCue: m.cue }, r === 0 && i === 0)));
+  }
+  COOLDOWN.forEach((id, i) => q.push(item(id, 'cooldown', null, i === 0)));
+  return q;
+}
+
+/** ตัดสินการเหยียบ: คิวก้าวทุก T วินาที ตามจังหวะเดียวกับมาสคอตสาธิต */
+function createStepJudge({ windowSec = 0.6 } = {}) {
+  let hits = 0, misses = 0, lastJudged = -1, steps = null, T = 2;
+  return {
+    setMove(stepList, periodSec) { steps = stepList; T = Math.max(0.8, periodSec || 2); lastJudged = -1; },
+    clear() { steps = null; },
+    /** ช่องที่ต้องเหยียบตอนนี้ และเวลาที่เหลือถึงจังหวะ (วินาที) */
+    cue(t) {
+      if (!steps) return null;
+      const k = Math.floor(t / T + 0.5);
+      return { pad: steps[((k % steps.length) + steps.length) % steps.length], index: k, inSec: k * T - t };
+    },
+    /** เรียกทุกเฟรม: นับพลาดเมื่อจังหวะผ่านไปแล้วไม่ได้เหยียบ */
+    tick(t) {
+      if (!steps) return;
+      const k = Math.floor((t - windowSec) / T);
+      if (lastJudged < 0) { lastJudged = k; return; }
+      while (lastJudged < k) { lastJudged++; misses++; }
+    },
+    /** เรียกเมื่อเหยียบแผ่น คืน 'hit' | 'miss' | null */
+    press(pad, t) {
+      if (!steps) return null;
+      const k = Math.round(t / T);
+      if (k <= lastJudged) return null; // จังหวะนี้ตัดสินไปแล้ว
+      if (Math.abs(t - k * T) > windowSec) return null; // ยังไม่ถึงจังหวะ — ไม่นับ
+      const want = steps[((k % steps.length) + steps.length) % steps.length];
+      lastJudged = k;
+      if (pad === want) { hits++; return 'hit'; }
+      misses++; return 'miss';
+    },
+    stats() { const n = hits + misses; return { hits, misses, accuracy: n ? Math.round((hits / n) * 100) : 0 }; },
+    reset() { hits = 0; misses = 0; lastJudged = -1; steps = null; },
+  };
+}
+
+module.exports = { BLOCK_SEC, PHASES, WARMUP, COMBOS, COOLDOWN, buildQueue, createStepJudge };
 
 };
 __src['2.2']=function(module,exports,require){// 2.2 ระบบเลือกท่าบริหาร — เลือก/ยกเลิก/จัดลำดับท่า และกำหนดจำนวนครั้ง/เวลาต่อท่า
@@ -1532,7 +1739,10 @@ function advance(state, reason) {
   const prev = state.queue[state.currentIndex];
   beginExercise(state, next);
   state.current.resting = true;
-  const restMs = Math.round(state.restSec * DIFFICULTY[state.difficulty].restMul * 1000);
+  const nextEx = state.queue[next];
+  // A queue item may set its own rest before it (Hero Workout: 0 inside a phase, a few seconds between phases).
+  const restMs = nextEx.restBeforeSec != null ? Math.round(nextEx.restBeforeSec * 1000)
+    : Math.round(state.restSec * DIFFICULTY[state.difficulty].restMul * 1000);
   state.current.restLeftMs = restMs;
   emit(state, 'rest', { seconds: restMs / 1000, from: prev, next: state.queue[next] });
 }
@@ -1541,9 +1751,10 @@ function advance(state, reason) {
 function registerRep(state, count = 1) {
   const c = state.current;
   if (state.status !== GAME_STATUS.PLAYING || !c || c.resting) return false;
-  c.repsDone = Math.min(c.exercise.reps, c.repsDone + count);
+  // timeBoxed: the block always lasts its full time; reps keep counting past the target.
+  c.repsDone = c.exercise.timeBoxed ? c.repsDone + count : Math.min(c.exercise.reps, c.repsDone + count);
   emit(state, 'rep', { repsDone: c.repsDone, target: c.exercise.reps });
-  if (c.repsDone >= c.exercise.reps) {
+  if (!c.exercise.timeBoxed && c.repsDone >= c.exercise.reps) {
     advance(state, 'reps');
     return true;
   }
@@ -3370,7 +3581,7 @@ module.exports = { describeEvent, attachStatusNotifier };
 
 };
 
-const G=require('./2.1'),S=require('./2.2'),P=require('./2.3'),E=require('./2.4'),C=require('./2.5'),Sm=require('./7.4'),H=require('./7.5'),Sc=require('./7.6'),St=require('./7.7'),DC=require('./8.1'),DJ=require('./8.2'),DR=require('./8.3'),WN=require('./9.1'),WR=require('./9.2'),WB=require('./9.3'),WP=require('./9.4'),WM=require('./9.5'),WK=require('./9.6'),FF=require('./8.5'),SL=require('./8.6'),N1=require('./6.1'),N2=require('./6.2'),N3=require('./6.3'),N4=require('./6.4');
+const HW=require('./2.6'),G=require('./2.1'),S=require('./2.2'),P=require('./2.3'),E=require('./2.4'),C=require('./2.5'),Sm=require('./7.4'),H=require('./7.5'),Sc=require('./7.6'),St=require('./7.7'),DC=require('./8.1'),DJ=require('./8.2'),DR=require('./8.3'),WN=require('./9.1'),WR=require('./9.2'),WB=require('./9.3'),WP=require('./9.4'),WM=require('./9.5'),WK=require('./9.6'),FF=require('./8.5'),SL=require('./8.6'),N1=require('./6.1'),N2=require('./6.2'),N3=require('./6.3'),N4=require('./6.4');
 var toastT=0,dActive=false,csOn=false,nxTimer=0,chain={pending:false,active:false,counted:false,plan:null};
 const $=id=>document.getElementById(id);
 const PAGES=['home','level','settings','setup','play','done','manage','stats','dance','fire','routines','camsetup','next'];
@@ -3884,8 +4095,20 @@ function teacher3Draw(lm,t){
   if(dt!=null&&dt<1){teacher3Slow=dt>.05?teacher3Slow+dt:Math.max(0,teacher3Slow-dt);if(teacher3Slow>4){teacher3=null;notify('เครื่องวาดหุ่น 3D ไม่ทัน — สลับเป็นหุ่น 2D ให้แล้ว','info',true);return false}}
   teacher3.render(lm,dt==null||dt>=1?null:dt,MR.LANDMARK_NAMES);return true;
 }
+// แปลงโครงท่า 2D ของระบบจัดการท่า (S2) เป็นจุด landmark แบบ MediaPipe เพื่อให้มาสคอต 3D ทำท่านั้นได้
+function s2Landmarks(J){
+  const k=0.68,fy=0.784,X=x=>0.5+(x-0.5)*k,Y=y=>fy+(y-0.9388)*k,P=(a)=>({x:X(a[0]),y:Y(a[1]),z:0,visibility:1});
+  const up=[J.neck[0]-J.hip[0],J.neck[1]-J.hip[1]],len=Math.hypot(up[0],up[1])||1,u=[up[0]/len,up[1]/len];
+  const head=[J.neck[0]+u[0]*0.09,J.neck[1]+u[1]*0.09],side=s=>[head[0]+s*0.02,head[1]];
+  const map={nose:head,left_eye_inner:side(-.4),left_eye:side(-.6),left_eye_outer:side(-.8),right_eye_inner:side(.4),right_eye:side(.6),right_eye_outer:side(.8),
+    left_ear:side(-1.2),right_ear:side(1.2),mouth_left:[head[0]-0.01,head[1]+0.02],mouth_right:[head[0]+0.01,head[1]+0.02]};
+  ['l','r'].forEach(sd=>{const n=sd==='l'?'left_':'right_';
+    map[n+'shoulder']=J[sd+'_shoulder'];map[n+'elbow']=J[sd+'_elbow'];['wrist','pinky','index','thumb'].forEach(q=>map[n+q]=J[sd+'_hand']);
+    map[n+'hip']=J[sd+'_hip'];map[n+'knee']=J[sd+'_knee'];['ankle','heel','foot_index'].forEach(q=>map[n+q]=J[sd+'_foot']);});
+  return MR.LANDMARK_NAMES.map(n=>P(map[n]||J.neck));
+}
 function drawDemoCanvas(ex){
-  const cv=$('demo-cv'),t=mascotStill?1.5:performance.now()/1000,id=ex.id;
+  const cv=$('demo-cv'),t=performance.now()/1000,id=ex.id;
   const use3=!!(AI&&aiEx[id]&&teacher3&&cfg.teacher3d!==false)&&teacher3Draw(MR.teachPose(aiEx[id],t),t);
   $('demo-3d').hidden=!use3;cv.hidden=use3;
   if(use3)return true;
@@ -3903,6 +4126,12 @@ function drawDemoCanvas(ex){
   if(window.S2){
     if(id.startsWith('pose:')&&poseStore){const p=poseStore.get(id.slice(5));joints=p&&p.joints;}
     else if(DESK[id])joints=DESK[id].j||(DESK[id].j=S2.buildPose(DESK[id].pose));
+  }
+  if(!joints&&window.S2)joints=S2.buildPose({l_arm:[-150,-170],r_arm:[150,170]}); // ท่าที่ไม่มีข้อมูลท่าทาง: มาสคอตยังขยับยืดแขนให้ดู ไม่ยืนนิ่ง
+  if(joints&&window.S2&&teacher3&&cfg.teacher3d!==false){
+    const T=1.2+1.8+1.2+0.6,u=t%T,neu=S2.neutral();let cur;
+    if(u<1.2)cur=S2.lerpPose(neu,joints,S2.ease(u/1.2));else if(u<3)cur=joints;else if(u<4.2)cur=S2.lerpPose(joints,neu,S2.ease((u-3)/1.2));else cur=neu;
+    if(teacher3Draw(s2Landmarks(cur),t)){$('demo-3d').hidden=false;cv.hidden=true;return true;}
   }
   if(joints){
     if(cv.width!==900||cv.height!==900){cv.width=900;cv.height=900;}
@@ -3943,6 +4172,7 @@ function demoTick(d){
     previewMs+=d;showTeach(c.exercise);showDemo(true,c.exercise,false,0);return false;
   }
   showTeach(c.exercise);
+  if(heroOn){showDemo(false);return false;} // ฮีโร่เวิร์กเอาต์: ไม่หยุดเวลาเพื่อดูตัวอย่าง มาสคอตทำท่าให้ดูตลอด
   if(bnTick(c,idx,d))return true;
   if(demoIdx!==idx){demoIdx=idx;demoLeft=Math.max(0,demoSecs()*1000-(previewIdx===idx?previewMs:0));}
   if(demoLeft>0){demoLeft-=d;if(demoLeft>0){showDemo(true,c.exercise,true,demoLeft);return true;}}
@@ -3977,7 +4207,7 @@ function aiPreview(){
 function aiFrame(now){
   const c=st.current,active=st.status==='playing'&&c&&!c.resting;
   if(!active||!aiEx[c.exercise.id]){runner=null;runnerIdx=-2;$('mfill').style.width='0';aiPreview();if(active)$('aimsg').textContent='ท่านี้ไม่มี AI ตรวจ — ใช้ปุ่ม +1 ครั้ง';return;}
-  if(runnerIdx!==st.currentIndex){runner=new MR.WorkoutRunner(aiEx[c.exercise.id],{reps:c.exercise.reps});runnerIdx=st.currentIndex;poseAlert.reset();}
+  if(runnerIdx!==st.currentIndex){runner=new MR.WorkoutRunner(aiEx[c.exercise.id],{reps:c.exercise.timeBoxed?999:c.exercise.reps});runnerIdx=st.currentIndex;poseAlert.reset();}
   const lm=aiCam.read();if(lm===undefined)return;
   const [w,h]=aiCam.size(),o=$('ov');if(o.width!==w||o.height!==h){o.width=w;o.height=h;}
   const g=o.getContext('2d');g.clearRect(0,0,w,h);
@@ -4009,7 +4239,7 @@ async function startPlayCam(){
   }catch(e){aiOn=false;$('camerr').textContent=(e.message||'เปิดกล้องไม่ได้')+' — ใช้ปุ่มกดนับแทนได้';$('camtog').textContent='ลองเปิดกล้องอีกครั้ง';}finally{loadingDone();}
 }
 $('camtog').onclick=()=>{if(aiOn||C.isCameraOn())stopCam();else startPlayCam()};
-function finish(){
+function finish(){if(heroOn)heroEnd();
   cancelAnimationFrame(raf);stopCam();showDemo(false);showTeach(null);stopSpeech();const s=E.getEndSummary(st);wellnessFinish();
   $('sum').innerHTML=`<p>${st.playerName} ทำสำเร็จ ${s.completedExercises}/${s.totalExercises} ท่า · รวม ${s.totalReps} ครั้ง · ${s.totalTimeSec} วินาที</p>`+
    (()=>{
@@ -4026,6 +4256,7 @@ function finish(){
   if(chainEligible(lastSummary))showNext(lastSummary);else{chain.pending=false;show('done');updateDoneNext()}
 }
 $('go').onclick=async()=>{
+  if(!heroStarting)heroOn=false;
   try{
     if(!st.queue.length)throw new Error('กรุณาเลือกท่าบริหารอย่างน้อย 1 ท่าก่อนเริ่มเกม');
     $('camerr').textContent='';formScores={};adviceById={};scoresById={};runner=null;runnerIdx=-2;demoIdx=-2;previewIdx=-2;previewMs=0;demoLeft=0;bnIdx=-2;bnLeft=0;closeBn();showDemo(false);showTeach(null);poseAlert.reset();countAlerts.reset();
@@ -4274,7 +4505,7 @@ function paintPadState(){
   if(dPhase==='menu')renderDanceMenu();
 }
 if(DPAD){
-  DPAD.on('press',e=>{if(ffActive)ffHit(e);else if(dActive)danceHit(e.id)});
+  DPAD.on('press',e=>{if(heroOn)heroStep(e.id);else if(ffActive)ffHit(e);else if(dActive)danceHit(e.id)});
   DPAD.on('change',paintPadState);
   DPAD.on('status',st2=>{$('d-badge').classList.toggle('on',st2.connected);$('d-st').textContent=st2.connected?'พบแผ่นเต้นแล้ว':'ยังไม่พบแผ่นเต้น';$('d-sub').textContent=st2.connected?(st2.id.length>30?st2.id.slice(0,30)+'…':st2.id):'';if(dPhase==='menu')renderDanceMenu()});
   DPAD.on('prompt',m=>{if(dPhase==='menu'){$('d-hint').textContent=m.text;if(m.step==='done'||m.step==='cancel'||m.step==='bound-one')setTimeout(()=>{if(dPhase==='menu')renderDanceMenu()},3500)}});
@@ -4763,6 +4994,46 @@ try{
 
 renderHome();show('home');
 if(location.hash.startsWith('#manage')&&!$('m-manage').disabled){$('m-manage').click();const t=location.hash.split(':')[1];if(t)mgTab(t);}
+
+// ---- โหมดหลัก ฮีโร่เวิร์กเอาต์ 20 นาที (2.6): ยืดเหยียด → ท่าช่วงบน (กล้อง) + เหยียบแผ่นเต้น → ยืดเหยียด ----
+var heroOn=false,heroStarting=false;const heroJudge=HW.createStepJudge();let heroIdx=-2,heroRaf=0,heroFlash=0;
+function heroPeriod(id){try{return aiEx[id]?MR.demoTiming(aiEx[id]).T:2.4}catch(e){return 2.4}}
+function heroStep(pad){
+  const r=heroJudge.press(pad,performance.now()/1000);if(!r)return;
+  const cell=document.querySelector('#hero-pad [data-p="'+pad+'"]');if(cell){cell.classList.remove('hit','miss');void cell.offsetWidth;cell.classList.add(r);}
+}
+function heroFrame(){
+  if(!heroOn)return;if($('play').hidden){heroOn=false;$('hero-hud').hidden=true;$('hero-pad').hidden=true;if(DPAD&&!dActive&&!ffActive)DPAD.stop();return;}heroRaf=requestAnimationFrame(heroFrame);
+  const c=st.current,t=performance.now()/1000;
+  if(heroIdx!==st.currentIndex){heroIdx=st.currentIndex;
+    const ex=c&&c.exercise;if(ex&&ex.steps){heroJudge.setMove(ex.steps,heroPeriod(ex.id));$('hero-cue').textContent=ex.stepCue||'';}else heroJudge.clear();}
+  const ex=c&&c.exercise,combo=!!(ex&&ex.steps)&&!c.resting&&st.status==='playing';
+  $('hero-pad').hidden=!(ex&&ex.steps);
+  if(ex){$('hero-phase').textContent=(c.resting?'เตรียมตัว · ':'')+ex.phaseLabel;}
+  const left=st.queue.slice(Math.max(0,st.currentIndex)).reduce((a,q,i)=>a+q.durationSec+(i?q.restBeforeSec||0:0),0)-(c?c.elapsedMs/1000:0)+(c&&c.resting?c.restLeftMs/1000:0);
+  const L=Math.max(0,Math.ceil(left));$('hero-total').textContent=String(Math.floor(L/60)).padStart(2,'0')+':'+String(L%60).padStart(2,'0');
+  const s=heroJudge.stats();$('hero-acc').textContent=s.hits+s.misses?'ก้าวตรง '+s.accuracy+'%':'';
+  document.querySelectorAll('#hero-pad [data-p]').forEach(el=>el.classList.remove('on','soon'));
+  if(combo){heroJudge.tick(t);const q=heroJudge.cue(t);if(q){const el=document.querySelector('#hero-pad [data-p="'+q.pad+'"]');if(el)el.classList.add(Math.abs(q.inSec)<0.6?'on':'soon');}}
+}
+function heroEnd(){
+  heroOn=false;cancelAnimationFrame(heroRaf);$('hero-hud').hidden=true;$('hero-pad').hidden=true;
+  if(DPAD&&!dActive&&!ffActive)DPAD.stop();
+  const s=heroJudge.stats();$('hero-sum').hidden=false;
+  $('hero-sum').textContent='ฮีโร่เวิร์กเอาต์ · เหยียบแผ่นตรงจังหวะ '+s.hits+' ครั้ง จาก '+(s.hits+s.misses)+' ครั้ง ('+s.accuracy+'%)';
+}
+$('m-hero').onclick=async()=>{
+  $('hero-sum').hidden=true;
+  try{E.resetGame(st)}catch(e){}
+  st.queue.length=0;HW.buildQueue(S.getCatalog()).forEach(q=>st.queue.push(q));
+  heroJudge.reset();heroIdx=-2;heroOn=true;heroStarting=true;
+  $('hero-hud').hidden=false;
+  if(DPAD)DPAD.start();
+  cancelAnimationFrame(heroRaf);
+  const go=$('go').onclick(); // show('play') runs synchronously; camera start may take a while
+  heroRaf=requestAnimationFrame(heroFrame);
+  try{await go;}finally{heroStarting=false;}
+};
 if(window.MRLoading)MRLoading.ready();
 </script>
 <script>/* Presentation and help for the existing modes. No scoring/detection rules here. */
@@ -5114,7 +5385,7 @@ if(preferred2d)fallback(true);else sync();
   const audio=new Audio();audio.preload='auto';audio.dataset.player='lobby';
   const bar=document.createElement('div');bar.className='lobby-audio';
   bar.innerHTML='<button id="lobby-music-toggle" type="button" aria-label="ปิดเพลงหน้าหลัก" aria-pressed="true"></button><label for="lobby-music-volume">เสียงเพลงหน้าหลัก <output id="lobby-music-value">25%</output><input id="lobby-music-volume" type="range" min="0" max="100" step="1"></label><span id="lobby-music-status" role="status"></span>';
-  home.querySelector('.lobby-profile').after(bar);
+  const slot=home.querySelector('#home-menu .gm-panel')||home.querySelector('.lobby-profile');if(slot.classList.contains('gm-panel'))slot.append(bar);else slot.after(bar);
   const button=document.getElementById('lobby-music-toggle'),slider=document.getElementById('lobby-music-volume'),value=document.getElementById('lobby-music-value'),status=document.getElementById('lobby-music-status');
   const urls=(window.MR_MUSIC||[]).map(t=>typeof t==='string'?t:t.u).filter(Boolean),bad=new Set();
   let current='',blocked=false,playing=false,attempt=0,loadingDone=null,timer=0;
@@ -5170,5 +5441,121 @@ if(preferred2d)fallback(true);else sync();
   paint();if(!document.documentElement.classList.contains('app-loading')){observer.disconnect();sync();}
   // Read-only diagnostics for integration tests and support.
   window.MRLobbyAudio={get audio(){return audio;},get current(){return current;}};
+})();
+</script><script>// Game shell: one START button in the lobby, every other action lives in a ☰ dropdown per scene.
+(function(){
+const $=id=>document.getElementById(id);
+const visible=el=>!!el&&!el.hidden&&el.getClientRects().length>0;
+const menus=[];
+
+function wire(root){
+  const tog=root.querySelector('.gm-toggle'),panel=root.querySelector('.gm-panel');
+  const close=()=>{panel.hidden=true;tog.setAttribute('aria-expanded','false')};
+  tog.onclick=e=>{e.stopPropagation();const open=panel.hidden;menus.forEach(m=>m.close());if(open){root.refresh&&root.refresh();panel.hidden=false;tog.setAttribute('aria-expanded','true')}};
+  panel.addEventListener('click',e=>{if(e.target.closest('button'))setTimeout(close,0)});
+  const m={root,close};menus.push(m);return m;
+}
+document.addEventListener('click',e=>{menus.forEach(m=>{if(!m.root.contains(e.target))m.close()})});
+document.addEventListener('keydown',e=>{if(e.key==='Escape')menus.forEach(m=>m.close())});
+
+// ----- Lobby -----
+const MODES={'m-hero':'ฮีโร่เวิร์กเอาต์ 20 นาที','m-start':'ทำท่าตามภาพ','m-routines':'ชุดท่าแนะนำ','m-dance':'แผ่นเต้น','m-fire':'นักเต้นเท้าไฟ'};
+let mode='m-hero';
+try{const v=localStorage.getItem('pose-hero-mode2');if(MODES[v])mode=v}catch(e){}
+const modeBtns=[...document.querySelectorAll('#home-menu [data-mode]')];
+function setMode(m){mode=m;modeBtns.forEach(b=>b.setAttribute('aria-checked',String(b.dataset.mode===m)));$('gl-mode').textContent='โหมด: '+MODES[m]+' · เปลี่ยนได้ที่ ☰';try{localStorage.setItem('pose-hero-mode2',m)}catch(e){}}
+modeBtns.forEach(b=>b.addEventListener('click',()=>setMode(b.dataset.mode)));
+setMode(mode);
+$('gl-start').onclick=()=>$(mode).click();
+wire($('home-menu'));
+
+// ----- Other scenes: move secondary buttons into a menu, replace "back" with an icon -----
+const SCENES={
+  setup:['setup-routines','setup-level','thumb-motion','all','clr','cam-setup'],
+  settings:['s-bk','s-bk-in','s-notice'],
+  stats:['st-clear'],
+  routines:['rt-cam'],
+  camsetup:['cs-done'],
+  next:['nx-sum','nx-skip'],
+  dance:['d-map','d-skip','d-reset','dr-ex','dr-menu','dr-home','dr-share','dr-save','dr-copy'],
+  fire:['ff-map','ff-skip','fr-ex','fr-menu','fr-home','fr-save','fr-copy'],
+  play:['rep','skip','camtog','mnext','end'],
+  combo:['ต่อไปใช้แผ่นเต้นด้วยนะครับ! เหยียบช่องที่สว่าง','ได้เวลาออกกำลังกายพร้อมแผ่นเต้นแล้วครับ!'],
+  cooldown:['ยืดเหยียดผ่อนคลายกันครับ','เก่งมาก! มาคูลดาวน์กันครับ'],
+  done:['weak','tohome','dl','prt','share-go','share-save','share-copy'],
+  level:[],manage:[]
+};
+Object.keys(SCENES).forEach(id=>{
+  const sec=$(id);if(!sec)return;
+  const items=SCENES[id].map(bid=>{const b=$(bid);if(!b)return null;const ph=document.createElement('span');ph.className='gm-ph';b.before(ph);return{b,ph}}).filter(Boolean);
+  if(items.length){
+    const root=document.createElement('div');root.className='gm';
+    root.innerHTML='<button class="gm-toggle" type="button" aria-haspopup="true" aria-expanded="false" aria-label="เมนู">'+(id==='play'?'⏸':'☰')+'</button><div class="gm-panel" role="menu" hidden></div>';
+    const panel=root.querySelector('.gm-panel');
+    items.forEach(({b})=>{b.classList.remove('p');panel.append(b)});
+    // Only list buttons whose original spot is currently on screen (e.g. result buttons only after a round).
+    root.refresh=()=>{let n=0;items.forEach(({b,ph})=>{const on=visible(ph.parentElement)&&!b.hidden;b.style.display=on?'':'none';if(on)n++});root.querySelector('.gm-toggle').style.display=n?'':'none';return n};
+    sec.prepend(root);wire(root);
+    setInterval(()=>{if(!sec.hidden)root.refresh()},600);
+    if(id==='play'){const p=$('pause');if(p){panel.prepend(p);p.classList.add('p');
+      // Opening the in-game menu pauses the round, like a console game.
+      root.querySelector('.gm-toggle').addEventListener('click',()=>{if(!panel.hidden&&p.textContent.trim()==='หยุด')p.click()})}}
+  }
+  const backs=[...sec.querySelectorAll('.back')];
+  if(backs.length){
+    const bk=document.createElement('button');bk.type='button';bk.className='gm-back';bk.setAttribute('aria-label','กลับ');bk.textContent='◀';
+    const target=()=>backs.find(b=>visible(b.parentElement));
+    bk.onclick=()=>{const t=target();if(t)t.click()};
+    sec.prepend(bk);
+    setInterval(()=>{if(!sec.hidden)bk.style.display=target()?'':'none'},600);
+  }
+});
+})();
+
+// Personal-trainer mascot: pops up with short lines at key moments of a round.
+(function(){
+const box=document.createElement('div');box.className='coach';box.setAttribute('role','status');box.setAttribute('aria-live','polite');box.hidden=true;
+box.innerHTML='<video src="vid/mascot.webm" poster="vid/mascot.png" muted loop playsinline aria-hidden="true"></video><p class="coach-say"></p>';
+document.body.append(box);
+const vid=box.querySelector('video'),say=box.querySelector('.coach-say');
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+const L={
+  start:n=>pick(['มาเริ่มท่า "'+n+'" กัน! ดูผมแล้วทำตามนะครับ','ท่าต่อไป "'+n+'" ทำตามผมเลยครับ!','พร้อมไหมครับ? "'+n+'" ไปกันเลย!']),
+  rep:['ดีมากครับ!','เยี่ยมเลย!','มากกว่านี้อีก!','สู้ๆ นะครับ!','จังหวะดีมาก ทำต่อเลย!','ยืดให้สุดอีกนิดครับ!'],
+  half:['ครึ่งทางแล้ว สู้ๆ นะครับ!','มาได้ครึ่งทางแล้ว เก่งมาก!'],
+  near:['ใกล้แล้ว! อีกนิดเดียว!','อีกนิดเดียวครับ สู้ๆ!','ใกล้แล้ว มากกว่านี้อีก!'],
+  idle:['ขยับตามผมเลยครับ มากกว่านี้อีก!','ค่อยๆ ทำตามผมนะครับ ไม่ต้องรีบ','ยังไหวไหมครับ? สู้ๆ!'],
+  time:['เหลือ 10 วินาที เร่งอีกนิดครับ!','ใกล้หมดเวลาแล้ว สู้ๆ!'],
+  rest:['พักหายใจลึกๆ ก่อนนะครับ','เก่งมาก! พักแป๊บนึงครับ'],
+  combo:['ต่อไปใช้แผ่นเต้นด้วยนะครับ! เหยียบช่องที่สว่าง','ได้เวลาออกกำลังกายพร้อมแผ่นเต้นแล้วครับ!'],
+  cooldown:['ยืดเหยียดผ่อนคลายกันครับ','เก่งมาก! มาคูลดาวน์กันครับ'],
+  done:['สุดยอด! จบแล้ว เก่งมากครับ!','เยี่ยมมาก! วันนี้ทำได้ดีมากครับ']
+};
+let hideT=0,lastSay=0;
+function pop(text,force){
+  const now=Date.now();if(!force&&now-lastSay<4500)return;lastSay=now;
+  say.textContent=text;box.hidden=false;box.classList.remove('coach-in');void box.offsetWidth;box.classList.add('coach-in');
+  const p=vid.play();if(p&&p.catch)p.catch(()=>{});
+  clearTimeout(hideT);hideT=setTimeout(()=>{box.hidden=true;vid.pause()},3200);
+}
+// Speak only at meaningful moments, never on every rep: near the target, halfway (long sets), time running out, finish.
+let exId=null,reps=-1,half=false,near=false,timeWarn=false,lastStatus='';
+const GAP=20000; // at most one non-critical line every 20 s
+setInterval(()=>{
+  let s,p;try{s=st;p=s.status==='playing'?P.getProgress(s):null}catch(e){return}
+  const playOn=!document.getElementById('play').hidden;
+  if(lastStatus!=='finished'&&s.status==='finished'&&exId){pop(pick(L.done),true);exId=null}
+  lastStatus=s.status;
+  if(!playOn){box.hidden=true;exId=null;box.dataset.phase='';return}
+  if(!p||!p.exercise||p.resting)return;
+  if(p.exercise.id!==exId&&p.exercise.phase&&p.exercise.phase!==box.dataset.phase){box.dataset.phase=p.exercise.phase;if(L[p.exercise.phase])pop(pick(L[p.exercise.phase]),true)}
+  if(p.exercise.id!==exId){exId=p.exercise.id;reps=p.repsDone;half=near=timeWarn=false;return}
+  const goal=p.exercise.reps||0;
+  if(p.repsDone>reps){reps=p.repsDone;
+    if(goal>=3&&!near&&reps<goal&&goal-reps<=2){near=true;pop(pick(L.near),true)}
+    else if(goal>=8&&!half&&reps>=goal/2&&Date.now()-lastSay>GAP){half=true;pop(pick(L.half),true)}
+  }
+  if(!timeWarn&&reps<goal&&p.timeLeftSec!=null&&p.timeLeftSec<=10&&p.timeLeftSec>0&&Date.now()-lastSay>GAP){timeWarn=true;pop(pick(L.time),true)}
+},400);
 })();
 </script></body></html>

@@ -4,7 +4,7 @@
   const audio=new Audio();audio.preload='auto';audio.dataset.player='lobby';
   const bar=document.createElement('div');bar.className='lobby-audio';
   bar.innerHTML='<button id="lobby-music-toggle" type="button" aria-label="ปิดเพลงหน้าหลัก" aria-pressed="true"></button><label for="lobby-music-volume">เสียงเพลงหน้าหลัก <output id="lobby-music-value">25%</output><input id="lobby-music-volume" type="range" min="0" max="100" step="1"></label><span id="lobby-music-status" role="status"></span>';
-  home.querySelector('.lobby-profile').after(bar);
+  const slot=home.querySelector('#home-menu .gm-panel')||home.querySelector('.lobby-profile');if(slot.classList.contains('gm-panel'))slot.append(bar);else slot.after(bar);
   const button=document.getElementById('lobby-music-toggle'),slider=document.getElementById('lobby-music-volume'),value=document.getElementById('lobby-music-value'),status=document.getElementById('lobby-music-status');
   const urls=(window.MR_MUSIC||[]).map(t=>typeof t==='string'?t:t.u).filter(Boolean),bad=new Set();
   let current='',blocked=false,playing=false,attempt=0,loadingDone=null,timer=0;
