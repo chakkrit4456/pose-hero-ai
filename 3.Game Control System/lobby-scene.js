@@ -70,7 +70,7 @@ function environment(w){
  box('wall-art-frame',-3.5,1.25,-3.38,.65,.8,.03,0x162c40);box('wall-art',-3.5,1.25,-3.35,.56,.7,.015,0x7595a2);
  box('ceiling-light',0,2.5,-1.8,1.5,.025,.5,0xc4e4eb);
  // Dedicated foreground play area: nothing taller than the floor enters z > -1.
- box('dance-pad-base',0,-.025,0,.94,.045,.94,0x101d32);w.padTiles=[];
+ box('dance-pad-base',0,-.025,0,.94,.045,.94,0x0a3dbf);w.padTiles=[];
  for(let row=0;row<3;row++)for(let col=0;col<3;col++){
   const x=(col-1)*.3,z=(row-1)*.3,index=row*3+col;
   const tile=box('dance-tile-'+index,x,.005,z,.282,.018,.282,index===4?0x5672a1:0x263f60);w.padTiles.push(tile);
@@ -81,6 +81,11 @@ function environment(w){
  const rim=new T.DirectionalLight(0x8acfff,1.3);rim.position.set(-2,1,-1);scene.add(rim);
  const violet=new T.DirectionalLight(0xbb91ff,.8);violet.position.set(2,.8,0);scene.add(violet);
  w.officeProps=scene.children.filter(o=>!existing.has(o)&&o.name&&!o.name.startsWith('dance-')&&o.name!=='office-floor'&&o.name!=='floor-seam'&&o.name!=='pad-usb-cable');
+ // Game-stage look: only the hero and the dance pad are drawn; the stage lighting/rays are CSS layers BEHIND the canvas.
+ scene.background=null;
+ scene.children.filter(o=>!existing.has(o)&&o.name&&!o.name.startsWith('dance-')).forEach(o=>{o.visible=false});
+ const glow=new T.Mesh(new T.CircleGeometry(.75,48),new T.MeshBasicMaterial({color:0x7fd0ff,transparent:true,opacity:.35,side:2}));
+ glow.name='dance-stage-glow';glow.rotation.x=-Math.PI/2;glow.position.set(0,F-.03,0);scene.add(glow);
 }
 
 function resize(){
@@ -108,7 +113,7 @@ function draw(){
  for(const [side,sign,amount] of [["left",-1,Math.max(0,step)],["right",1,Math.max(0,-step)]]){stance[MR.LANDMARK_NAMES.indexOf(side+"_ankle")].x+=sign*.04*amount;stance[MR.LANDMARK_NAMES.indexOf(side+"_knee")].x+=sign*.015*amount;}
  world.render(stance,null,MR.LANDMARK_NAMES,false);
  canvas.dataset.step=step.toFixed(4);canvas.dataset.danceTime=danceTime.toFixed(4);
- if(world.padTiles)world.padTiles.forEach((tile,i)=>tile.material.forEach(m=>m.color.set(i===(step>.1?3:step<-.1?5:4)?0x638fe1:i===4?0x5672a1:0x263f60)));
+ if(world.padTiles)world.padTiles.forEach((tile,i)=>tile.material.forEach(m=>m.color.set(i===(step>.1?3:step<-.1?5:4)?0xff3448:i===4?0xffffff:0x1e9bff)));
  canvas.dataset.officeProps=String(world.officeProps.length);
  canvas.dataset.foregroundClear=String(world.officeProps.every(o=>o.position.z<=-1));
  renderer.render(scene,camera);

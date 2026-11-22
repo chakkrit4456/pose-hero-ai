@@ -1273,6 +1273,48 @@ html body .lobby-scene::before{content:"";position:absolute;inset:-25%;z-index:1
 .ph-up{font-weight:800;color:#FF3448}
 .gl-hud:focus-visible{outline:3px solid #fff;outline-offset:3px}
 .ph-card button{width:auto}.ph-card .row button{flex:1 1 180px}
+
+/* ===== Lobby stage: effects BEHIND the hero, full screen ===== */
+html body .lobby-scene{isolation:isolate;overflow:hidden;
+  background:
+    radial-gradient(ellipse 60% 45% at 50% 58%,#ffffff 0,#bfe6ff 18%,transparent 55%),
+    radial-gradient(ellipse at 50% 120%,#ff3448 0,transparent 45%),
+    linear-gradient(180deg,#0a3dbf 0%,#1e9bff 55%,#0a3dbf 100%)!important}
+/* rotating light rays (behind the canvas) */
+html body .lobby-scene::before{content:"";position:absolute;inset:-60%;z-index:0!important;opacity:.22!important;pointer-events:none;
+  background:repeating-conic-gradient(from 0deg at 50% 50%,#fff 0 5deg,transparent 5deg 15deg)!important;
+  -webkit-mask:radial-gradient(circle at 50% 50%,#000 0,#000 25%,transparent 60%);mask:radial-gradient(circle at 50% 50%,#000 0,#000 25%,transparent 60%);
+  animation:gl-rays 80s linear infinite!important;transform-origin:50% 50%}
+/* the 3D canvas (hero + pad, transparent) sits above the effects */
+html body .lobby-scene canvas{position:absolute;inset:0;z-index:2!important;opacity:1!important}
+/* soft vignette + floor glow on top of everything, very light */
+html body .lobby-scene::after{z-index:3!important;background:
+  radial-gradient(ellipse at 50% 50%,transparent 55%,#06215f99 100%)!important}
+/* stage extras: spotlight cones, floor ring, floating sparkles */
+.gl-fx{position:fixed;inset:0;z-index:-1;pointer-events:none;overflow:hidden}
+.gl-fx i{position:absolute;display:block}
+.gl-fx .spot{top:-10%;width:34vw;height:120vh;background:linear-gradient(180deg,#ffffff55,transparent 70%);filter:blur(8px);transform-origin:50% 0;mix-blend-mode:screen}
+.gl-fx .spot.l{left:8%;transform:rotate(-22deg);animation:gl-spot 7s ease-in-out infinite}
+.gl-fx .spot.r{right:8%;transform:rotate(22deg);animation:gl-spot 7s ease-in-out infinite reverse}
+@keyframes gl-spot{50%{opacity:.55;transform:rotate(var(--a,0deg)) scaleX(.8)}}
+.gl-fx .ring{left:50%;bottom:12vh;width:min(70vw,720px);aspect-ratio:3.2;transform:translateX(-50%);border-radius:50%;
+  border:3px solid #ffffffaa;box-shadow:0 0 40px #7fd0ff,inset 0 0 40px #7fd0ff99;animation:gl-ring 3s ease-in-out infinite}
+.gl-fx .ring.r2{width:min(90vw,960px);border-color:#ff344866;box-shadow:0 0 30px #ff344866;animation-delay:-1.5s}
+@keyframes gl-ring{50%{transform:translateX(-50%) scale(1.06);opacity:.6}}
+.gl-fx .spark{width:8px;height:8px;border-radius:50%;background:#fff;box-shadow:0 0 12px #fff,0 0 24px #7fd0ff;opacity:0;animation:gl-spark 6s linear infinite}
+.gl-fx .spark.red{background:#ff8090;box-shadow:0 0 12px #ff3448}
+@keyframes gl-spark{0%{opacity:0;transform:translateY(0) scale(.6)}15%{opacity:1}100%{opacity:0;transform:translateY(-60vh) scale(1.2)}}
+@media(prefers-reduced-motion:reduce){.gl-fx *{animation:none!important}html body .lobby-scene::before{animation:none!important}}
+/* title: glossy AAA logo treatment */
+.gl-title{filter:drop-shadow(0 6px 0 #0a3dbf) drop-shadow(0 18px 30px #06215f99)}
+.gl-title span{animation:gl-badge 2.4s ease-in-out infinite}
+@keyframes gl-badge{50%{transform:translateY(-4px) rotate(-2deg)}}
+.gl-center{top:9%!important}
+.gl-bottom{bottom:max(24px,5vh)!important}
+.gl-start{position:relative;overflow:hidden}
+.gl-start::after{content:"";position:absolute;top:0;left:-60%;width:40%;height:100%;background:linear-gradient(100deg,transparent,#ffffff88,transparent);animation:gl-shine 2.8s ease-in-out infinite}
+@keyframes gl-shine{60%,100%{left:130%}}
+@media(max-width:600px){.gl-title{font-size:clamp(28px,10.5vw,60px)!important}.gl-title span{padding:0 .12em}.gl-hud{max-width:calc(100vw - 90px)}.gl-player{min-width:0}.gl-player p{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}}
 </style></head><body>
 <div id="app-loading" role="status" aria-live="polite" aria-busy="true"><div><div class="loading-ring" aria-hidden="true"></div><h2>POSE HERO AI</h2><p id="loading-message">กำลังเตรียมหน้าเกม…</p><p id="loading-detail">กรุณารอสักครู่</p><button id="loading-retry" type="button" hidden>ลองโหลดใหม่</button></div></div>
 <noscript><style>#app-loading{display:none}html.app-loading{overflow:auto}html.app-loading main{visibility:visible}</style><p>กรุณาเปิด JavaScript เพื่อเล่นเกมนี้</p></noscript>
@@ -5611,7 +5653,7 @@ function environment(w){
  box('wall-art-frame',-3.5,1.25,-3.38,.65,.8,.03,0x162c40);box('wall-art',-3.5,1.25,-3.35,.56,.7,.015,0x7595a2);
  box('ceiling-light',0,2.5,-1.8,1.5,.025,.5,0xc4e4eb);
  // Dedicated foreground play area: nothing taller than the floor enters z > -1.
- box('dance-pad-base',0,-.025,0,.94,.045,.94,0x101d32);w.padTiles=[];
+ box('dance-pad-base',0,-.025,0,.94,.045,.94,0x0a3dbf);w.padTiles=[];
  for(let row=0;row<3;row++)for(let col=0;col<3;col++){
   const x=(col-1)*.3,z=(row-1)*.3,index=row*3+col;
   const tile=box('dance-tile-'+index,x,.005,z,.282,.018,.282,index===4?0x5672a1:0x263f60);w.padTiles.push(tile);
@@ -5622,6 +5664,11 @@ function environment(w){
  const rim=new T.DirectionalLight(0x8acfff,1.3);rim.position.set(-2,1,-1);scene.add(rim);
  const violet=new T.DirectionalLight(0xbb91ff,.8);violet.position.set(2,.8,0);scene.add(violet);
  w.officeProps=scene.children.filter(o=>!existing.has(o)&&o.name&&!o.name.startsWith('dance-')&&o.name!=='office-floor'&&o.name!=='floor-seam'&&o.name!=='pad-usb-cable');
+ // Game-stage look: only the hero and the dance pad are drawn; the stage lighting/rays are CSS layers BEHIND the canvas.
+ scene.background=null;
+ scene.children.filter(o=>!existing.has(o)&&o.name&&!o.name.startsWith('dance-')).forEach(o=>{o.visible=false});
+ const glow=new T.Mesh(new T.CircleGeometry(.75,48),new T.MeshBasicMaterial({color:0x7fd0ff,transparent:true,opacity:.35,side:2}));
+ glow.name='dance-stage-glow';glow.rotation.x=-Math.PI/2;glow.position.set(0,F-.03,0);scene.add(glow);
 }
 
 function resize(){
@@ -5649,7 +5696,7 @@ function draw(){
  for(const [side,sign,amount] of [["left",-1,Math.max(0,step)],["right",1,Math.max(0,-step)]]){stance[MR.LANDMARK_NAMES.indexOf(side+"_ankle")].x+=sign*.04*amount;stance[MR.LANDMARK_NAMES.indexOf(side+"_knee")].x+=sign*.015*amount;}
  world.render(stance,null,MR.LANDMARK_NAMES,false);
  canvas.dataset.step=step.toFixed(4);canvas.dataset.danceTime=danceTime.toFixed(4);
- if(world.padTiles)world.padTiles.forEach((tile,i)=>tile.material.forEach(m=>m.color.set(i===(step>.1?3:step<-.1?5:4)?0x638fe1:i===4?0x5672a1:0x263f60)));
+ if(world.padTiles)world.padTiles.forEach((tile,i)=>tile.material.forEach(m=>m.color.set(i===(step>.1?3:step<-.1?5:4)?0xff3448:i===4?0xffffff:0x1e9bff)));
  canvas.dataset.officeProps=String(world.officeProps.length);
  canvas.dataset.foregroundClear=String(world.officeProps.every(o=>o.position.z<=-1));
  renderer.render(scene,camera);
@@ -6029,5 +6076,17 @@ window.PHOnline={
   }
 };
 checkOnline().then(refreshMe);
+})();
+
+// Lobby stage FX layer (spotlights, floor rings, sparkles) placed behind the 3D hero canvas.
+(function(){
+  const home=document.getElementById('home');if(!home)return;
+  const fx=document.createElement('div');fx.className='gl-fx';fx.setAttribute('aria-hidden','true');
+  let h='<i class="spot l" style="--a:-22deg"></i><i class="spot r" style="--a:22deg"></i><i class="ring r2"></i><i class="ring"></i>';
+  for(let i=0;i<18;i++)h+='<i class="spark'+(i%4===0?' red':'')+'" style="left:'+(8+Math.random()*84)+'%;bottom:'+(Math.random()*30)+'%;animation-delay:'+(-Math.random()*6).toFixed(2)+'s;animation-duration:'+(4+Math.random()*4).toFixed(2)+'s"></i>';
+  fx.innerHTML=h;
+  const place=()=>{const scene=document.querySelector('.lobby-scene');if(scene&&fx.parentNode!==scene){fx.style.position='absolute';fx.style.zIndex='1';scene.append(fx)}};
+  place();setTimeout(place,1500);setTimeout(place,5000);
+  const sync=()=>{fx.hidden=home.hidden};new MutationObserver(sync).observe(home,{attributes:true,attributeFilter:['hidden']});
 })();
 </script></body></html>

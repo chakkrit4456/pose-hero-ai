@@ -243,3 +243,15 @@ window.PHOnline={
 };
 checkOnline().then(refreshMe);
 })();
+
+// Lobby stage FX layer (spotlights, floor rings, sparkles) placed behind the 3D hero canvas.
+(function(){
+  const home=document.getElementById('home');if(!home)return;
+  const fx=document.createElement('div');fx.className='gl-fx';fx.setAttribute('aria-hidden','true');
+  let h='<i class="spot l" style="--a:-22deg"></i><i class="spot r" style="--a:22deg"></i><i class="ring r2"></i><i class="ring"></i>';
+  for(let i=0;i<18;i++)h+='<i class="spark'+(i%4===0?' red':'')+'" style="left:'+(8+Math.random()*84)+'%;bottom:'+(Math.random()*30)+'%;animation-delay:'+(-Math.random()*6).toFixed(2)+'s;animation-duration:'+(4+Math.random()*4).toFixed(2)+'s"></i>';
+  fx.innerHTML=h;
+  const place=()=>{const scene=document.querySelector('.lobby-scene');if(scene&&fx.parentNode!==scene){fx.style.position='absolute';fx.style.zIndex='1';scene.append(fx)}};
+  place();setTimeout(place,1500);setTimeout(place,5000);
+  const sync=()=>{fx.hidden=home.hidden};new MutationObserver(sync).observe(home,{attributes:true,attributeFilter:['hidden']});
+})();
