@@ -709,13 +709,12 @@ main:has(#done:not([hidden])){max-width:820px}
   <div class="gm" id="home-menu">
     <button class="gm-toggle" type="button" aria-haspopup="true" aria-expanded="false" aria-label="เมนู">☰</button>
     <div class="gm-panel" role="menu" hidden>
-      <p class="gm-label">โหมดเกม</p>
-      <div class="gm-modes" role="radiogroup" aria-label="เลือกโหมดเกม">
-        <button type="button" role="radio" data-mode="m-hero">⚡ ฮีโร่เวิร์กเอาต์ 20 นาที <small>โหมดหลัก · กล้อง + แผ่นเต้น</small></button>
-        <button type="button" role="radio" data-mode="m-start">◎ ทำท่าตามภาพ <small>ใช้กล้อง</small></button>
-        <button type="button" role="radio" data-mode="m-routines">★ ชุดท่าแนะนำ <small>เลือกตามส่วนร่างกาย</small></button>
-        <button type="button" role="radio" data-mode="m-dance">↗ แผ่นเต้น <small>แผ่น / คีย์บอร์ด / แตะจอ</small></button>
-        <button type="button" role="radio" data-mode="m-fire">ϟ นักเต้นเท้าไฟ <small>ต้องใช้แผ่น USB</small></button>
+      <p class="gm-label">โหมดอื่น</p>
+      <div class="gm-modes">
+        <button type="button" data-mode="m-start">◎ ทำท่าตามภาพ <small>ใช้กล้อง</small></button>
+        <button type="button" data-mode="m-routines">★ ชุดท่าแนะนำ <small>เลือกตามส่วนร่างกาย</small></button>
+        <button type="button" data-mode="m-dance">↗ แผ่นเต้น <small>แผ่น / คีย์บอร์ด / แตะจอ</small></button>
+        <button type="button" data-mode="m-fire">ϟ นักเต้นเท้าไฟ <small>ต้องใช้แผ่น USB</small></button>
       </div>
       <p class="gm-label">เมนู</p>
       <button id="m-level" type="button">ระดับความยาก</button><button id="m-stats" type="button">สถิติของฉัน</button><button id="m-manage" type="button">จัดการท่า</button><button id="m-set" type="button">ตั้งค่า</button><button class="help-launch" type="button">วิธีเล่น / ช่วยเหลือ</button><button id="lobby-motion" type="button" aria-pressed="false">หยุดฉากเคลื่อนไหว</button>
@@ -1128,22 +1127,30 @@ function musicLoad(){
     mAudio.addEventListener('pause',nowPlaying);
   }
   const c=musicChoice(),ex=(st.current&&st.current.exercise)||st.queue[0];
-  if(musicUrls.includes(c))mPool=[c];
+  if(typeof heroOn!=='undefined'&&heroOn){mPool=musicUrls.slice();mBag=[];} // โหมดหลัก: สุ่มทุกเพลงต่อกันไปเรื่อย ๆ
+  else if(musicUrls.includes(c))mPool=[c];
   else if(c==='auto')mPool=poolFor(groupFor(ex));
   else mPool=musicUrls.slice();
-  mLoaded=c;
+  mLoaded=heroOn?'hero':c;
   if(!mPool.length){mCur=null;mAudio.pause();mAudio.removeAttribute('src');return}
-  if(!mPool.includes(mCur))mCur=pickFrom(mPool,mCur);
-  mAudio.loop=musicUrls.includes(c); // เลือกเพลงเดียว = เล่นวนเพลงนั้น
+  if(heroOn)mCur=heroPick();else if(!mPool.includes(mCur))mCur=pickFrom(mPool,mCur);
+  mAudio.loop=!heroOn&&musicUrls.includes(c); // เลือกเพลงเดียว = เล่นวนเพลงนั้น
   mAudio.src=mCur;
 }
+// ถุงสุ่ม: เล่นครบทุกเพลงแบบสุ่มก่อนวนใหม่ และไม่เล่นเพลงเดิมซ้ำติดกัน
+let mBag=[];
+function heroPick(){
+  if(!mBag.length){mBag=mPool.slice();for(let i=mBag.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[mBag[i],mBag[j]]=[mBag[j],mBag[i]]}
+    if(mBag.length>1&&mBag[mBag.length-1]===mCur)[mBag[0],mBag[mBag.length-1]]=[mBag[mBag.length-1],mBag[0]];}
+  return mBag.pop();
+}
 function musicNext(){
-  if(!mAudio||!mPool.length||musicUrls.includes(musicChoice()))return;
-  mCur=pickFrom(mPool,mCur);mAudio.src=mCur;musicPlay();
+  if(!mAudio||!mPool.length||(!heroOn&&musicUrls.includes(musicChoice())))return;
+  mCur=heroOn?heroPick():pickFrom(mPool,mCur);mAudio.src=mCur;musicPlay();
 }
 // เปลี่ยนเพลงตามท่าถัดไป (โหมดอัตโนมัติ): เปลี่ยนเฉพาะเมื่อกลุ่มจังหวะเปลี่ยน
 function musicRetune(ex){
-  if(!mAudio||musicChoice()!=='auto'||!ex)return;
+  if(!mAudio||heroOn||musicChoice()!=='auto'||!ex)return;
   const pool=poolFor(groupFor(ex));
   if(!pool.length||pool.join('|')===mPool.join('|'))return;
   mPool=pool;
@@ -1152,7 +1159,7 @@ function musicRetune(ex){
 }
 function musicStart(){
   if(!musicOn()){$('nowp').textContent=musicMuteNote();return}
-  try{if(!mAudio||mLoaded!==musicChoice())musicLoad();musicPlay();}catch(e){}
+  try{if(!mAudio||mLoaded!==(heroOn?'hero':musicChoice()))musicLoad();musicPlay();}catch(e){}
 }
 function musicPause(){try{if(mAudio)mAudio.pause()}catch(e){}}
 function musicStop(){mForce=null;try{clearTimeout(mPrevT);if(mAudio){mAudio.pause();mAudio.currentTime=0}$('nowp').textContent='';$('mnext').hidden=true;$('mus-prev').textContent='▶ ฟังตัวอย่าง';$('ff-prev').textContent='▶ ฟังตัวอย่าง'}catch(e){}}

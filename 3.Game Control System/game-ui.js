@@ -15,14 +15,10 @@ document.addEventListener('click',e=>{menus.forEach(m=>{if(!m.root.contains(e.ta
 document.addEventListener('keydown',e=>{if(e.key==='Escape')menus.forEach(m=>m.close())});
 
 // ----- Lobby -----
-const MODES={'m-hero':'ฮีโร่เวิร์กเอาต์ 20 นาที','m-start':'ทำท่าตามภาพ','m-routines':'ชุดท่าแนะนำ','m-dance':'แผ่นเต้น','m-fire':'นักเต้นเท้าไฟ'};
-let mode='m-hero';
-try{const v=localStorage.getItem('pose-hero-mode2');if(MODES[v])mode=v}catch(e){}
-const modeBtns=[...document.querySelectorAll('#home-menu [data-mode]')];
-function setMode(m){mode=m;modeBtns.forEach(b=>b.setAttribute('aria-checked',String(b.dataset.mode===m)));$('gl-mode').textContent='โหมด: '+MODES[m]+' · เปลี่ยนได้ที่ ☰';try{localStorage.setItem('pose-hero-mode2',m)}catch(e){}}
-modeBtns.forEach(b=>b.addEventListener('click',()=>setMode(b.dataset.mode)));
-setMode(mode);
-$('gl-start').onclick=()=>$(mode).click();
+// START always opens the main 20-minute mode; other modes launch straight from ☰.
+document.querySelectorAll('#home-menu [data-mode]').forEach(b=>{b.removeAttribute('role');b.addEventListener('click',()=>$(b.dataset.mode).click())});
+$('gl-mode').textContent='โหมดหลัก · ยืดเหยียด + ออกกำลังกาย 20 นาที';
+$('gl-start').onclick=()=>$('m-hero').click();
 wire($('home-menu'));
 
 // ----- Other scenes: move secondary buttons into a menu, replace "back" with an icon -----

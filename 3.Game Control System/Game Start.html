@@ -1103,13 +1103,12 @@ html body .lobby-scene::after{display:block!important;background:linear-gradient
   <div class="gm" id="home-menu">
     <button class="gm-toggle" type="button" aria-haspopup="true" aria-expanded="false" aria-label="เมนู">☰</button>
     <div class="gm-panel" role="menu" hidden>
-      <p class="gm-label">โหมดเกม</p>
-      <div class="gm-modes" role="radiogroup" aria-label="เลือกโหมดเกม">
-        <button type="button" role="radio" data-mode="m-hero">⚡ ฮีโร่เวิร์กเอาต์ 20 นาที <small>โหมดหลัก · กล้อง + แผ่นเต้น</small></button>
-        <button type="button" role="radio" data-mode="m-start">◎ ทำท่าตามภาพ <small>ใช้กล้อง</small></button>
-        <button type="button" role="radio" data-mode="m-routines">★ ชุดท่าแนะนำ <small>เลือกตามส่วนร่างกาย</small></button>
-        <button type="button" role="radio" data-mode="m-dance">↗ แผ่นเต้น <small>แผ่น / คีย์บอร์ด / แตะจอ</small></button>
-        <button type="button" role="radio" data-mode="m-fire">ϟ นักเต้นเท้าไฟ <small>ต้องใช้แผ่น USB</small></button>
+      <p class="gm-label">โหมดอื่น</p>
+      <div class="gm-modes">
+        <button type="button" data-mode="m-start">◎ ทำท่าตามภาพ <small>ใช้กล้อง</small></button>
+        <button type="button" data-mode="m-routines">★ ชุดท่าแนะนำ <small>เลือกตามส่วนร่างกาย</small></button>
+        <button type="button" data-mode="m-dance">↗ แผ่นเต้น <small>แผ่น / คีย์บอร์ด / แตะจอ</small></button>
+        <button type="button" data-mode="m-fire">ϟ นักเต้นเท้าไฟ <small>ต้องใช้แผ่น USB</small></button>
       </div>
       <p class="gm-label">เมนู</p>
       <button id="m-level" type="button">ระดับความยาก</button><button id="m-stats" type="button">สถิติของฉัน</button><button id="m-manage" type="button">จัดการท่า</button><button id="m-set" type="button">ตั้งค่า</button><button class="help-launch" type="button">วิธีเล่น / ช่วยเหลือ</button><button id="lobby-motion" type="button" aria-pressed="false">หยุดฉากเคลื่อนไหว</button>
@@ -1468,7 +1467,8 @@ const COMBOS = [
   { id: 'basic_01', title: 'สเต็ปทัชกางแขน', steps: ['l', 'r'], cue: 'ก้าวเท้าออกด้านข้าง พร้อมกางแขนขึ้นระดับไหล่ แล้วลดแขนลงตอนชิดเท้า' },
   { id: 'basic_06', title: 'ย่ำเท้ายกเข่า', steps: ['l', 'r'], cue: 'ยกเข่าขึ้นสลับข้าง แล้ววางเท้าลงบนแผ่นซ้าย/ขวาตามลูกศร' },
   { id: 'basic_02', title: 'ก้าวหน้าเหยียดแขนขึ้น', steps: ['u', 'd'], cue: 'ก้าวเท้าไปข้างหน้าพร้อมเหยียดแขนขึ้นเหนือศีรษะ แล้วถอยกลับพร้อมลดแขน' },
-  { id: 'basic_07', title: 'ก้าวหน้า-หลังยกไหล่', steps: ['u', 'd'], cue: 'ก้าวหน้า-ถอยหลังเป็นจังหวะ ยกไหล่ขึ้นทุกครั้งที่ก้าว' },
+  // หมุนไหล่เป็นท่าที่แหล่งแนะนำออฟฟิศซินโดรมแนะนำมากที่สุด (PPTV, Post Today) — ย่ำเท้าเบา ๆ ไปพร้อมกัน
+  { id: 'shoulder-roll', title: 'ย่ำเท้าหมุนไหล่', steps: ['l', 'r'], cue: 'หมุนไหล่ไปด้านหลังเป็นวงกว้าง ทุกรอบที่หมุนให้ย่ำเท้าลงแผ่นซ้าย/ขวาสลับกัน' },
   { id: 'seated-twist', title: 'ก้าวข้างบิดลำตัว', steps: ['l', 'r'], cue: 'ยืนตรง บิดลำตัวไปทางซ้ายพร้อมก้าวเท้าซ้าย แล้วบิดไปขวาพร้อมก้าวเท้าขวา' },
 ];
 const COMBO_ROUNDS = 2;
@@ -3746,22 +3746,30 @@ function musicLoad(){
     mAudio.addEventListener('pause',nowPlaying);
   }
   const c=musicChoice(),ex=(st.current&&st.current.exercise)||st.queue[0];
-  if(musicUrls.includes(c))mPool=[c];
+  if(typeof heroOn!=='undefined'&&heroOn){mPool=musicUrls.slice();mBag=[];} // โหมดหลัก: สุ่มทุกเพลงต่อกันไปเรื่อย ๆ
+  else if(musicUrls.includes(c))mPool=[c];
   else if(c==='auto')mPool=poolFor(groupFor(ex));
   else mPool=musicUrls.slice();
-  mLoaded=c;
+  mLoaded=heroOn?'hero':c;
   if(!mPool.length){mCur=null;mAudio.pause();mAudio.removeAttribute('src');return}
-  if(!mPool.includes(mCur))mCur=pickFrom(mPool,mCur);
-  mAudio.loop=musicUrls.includes(c); // เลือกเพลงเดียว = เล่นวนเพลงนั้น
+  if(heroOn)mCur=heroPick();else if(!mPool.includes(mCur))mCur=pickFrom(mPool,mCur);
+  mAudio.loop=!heroOn&&musicUrls.includes(c); // เลือกเพลงเดียว = เล่นวนเพลงนั้น
   mAudio.src=mCur;
 }
+// ถุงสุ่ม: เล่นครบทุกเพลงแบบสุ่มก่อนวนใหม่ และไม่เล่นเพลงเดิมซ้ำติดกัน
+let mBag=[];
+function heroPick(){
+  if(!mBag.length){mBag=mPool.slice();for(let i=mBag.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[mBag[i],mBag[j]]=[mBag[j],mBag[i]]}
+    if(mBag.length>1&&mBag[mBag.length-1]===mCur)[mBag[0],mBag[mBag.length-1]]=[mBag[mBag.length-1],mBag[0]];}
+  return mBag.pop();
+}
 function musicNext(){
-  if(!mAudio||!mPool.length||musicUrls.includes(musicChoice()))return;
-  mCur=pickFrom(mPool,mCur);mAudio.src=mCur;musicPlay();
+  if(!mAudio||!mPool.length||(!heroOn&&musicUrls.includes(musicChoice())))return;
+  mCur=heroOn?heroPick():pickFrom(mPool,mCur);mAudio.src=mCur;musicPlay();
 }
 // เปลี่ยนเพลงตามท่าถัดไป (โหมดอัตโนมัติ): เปลี่ยนเฉพาะเมื่อกลุ่มจังหวะเปลี่ยน
 function musicRetune(ex){
-  if(!mAudio||musicChoice()!=='auto'||!ex)return;
+  if(!mAudio||heroOn||musicChoice()!=='auto'||!ex)return;
   const pool=poolFor(groupFor(ex));
   if(!pool.length||pool.join('|')===mPool.join('|'))return;
   mPool=pool;
@@ -3770,7 +3778,7 @@ function musicRetune(ex){
 }
 function musicStart(){
   if(!musicOn()){$('nowp').textContent=musicMuteNote();return}
-  try{if(!mAudio||mLoaded!==musicChoice())musicLoad();musicPlay();}catch(e){}
+  try{if(!mAudio||mLoaded!==(heroOn?'hero':musicChoice()))musicLoad();musicPlay();}catch(e){}
 }
 function musicPause(){try{if(mAudio)mAudio.pause()}catch(e){}}
 function musicStop(){mForce=null;try{clearTimeout(mPrevT);if(mAudio){mAudio.pause();mAudio.currentTime=0}$('nowp').textContent='';$('mnext').hidden=true;$('mus-prev').textContent='▶ ฟังตัวอย่าง';$('ff-prev').textContent='▶ ฟังตัวอย่าง'}catch(e){}}
@@ -5459,14 +5467,10 @@ document.addEventListener('click',e=>{menus.forEach(m=>{if(!m.root.contains(e.ta
 document.addEventListener('keydown',e=>{if(e.key==='Escape')menus.forEach(m=>m.close())});
 
 // ----- Lobby -----
-const MODES={'m-hero':'ฮีโร่เวิร์กเอาต์ 20 นาที','m-start':'ทำท่าตามภาพ','m-routines':'ชุดท่าแนะนำ','m-dance':'แผ่นเต้น','m-fire':'นักเต้นเท้าไฟ'};
-let mode='m-hero';
-try{const v=localStorage.getItem('pose-hero-mode2');if(MODES[v])mode=v}catch(e){}
-const modeBtns=[...document.querySelectorAll('#home-menu [data-mode]')];
-function setMode(m){mode=m;modeBtns.forEach(b=>b.setAttribute('aria-checked',String(b.dataset.mode===m)));$('gl-mode').textContent='โหมด: '+MODES[m]+' · เปลี่ยนได้ที่ ☰';try{localStorage.setItem('pose-hero-mode2',m)}catch(e){}}
-modeBtns.forEach(b=>b.addEventListener('click',()=>setMode(b.dataset.mode)));
-setMode(mode);
-$('gl-start').onclick=()=>$(mode).click();
+// START always opens the main 20-minute mode; other modes launch straight from ☰.
+document.querySelectorAll('#home-menu [data-mode]').forEach(b=>{b.removeAttribute('role');b.addEventListener('click',()=>$(b.dataset.mode).click())});
+$('gl-mode').textContent='โหมดหลัก · ยืดเหยียด + ออกกำลังกาย 20 นาที';
+$('gl-start').onclick=()=>$('m-hero').click();
 wire($('home-menu'));
 
 // ----- Other scenes: move secondary buttons into a menu, replace "back" with an icon -----
