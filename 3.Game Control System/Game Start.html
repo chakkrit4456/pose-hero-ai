@@ -2075,15 +2075,29 @@ const MOVES = {
   // ไขว้แขนไว้หน้าอก บิดลำตัวไปซ้าย-ขวา สะโพกอยู่กับที่
   'seated-twist'(h, t, T) {
     const ls = h.at('left_shoulder'), rs = h.at('right_shoulder'), cx = (ls.x + rs.x) / 2, y = ls.y, hw = (rs.x - ls.x) / 2;
-    const yaw = 0.8 * wave(t, T * 2), c = Math.cos(yaw), shift = Math.sin(yaw) * hw * 0.35;
-    h.set('left_shoulder', cx - hw * c + shift, y); h.set('right_shoulder', cx + hw * c + shift, y);
-    // แขนไขว้ที่หน้าอก
-    const L = h.at('left_shoulder'), R = h.at('right_shoulder');
-    h.set('left_elbow', L.x + 0.012, y + 0.075); h.set('right_elbow', R.x - 0.012, y + 0.075);
-    ['wrist', 'pinky', 'index', 'thumb'].forEach((n, i) => {
-      h.set('left_' + n, R.x - 0.004 + i * 0.003, y + 0.03); h.set('right_' + n, L.x + 0.004 - i * 0.003, y + 0.03);
+    const yaw = 0.75 * wave(t, T * 2), c = Math.cos(yaw), sw = Math.sin(yaw);
+    h.set('left_shoulder', cx - hw * c, y); h.set('right_shoulder', cx + hw * c, y);
+    ['left', 'right'].forEach((side) => {
+      const d = side === 'left' ? -1 : 1, sh = h.at(side + '_shoulder');
+      // แขนที่หมุนมาด้านหน้าดูสั้นลง แขนที่ไปด้านหลังยังเหยียดออกข้าง
+      const fwd = Math.max(0, sw * -d), reach = 0.15 * (1 - 0.7 * fwd);
+      h.set(side + '_elbow', sh.x + d * reach * 0.5, y + 0.005);
+      h.set(side + '_wrist', sh.x + d * reach, y + 0.01);
+      HAND(side).forEach((n) => h.set(n, sh.x + d * (reach + 0.02), y + 0.01));
     });
-    h.move(HEAD, shift * 0.6, 0);
+    h.move(HEAD, sw * hw * 0.25, 0);
+  },
+  // เอียงลำตัวด้านข้าง: ลำตัวเอียงจากสะโพก แขนข้างตรงข้ามชูขึ้นเหนือศีรษะ
+  basic_05(h, t, T) {
+    const lh = h.at('left_hip'), rh = h.at('right_hip'), px = (lh.x + rh.x) / 2, py = (lh.y + rh.y) / 2;
+    const a = 0.38 * wave(t, T * 2), side = a < 0 ? 'right' : 'left', k = Math.abs(a) / 0.38;
+    const sh = h.at(side + '_shoulder');
+    // แขนข้างที่ยืดขึ้น (ข้างตรงข้ามกับทิศที่เอียง)
+    h.set(side + '_elbow', sh.x, sh.y - 0.09 * k - 0.02);
+    h.set(side + '_wrist', sh.x + (side === 'left' ? 0.02 : -0.02) * k, sh.y - 0.17 * k - 0.02);
+    HAND(side).forEach((n) => { const w = h.at(side + '_wrist'); h.set(n, w.x, w.y - 0.025); });
+    const upper = HEAD.concat(['left_shoulder', 'right_shoulder'], ARM('left'), ARM('right'));
+    h.rotate(upper, px, py, a);
   },
   // กางแขนระดับไหล่ งอข้อมือให้ปลายนิ้วชี้ขึ้น ค้าง แล้วผ่อน
   'wrist-stretch'(h, t, T) {
@@ -2115,8 +2129,9 @@ function stepLegs(h, steps, t, T) {
   const lift = ph < 0.5 ? Math.sin(TAU * ph) : 0; // ยกเท้าขึ้นแล้ววางลงตรงจังหวะเหยียบ (กลางช่วง)
   const side = pad === 'l' || pad === 'u' ? 'left' : 'right';
   if (pad === 'l' || pad === 'r') {
-    const d = pad === 'l' ? -1 : 1;
-    h.move(LEG(side), d * 0.045 * ease(ph * 2), -0.035 * lift);
+    const d = pad === 'l' ? -1 : 1, out = d * 0.04 * ease(ph * 2);
+    h.move([side + '_ankle', side + '_heel', side + '_foot_index'], out, -0.022 * lift);
+    h.move([side + '_knee'], out * 0.5, -0.01 * lift);
   } else {
     // ก้าวหน้า/หลัง: ยกเข่าขึ้นแล้ววางเท้า
     h.move([side + '_knee'], 0, -0.06 * lift);
