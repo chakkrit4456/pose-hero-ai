@@ -28,7 +28,7 @@ document.body.append(lvOv);
 lvOv.querySelector('.ph-x').onclick=()=>{lvOv.hidden=true};
 lvOv.addEventListener('click',e=>{if(e.target===lvOv)lvOv.hidden=true});
 let lastLv='normal';try{lastLv=localStorage.getItem('pose-hero-level')||'normal'}catch(e){}
-lvOv.querySelectorAll('[data-lv]').forEach(b=>b.onclick=()=>{lvOv.hidden=true;try{localStorage.setItem('pose-hero-level',b.dataset.lv)}catch(e){}heroLevel=b.dataset.lv;$('m-hero').click();});
+lvOv.querySelectorAll('[data-lv]').forEach(b=>b.onclick=()=>{lvOv.hidden=true;try{localStorage.setItem('pose-hero-level',b.dataset.lv)}catch(e){}heroLevel=b.dataset.lv;openInputSetup();});
 $('gl-start').onclick=()=>{lvOv.hidden=false;lvOv.querySelectorAll('[data-lv]').forEach(b=>b.classList.toggle('last',b.dataset.lv===lastLv));(lvOv.querySelector('.last')||lvOv.querySelector('[data-lv]')).focus();try{lastLv=localStorage.getItem('pose-hero-level')||lastLv}catch(e){}};
 wire($('home-menu'));
 
@@ -280,3 +280,51 @@ checkOnline().then(refreshMe);
   };
   ch.onmessage=e=>{if(e.data&&e.data.tab!==me)mine.forEach(m=>{try{if(!m.paused)m.pause()}catch(x){}})};
 })();
+
+
+// ===== Before the main mode: choose camera / dance pad / both, and set up the pad (same mapping as Fire Feet) =====
+const inOv=document.createElement('div');inOv.className='notice-ov in-ov';inOv.hidden=true;
+inOv.innerHTML='<div class="notice-card in-card" role="dialog" aria-modal="true" aria-labelledby="in-t"><button type="button" class="ph-x" aria-label="ปิด">✕</button>'+
+ '<p class="ph-kicker" id="in-lv"></p><h2 id="in-t">ตั้งค่าก่อนเริ่มเล่น</h2><p class="ph-small">เลือกสิ่งที่จะใช้เล่น เลือกอย่างเดียวหรือทั้งสองอย่างก็ได้</p>'+
+ '<div class="in-grid">'+
+  '<label class="in-opt"><input type="checkbox" id="in-cam" checked><span class="in-ic">📷</span><b>กล้อง</b><small>ตรวจท่าช่วงบนและนับครั้งให้อัตโนมัติ</small><i id="in-cam-st">ยังไม่ได้ตรวจ</i><button type="button" id="in-cam-test">ทดสอบกล้อง</button></label>'+
+  '<label class="in-opt"><input type="checkbox" id="in-pad" checked><span class="in-ic">🕹️</span><b>แผ่นเต้น</b><small>เหยียบช่องที่สว่างตามจังหวะ ไม่มีแผ่นใช้คีย์บอร์ด (ลูกศร) ได้</small><i id="in-pad-st">กำลังตรวจหาแผ่น…</i><button type="button" id="in-pad-map">ตั้งค่าแผ่น</button></label>'+
+ '</div><p class="in-hint" id="in-hint" role="status"></p>'+
+ '<div class="row"><button type="button" class="p" id="in-go">▶ เริ่มเล่น</button><button type="button" id="in-back">เปลี่ยนความยาก</button></div></div>';
+document.body.append(inOv);
+const LVTH={easy:'ง่าย',normal:'ปานกลาง',hard:'ยาก'};
+let inTimer=0,camStream=null;
+function padState(){
+  if(typeof DPAD==='undefined'||!DPAD)return{ok:false,txt:'เบราว์เซอร์นี้ไม่รองรับแผ่นเต้น — ใช้คีย์บอร์ดแทนได้'};
+  if(DPAD.mode&&DPAD.mode!=='free')return{ok:false,txt:'กำลังตั้งค่าแผ่น… เหยียบตามที่บอก'};
+  if(!DPAD.gamepad)return{ok:false,txt:'ยังไม่พบแผ่นเต้น — เสียบแผ่นแล้วเหยียบ 1 ครั้ง (หรือใช้คีย์บอร์ด)'};
+  if(!DPAD.isMapped)return{ok:false,txt:'พบแผ่นแล้ว — กด "ตั้งค่าแผ่น" (ทำครั้งเดียว ระบบจำไว้)'};
+  return{ok:true,txt:'✓ พร้อมใช้: '+(DPAD.gamepad.id.length>28?DPAD.gamepad.id.slice(0,28)+'…':DPAD.gamepad.id)};
+}
+function paintIn(){
+  const p=padState(),pe=$('in-pad-st');pe.textContent=p.txt;pe.className=p.ok?'ok':'';
+  const cam=$('in-cam').checked,pad=$('in-pad').checked;
+  $('in-cam').closest('.in-opt').classList.toggle('off',!cam);$('in-pad').closest('.in-opt').classList.toggle('off',!pad);
+  $('in-go').disabled=!cam&&!pad;
+  $('in-hint').textContent=!cam&&!pad?'เลือกอย่างน้อย 1 อย่าง':cam&&pad?'เล่นเต็มรูปแบบ: ทำท่าให้กล้องนับ + เหยียบแผ่นตามจังหวะ':cam?'โหมดกล้องอย่างเดียว: มาสคอตยังก้าวให้ดู ทำตามได้แต่ไม่นับการเหยียบ':'โหมดแผ่นเต้นอย่างเดียว: ไม่นับท่าด้วยกล้อง ใช้ปุ่ม +1 ในเมนู ⏸ นับเองได้';
+}
+function openInputSetup(){
+  $('in-lv').textContent='โหมดหลัก · ระดับ'+(LVTH[heroLevel]||'')+' · 20 นาที';
+  try{const v=JSON.parse(localStorage.getItem('pose-hero-inputs')||'{}');if(typeof v.cam==='boolean')$('in-cam').checked=v.cam;if(typeof v.pad==='boolean')$('in-pad').checked=v.pad;}catch(e){}
+  try{if(typeof DPAD!=='undefined'&&DPAD)DPAD.start()}catch(e){}
+  inOv.hidden=false;paintIn();clearInterval(inTimer);inTimer=setInterval(paintIn,400);$('in-go').focus();
+}
+function closeIn(){inOv.hidden=true;clearInterval(inTimer);if(camStream){camStream.getTracks().forEach(t=>t.stop());camStream=null}try{if(typeof DPAD!=='undefined'&&DPAD&&DPAD.mode!=='free')DPAD.cancel()}catch(e){}}
+inOv.querySelector('.ph-x').onclick=closeIn;
+$('in-back').onclick=()=>{closeIn();$('gl-start').click()};
+$('in-cam').onchange=$('in-pad').onchange=paintIn;
+$('in-cam-test').onclick=async e=>{e.preventDefault();const st=$('in-cam-st');st.textContent='กำลังขอสิทธิ์กล้อง…';st.className='';
+  try{camStream=await navigator.mediaDevices.getUserMedia({video:true});st.textContent='✓ กล้องใช้งานได้';st.className='ok';setTimeout(()=>{if(camStream){camStream.getTracks().forEach(t=>t.stop());camStream=null}},800);}
+  catch(err){st.textContent='เปิดกล้องไม่ได้ — ตรวจสิทธิ์กล้องของเบราว์เซอร์';}};
+$('in-pad-map').onclick=e=>{e.preventDefault();try{DPAD.start();DPAD.bindAll()}catch(x){}paintIn();};
+if(typeof DPAD!=='undefined'&&DPAD)DPAD.on('prompt',m=>{if(!inOv.hidden&&m&&m.text)$('in-hint').textContent=m.text;});
+$('in-go').onclick=()=>{
+  const cam=$('in-cam').checked,pad=$('in-pad').checked;if(!cam&&!pad)return;
+  try{localStorage.setItem('pose-hero-inputs',JSON.stringify({cam,pad}))}catch(e){}
+  heroUseCam=cam;heroUsePad=pad;closeIn();$('m-hero').click();
+};

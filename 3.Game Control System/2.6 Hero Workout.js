@@ -14,7 +14,8 @@ const PHASES = {
 // ทุกท่าในโหมดหลัก = ท่าช่วงบนที่กล้องนับได้ + ก้าวบนแผ่นเต้นที่ร่างกายทำพร้อมกันได้จริง (ผู้เล่นคนเดียวทำทั้งสองอย่าง)
 // steps = ลำดับแผ่นที่ต้องเหยียบ 1 ก้าวต่อ 1 จังหวะท่า (u=บน d=ล่าง l=ซ้าย r=ขวา)
 // ตัดออก: ท่าข้อมือ (กล้องระยะเต็มตัวนับยาก) และท่าซ้ำ: ยืดบ่า (ตัวนับเดียวกับเอียงคอ), ยักไหล่ (ตัวนับเดียวกับหมุนไหล่)
-const STRETCH_SPEED = 0.7; // ช่วงยืดเหยียด: ก้าวช้า ๆ
+// เวลาต่อ 1 ก้าว (วินาที): มาสคอต การนับท่า และแผ่นเต้นใช้จังหวะเดียวกัน
+const STRETCH_STEP = { easy: 2.0, normal: 1.6, hard: 1.2 }; // ช่วงยืดเหยียด: ช้ากว่าช่วงออกกำลังกาย แต่ยังต่างกันตามระดับ
 
 // ยืดเหยียดวอร์มอัพ
 const WARMUP = [
@@ -28,7 +29,7 @@ const WARMUP = [
 // ท่าคอมโบแต่ละระดับ: ทุกระดับ 10 ท่า x 60 วินาที ต่างกันที่ท่า ความเร็ว และความหนัก
 const LEVELS = {
   easy: {
-    label: 'ง่าย', speed: 0.8, desc: 'แรงกระแทกต่ำ ท่าช้า เท้าก้าวข้างเบา ๆ เหมาะกับผู้เริ่มต้น',
+    label: 'ง่าย', stepSec: 1.33, desc: 'แรงกระแทกต่ำ ท่าช้า เท้าก้าวข้างเบา ๆ เหมาะกับผู้เริ่มต้น',
     combos: [
       { id: 'basic_01', title: 'สเต็ปทัชกางแขน', steps: ['l', 'r'], cue: 'ก้าวเท้าออกด้านข้างช้า ๆ พร้อมกางแขนขึ้นระดับไหล่' },
       { id: 'basic_03', title: 'ย่ำเท้างอศอก', steps: ['l', 'r'], cue: 'งอศอกยกมือแตะไหล่ ทุกครั้งที่ย่ำเท้าซ้าย/ขวา' },
@@ -38,7 +39,7 @@ const LEVELS = {
     ],
   },
   normal: {
-    label: 'ปานกลาง', speed: 1, desc: 'จังหวะปกติ มียกเข่า ออกแรงทั้งตัว',
+    label: 'ปานกลาง', stepSec: 1.0, desc: 'จังหวะปกติ มียกเข่า ออกแรงทั้งตัว',
     combos: [
       { id: 'basic_01', title: 'สเต็ปทัชกางแขน', steps: ['l', 'r'], cue: 'ก้าวเท้าออกด้านข้าง พร้อมกางแขนขึ้นระดับไหล่ แล้วลดแขนลงตอนชิดเท้า' },
       { id: 'basic_06', title: 'ย่ำเท้ายกเข่า', steps: ['l', 'r'], cue: 'ยกเข่าขึ้นสลับข้าง แล้ววางเท้าลงบนแผ่นซ้าย/ขวาตามลูกศร' },
@@ -48,7 +49,7 @@ const LEVELS = {
     ],
   },
   hard: {
-    label: 'ยาก', speed: 1.25, desc: 'จังหวะเร็ว ยกเข่า ย่อเข่า ก้าว 4 ทิศ ออกแรงมากขึ้น',
+    label: 'ยาก', stepSec: 0.8, desc: 'จังหวะเร็ว ยกเข่า ย่อเข่า ก้าว 4 ทิศ ออกแรงมากขึ้น',
     combos: [
       { id: 'basic_06', title: 'วิ่งยกเข่าเร็ว', steps: ['l', 'r'], cue: 'ยกเข่าสูงสลับข้างเร็ว ๆ วางเท้าลงแผ่นซ้าย/ขวาตามจังหวะ' },
       { id: 'basic_04', title: 'ก้าวกว้างย่อเข่า', steps: ['l', 'r'], cue: 'ก้าวเท้าออกด้านข้างกว้าง แล้วย่อเข่าลงหลังตรง ดันตัวขึ้นแล้วก้าวอีกข้าง' },
@@ -81,20 +82,21 @@ function buildQueue(catalog, level = 'normal') {
     if (!c) throw new Error('ไม่พบท่า ' + id);
     return c;
   };
-  const item = (m, phase, speed, first) => {
+  const item = (m, phase, stepSec, first) => {
     const c = byId(m.id);
     return {
       id: c.id, name: m.title + (/ค้าง/.test(c.name) ? ' · ค้าง 15 วิ' : ''), target: c.target,
       reps: Math.max(1, Math.round((c.reps || 10) * BLOCK_SEC / Math.max(BLOCK_SEC, c.durationSec || BLOCK_SEC))),
       durationSec: BLOCK_SEC, timeBoxed: true, hero: true, phase, phaseLabel: PHASES[phase],
-      steps: m.steps.slice(), stepCue: m.cue, speed, level,
+      steps: m.steps.slice(), stepCue: m.cue, stepSec, level,
       restBeforeSec: first ? PHASE_GAP_SEC : 0,
     };
   };
   const q = [];
-  WARMUP.forEach((m) => q.push(item(m, 'warmup', STRETCH_SPEED, false)));
-  for (let r = 0; r < COMBO_ROUNDS; r++) L.combos.forEach((m, i) => q.push(item(m, 'combo', L.speed, r === 0 && i === 0)));
-  COOLDOWN.forEach((m, i) => q.push(item(m, 'cooldown', STRETCH_SPEED, i === 0)));
+  const stretch = STRETCH_STEP[level] || STRETCH_STEP.normal;
+  WARMUP.forEach((m) => q.push(item(m, 'warmup', stretch, false)));
+  for (let r = 0; r < COMBO_ROUNDS; r++) L.combos.forEach((m, i) => q.push(item(m, 'combo', L.stepSec, r === 0 && i === 0)));
+  COOLDOWN.forEach((m, i) => q.push(item(m, 'cooldown', stretch, i === 0)));
   return q;
 }
 

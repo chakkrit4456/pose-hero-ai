@@ -1390,6 +1390,41 @@ html body .lobby-scene::after{z-index:3!important;background:
 #play #big.holding{box-shadow:0 0 0 6px #14b86655,0 8px 0 #0A3DBF55!important}
 #play #big.holding::before{box-shadow:inset 0 0 0 4px #14b866!important}
 @media(max-aspect-ratio:1/1){#play .pl-side .hold-chip{grid-column:2;font-size:12px;padding:4px 10px}}
+
+/* ---- Fire Feet: camera arm-move box ---- */
+#ff-posebox{display:flex;gap:12px;align-items:center;margin:8px auto;max-width:900px;padding:10px;border-radius:20px;background:#fff;box-shadow:0 6px 0 #0A3DBF44;color:#0B1F4D}
+#ff-posebox[hidden]{display:none}
+#ff-posebox.hit{animation:ffp-hit .4s}
+@keyframes ffp-hit{40%{box-shadow:0 0 0 6px #14b86688,0 6px 0 #0A3DBF44;transform:scale(1.02)}}
+.ffp-cam{position:relative;flex:none;width:clamp(120px,22vw,220px);aspect-ratio:4/3;border-radius:14px;overflow:hidden;background:#05081a;border:3px solid #1E9BFF}
+.ffp-cam video{width:100%;height:100%;object-fit:cover;transform:scaleX(-1)}
+.ffp-live{position:absolute;top:6px;left:6px;font:800 10px/1 system-ui;color:#fff;background:#FF3448;padding:3px 7px;border-radius:99px}
+.ffp-info{display:flex;flex-direction:column;gap:2px;min-width:0}
+.ffp-kick{margin:0;font-size:12px;font-weight:800;color:#FF3448;letter-spacing:.08em}
+.ffp-info b#ff-pose-name{font:900 clamp(18px,2.4vw,26px)/1.2 Prompt,system-ui,sans-serif;color:#0A3DBF}
+.ffp-info small{color:#3D5A8A}
+.ffp-count{margin:4px 0 0;font-weight:700}
+.ffp-count b{color:#FF3448;font-size:20px}
+
+/* ---- Input setup (camera / pad) ---- */
+.in-ov{z-index:335}
+.in-card{position:relative;width:min(760px,100%);max-height:calc(100dvh - 32px);overflow:auto;border:0!important;border-radius:28px!important;box-shadow:0 10px 0 #0A3DBF55,0 30px 60px #0A3DBF55!important;text-align:center;color:#0B1F4D}
+.in-card h2{margin:4px 0;color:#0A3DBF;font:900 clamp(22px,3vw,32px)/1.2 Prompt,system-ui,sans-serif}
+.in-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:12px 0}
+.in-opt{position:relative;display:flex;flex-direction:column;align-items:center;gap:6px;padding:18px 12px;border-radius:22px;border:3px solid #1E9BFF;background:#F2F8FF;cursor:pointer;transition:opacity .15s}
+.in-opt.off{opacity:.55;border-color:#B9DCFF}
+.in-opt input{position:absolute;top:12px;right:12px;width:24px;height:24px;accent-color:#FF3448}
+.in-ic{font-size:38px;line-height:1}
+.in-opt b{font:900 22px/1.1 Prompt,system-ui,sans-serif;color:#0A3DBF}
+.in-opt small{font-size:13px;color:#3D5A8A}
+.in-opt i{font-style:normal;font-size:12px;font-weight:700;color:#3D5A8A;background:#fff;border-radius:999px;padding:4px 10px}
+.in-opt i.ok{color:#fff;background:#14b866}
+.in-opt button{border-radius:999px!important;border:2px solid #1E9BFF!important;background:#fff!important;color:#0A3DBF!important;padding:6px 14px!important;width:auto!important}
+.in-hint{min-height:1.4em;font-weight:700;color:#0A3DBF}
+.in-card .row{justify-content:center;gap:10px}
+.in-card #in-back{border-radius:999px!important;border:2px solid #1E9BFF!important;background:#fff!important;color:#0A3DBF!important}
+.in-card #in-go:disabled{opacity:.5}
+@media(max-width:560px){.in-grid{grid-template-columns:1fr}}
 </style></head><body>
 <div id="app-loading" role="status" aria-live="polite" aria-busy="true"><div><div class="loading-ring" aria-hidden="true"></div><h2>POSE HERO AI</h2><p id="loading-message">กำลังเตรียมหน้าเกม…</p><p id="loading-detail">กรุณารอสักครู่</p><button id="loading-retry" type="button" hidden>ลองโหลดใหม่</button></div></div>
 <noscript><style>#app-loading{display:none}html.app-loading{overflow:auto}html.app-loading main{visibility:visible}</style><p>กรุณาเปิด JavaScript เพื่อเล่นเกมนี้</p></noscript>
@@ -1526,6 +1561,7 @@ html body .lobby-scene::after{z-index:3!important;background:
   <div class="d-hud" id="ff-hud" hidden><div><span>คะแนน</span><b id="ff-score">0</b></div><div><span>คอมโบ</span><b id="ff-combo">0</b></div><div><span>แม่นยำ</span><b id="ff-acc">0%</b></div><div><span>เวลา</span><b id="ff-time">3:00</b></div></div>
   <div class="d-progress" id="ff-prog" hidden><i id="ff-bar"></i></div>
   <canvas id="ff-cv" width="900" height="900"></canvas>
+  <div id="ff-posebox" hidden><div class="ffp-cam"><video id="ff-cam" muted playsinline></video><span class="ffp-live">● LIVE</span></div><div class="ffp-info"><p class="ffp-kick">ท่าแขน + เหยียบแผ่น</p><b id="ff-pose-name">-</b><small id="ff-pose-cue"></small><p class="ffp-count">ทำได้ <b id="ff-pose-hits">0</b> ครั้ง · <span id="ff-pose-msg"></span></p></div></div>
   <div id="ff-menu">
     <p class="c" id="ff-hint" style="min-height:3em;margin:6px 0"></p>
     <div class="d-levels" id="ff-levels"></div>
@@ -1763,7 +1799,8 @@ const PHASES = {
 // ทุกท่าในโหมดหลัก = ท่าช่วงบนที่กล้องนับได้ + ก้าวบนแผ่นเต้นที่ร่างกายทำพร้อมกันได้จริง (ผู้เล่นคนเดียวทำทั้งสองอย่าง)
 // steps = ลำดับแผ่นที่ต้องเหยียบ 1 ก้าวต่อ 1 จังหวะท่า (u=บน d=ล่าง l=ซ้าย r=ขวา)
 // ตัดออก: ท่าข้อมือ (กล้องระยะเต็มตัวนับยาก) และท่าซ้ำ: ยืดบ่า (ตัวนับเดียวกับเอียงคอ), ยักไหล่ (ตัวนับเดียวกับหมุนไหล่)
-const STRETCH_SPEED = 0.7; // ช่วงยืดเหยียด: ก้าวช้า ๆ
+// เวลาต่อ 1 ก้าว (วินาที): มาสคอต การนับท่า และแผ่นเต้นใช้จังหวะเดียวกัน
+const STRETCH_STEP = { easy: 2.0, normal: 1.6, hard: 1.2 }; // ช่วงยืดเหยียด: ช้ากว่าช่วงออกกำลังกาย แต่ยังต่างกันตามระดับ
 
 // ยืดเหยียดวอร์มอัพ
 const WARMUP = [
@@ -1777,7 +1814,7 @@ const WARMUP = [
 // ท่าคอมโบแต่ละระดับ: ทุกระดับ 10 ท่า x 60 วินาที ต่างกันที่ท่า ความเร็ว และความหนัก
 const LEVELS = {
   easy: {
-    label: 'ง่าย', speed: 0.8, desc: 'แรงกระแทกต่ำ ท่าช้า เท้าก้าวข้างเบา ๆ เหมาะกับผู้เริ่มต้น',
+    label: 'ง่าย', stepSec: 1.33, desc: 'แรงกระแทกต่ำ ท่าช้า เท้าก้าวข้างเบา ๆ เหมาะกับผู้เริ่มต้น',
     combos: [
       { id: 'basic_01', title: 'สเต็ปทัชกางแขน', steps: ['l', 'r'], cue: 'ก้าวเท้าออกด้านข้างช้า ๆ พร้อมกางแขนขึ้นระดับไหล่' },
       { id: 'basic_03', title: 'ย่ำเท้างอศอก', steps: ['l', 'r'], cue: 'งอศอกยกมือแตะไหล่ ทุกครั้งที่ย่ำเท้าซ้าย/ขวา' },
@@ -1787,7 +1824,7 @@ const LEVELS = {
     ],
   },
   normal: {
-    label: 'ปานกลาง', speed: 1, desc: 'จังหวะปกติ มียกเข่า ออกแรงทั้งตัว',
+    label: 'ปานกลาง', stepSec: 1.0, desc: 'จังหวะปกติ มียกเข่า ออกแรงทั้งตัว',
     combos: [
       { id: 'basic_01', title: 'สเต็ปทัชกางแขน', steps: ['l', 'r'], cue: 'ก้าวเท้าออกด้านข้าง พร้อมกางแขนขึ้นระดับไหล่ แล้วลดแขนลงตอนชิดเท้า' },
       { id: 'basic_06', title: 'ย่ำเท้ายกเข่า', steps: ['l', 'r'], cue: 'ยกเข่าขึ้นสลับข้าง แล้ววางเท้าลงบนแผ่นซ้าย/ขวาตามลูกศร' },
@@ -1797,7 +1834,7 @@ const LEVELS = {
     ],
   },
   hard: {
-    label: 'ยาก', speed: 1.25, desc: 'จังหวะเร็ว ยกเข่า ย่อเข่า ก้าว 4 ทิศ ออกแรงมากขึ้น',
+    label: 'ยาก', stepSec: 0.8, desc: 'จังหวะเร็ว ยกเข่า ย่อเข่า ก้าว 4 ทิศ ออกแรงมากขึ้น',
     combos: [
       { id: 'basic_06', title: 'วิ่งยกเข่าเร็ว', steps: ['l', 'r'], cue: 'ยกเข่าสูงสลับข้างเร็ว ๆ วางเท้าลงแผ่นซ้าย/ขวาตามจังหวะ' },
       { id: 'basic_04', title: 'ก้าวกว้างย่อเข่า', steps: ['l', 'r'], cue: 'ก้าวเท้าออกด้านข้างกว้าง แล้วย่อเข่าลงหลังตรง ดันตัวขึ้นแล้วก้าวอีกข้าง' },
@@ -1830,20 +1867,21 @@ function buildQueue(catalog, level = 'normal') {
     if (!c) throw new Error('ไม่พบท่า ' + id);
     return c;
   };
-  const item = (m, phase, speed, first) => {
+  const item = (m, phase, stepSec, first) => {
     const c = byId(m.id);
     return {
       id: c.id, name: m.title + (/ค้าง/.test(c.name) ? ' · ค้าง 15 วิ' : ''), target: c.target,
       reps: Math.max(1, Math.round((c.reps || 10) * BLOCK_SEC / Math.max(BLOCK_SEC, c.durationSec || BLOCK_SEC))),
       durationSec: BLOCK_SEC, timeBoxed: true, hero: true, phase, phaseLabel: PHASES[phase],
-      steps: m.steps.slice(), stepCue: m.cue, speed, level,
+      steps: m.steps.slice(), stepCue: m.cue, stepSec, level,
       restBeforeSec: first ? PHASE_GAP_SEC : 0,
     };
   };
   const q = [];
-  WARMUP.forEach((m) => q.push(item(m, 'warmup', STRETCH_SPEED, false)));
-  for (let r = 0; r < COMBO_ROUNDS; r++) L.combos.forEach((m, i) => q.push(item(m, 'combo', L.speed, r === 0 && i === 0)));
-  COOLDOWN.forEach((m, i) => q.push(item(m, 'cooldown', STRETCH_SPEED, i === 0)));
+  const stretch = STRETCH_STEP[level] || STRETCH_STEP.normal;
+  WARMUP.forEach((m) => q.push(item(m, 'warmup', stretch, false)));
+  for (let r = 0; r < COMBO_ROUNDS; r++) L.combos.forEach((m, i) => q.push(item(m, 'combo', L.stepSec, r === 0 && i === 0)));
+  COOLDOWN.forEach((m, i) => q.push(item(m, 'cooldown', stretch, i === 0)));
   return q;
 }
 
@@ -4976,7 +5014,7 @@ function danceFinish(){
   $('dr-score').textContent=res.score;$('dr-stars').textContent='★'.repeat(res.stars)+'☆'.repeat(3-res.stars);
   $('dr-grade').textContent=`เกรด ${res.letter} · ${res.grade} · ระดับ${res.levelTh}`+(dBest.isBest?' · 🏆 สถิติใหม่!':'');
   const tile=(v,l)=>`<div class="st-tile"><b>${v}</b><span>${l}</span></div>`,c=res.counts;
-  $('dr-tiles').innerHTML=tile(res.accuracy+'%','ความแม่นยำ')+tile(res.maxCombo,'คอมโบสูงสุด')+tile(c.perfect,'PERFECT')+tile(c.great,'GREAT')+tile(c.good,'GOOD')+tile(c.miss,'MISS')+tile(res.avgAbsMs==null?'-':res.avgAbsMs+' ms','คลาดเฉลี่ย');
+  $('dr-tiles').innerHTML=(res.poseHits?tile(res.poseHits,'ท่าแขน (ครั้ง)'):'')+tile(res.accuracy+'%','ความแม่นยำ')+tile(res.maxCombo,'คอมโบสูงสุด')+tile(c.perfect,'PERFECT')+tile(c.great,'GREAT')+tile(c.good,'GOOD')+tile(c.miss,'MISS')+tile(res.avgAbsMs==null?'-':res.avgAbsMs+' ms','คลาดเฉลี่ย');
   $('dr-advice').innerHTML='<b>คำแนะนำ</b>'+DR.advice(res).map(x=>`<div>• ${String(x).replace(/</g,'&lt;')}</div>`).join('');
   $('dr-name').value=cfg.playerName==='ผู้เล่น'?'':cfg.playerName;
   if(res.stars===3)[0,140,280,420].forEach((d,i)=>setTimeout(()=>beep([784,988,1175,1568][i],i===3?420:120),d));
@@ -5106,7 +5144,7 @@ function ffHint(){
   if(!DPAD.isMapped)return 'พบแผ่นเต้นแล้ว — กด "ตั้งค่าแผ่น" แล้วเหยียบตามแผ่นที่ขอบสว่างบนกระดาน';
   return 'พร้อมแล้ว! เล่นรอบละ 3 นาที ยืนตรงจุดกลางแผ่น เลือกระดับ แล้วเหยียบเมื่อไอคอนแตะแผ่น เก็บความแม่นให้เกจเต็มเพื่อเข้าช่วงไฟลุก คะแนน ×2';
 }
-const ffForce=k=>FF.resolveSong(cfg.ffSong||'auto',k,musicList);
+const ffForce=k=>FF.resolveSong(cfg.ffSong&&cfg.ffSong!=='off'?cfg.ffSong:'auto',k,musicList)||(musicList.length?'all':null); // ใช้เฉพาะเพลงในโปรเจกต์ ไม่มีกลองสังเคราะห์
 const ffSongNote=k=>{const f=ffForce(k);return !f?'🥁 กลองในเกม':f==='all'?'♪ สุ่มทุกเพลง':GROUP_TH[f]?'♪ เพลง '+poolFor(f).length+' เพลง':'♪ '+trackName(f)};
 function ffMenu(){
   const conn=!!(DPAD&&DPAD.gamepad),mapping=!!DPAD&&DPAD.mode!=='free';
@@ -5127,7 +5165,7 @@ function ffSetView(v){
 function ffEnter(){
   ffActive=true;ffPhase='menu';ffGame=null;ffPrompt='';ffMenuKey='';Object.keys(DPOS).forEach(ffSprite);
   $('ff-musrow').hidden=!musicList.length;
-  if(musicList.length)fillSongSelect($('ff-mus'),'อัตโนมัติ — ตามระดับ','ไม่เปิดเพลง (ใช้กลองในเกม)',cfg.ffSong||'auto');
+  if(musicList.length)fillSongSelect($('ff-mus'),'อัตโนมัติ — ตามระดับ','สุ่มทุกเพลง',cfg.ffSong||'auto');
   if(DPAD)DPAD.start();
   show('fire');ffSetView('menu');ffMenu();
   ffLast=performance.now();cancelAnimationFrame(ffRaf);ffRaf=requestAnimationFrame(ffLoop);
@@ -5138,14 +5176,15 @@ function ffStart(k){
   ffFlames.clear();ffFlameLv=0;ffTier=-1;
   ffLevel=k;ffGame=new FF.FireFeetGame(FF.makeChart(k));ffPhase='play';ffBeat=-1;ffCount=-1;ffFrozen=false;ffRings=[];ffJudge='';ffWasFire=false;ffT0=performance.now()+3000;
   // เพลงตามระดับ ถ้าระดับนั้นไม่มีเพลง ใช้กลองในเกมแทน (กลองปิดเมื่อมีเพลง เพื่อไม่ให้สองจังหวะตีกัน)
-  musicStop();ffSong=false;ffPausedSong=false;$('ff-now').textContent='🥁 กลองในเกม';
+  musicStop();ffSong=false;ffPausedSong=false;$('ff-now').textContent='';
   const force=ffForce(k);
-  if(force){mForce=force;mLoaded=null;if(musicOn()){musicStart();ffSong=!!mCur;if(ffSong)$('ff-now').textContent='♪ '+trackName(mCur);}else $('ff-now').textContent='🥁 กลองในเกม · '+musicMuteNote();}
+  if(force){mForce=force;mLoaded=null;if(musicOn()){musicStart();ffSong=!!mCur;if(ffSong)$('ff-now').textContent='♪ '+trackName(mCur);}else $('ff-now').textContent=musicMuteNote();}
   if(!ffSong)mForce=null;
   $('ff-score').textContent='0';$('ff-combo').textContent='0';$('ff-acc').textContent='0%';$('ff-bar').style.width='0';$('ff-time').textContent=FF.formatClock(FF.ROUND_MS);$('ff-time').style.color='';ffClockSec=-1;
   ffSetView('play');
+  ffPoseStart(k);
 }
-function ffQuit(){ffSong=false;musicStop();ffPhase='menu';ffGame=null;ffMenuKey='';ffSetView('menu');ffMenu();}
+function ffQuit(){ffPoseStop();ffSong=false;musicStop();ffPhase='menu';ffGame=null;ffMenuKey='';ffSetView('menu');ffMenu();}
 function ffShowJudge(res,now){ffJudge=res;ffJudgeAt=now;}
 function ffHud(){
   const s=ffGame.summary(),j=ffGame.notes.filter(n=>n.done).length,c=s.counts;
@@ -5208,7 +5247,7 @@ function ffLoop(){
     if(now<0){const n=Math.ceil(-now/1000);if(n!==ffCount){ffCount=n;beep(660,100);}}
     else if(!ffFrozen){
       const b=Math.floor(now/ffGame.chart.beatMs);
-      if(b!==ffBeat){ffBeat=b;if(!ffSong){beep(ffBass[b%4],110,'triangle');if(b%2)beep(2200,14,'square');}} // กลองตรงกับเวลาก้าวของกราฟ
+      if(b!==ffBeat){ffBeat=b;ffPoseBeat(b);} // กลองตรงกับเวลาก้าวของกราฟ
       const held=ffGame.holdHits(DPAD.isDown,now);
       if(held.length){ffShowJudge('good',real);held.forEach(n=>ffRings.push({id:n.id,at:real,col:FF_JCOL.good}));ffHud();}
       const missed=ffGame.tick(now);
@@ -5240,9 +5279,11 @@ function ffLoop(){
   ffRaf=requestAnimationFrame(ffLoop);
 }
 function ffFinish(){
+  const poseHits=ffPose.hits;ffPoseStop();
   ffSong=false;musicStop();
   ffPhase='result';ffHud();
   const res=FF.buildResult(ffLevel,ffGame.summary());ffRes=res;
+  if(poseHits){res.points+=poseHits*FF_POSE_POINTS;res.poseHits=poseHits;} // โบนัสท่าแขนจากกล้อง
   try{ffBest=FF.recordBest(localStorage,ffLevel,res.points)}catch(e){ffBest={isBest:false,best:res.points}}
   ffSetView('result');
   $('fr-score').textContent=res.points;$('fr-stars').textContent='★'.repeat(res.stars)+'☆'.repeat(3-res.stars);
@@ -5525,9 +5566,10 @@ renderHome();show('home');
 if(location.hash.startsWith('#manage')&&!$('m-manage').disabled){$('m-manage').click();const t=location.hash.split(':')[1];if(t)mgTab(t);}
 
 // ---- โหมดหลัก ฮีโร่เวิร์กเอาต์ 20 นาที (2.6): ยืดเหยียด → ท่าช่วงบน (กล้อง) + เหยียบแผ่นเต้น → ยืดเหยียด ----
-var heroOn=false,heroStarting=false,heroLevel='normal';const heroJudge=HW.createStepJudge();let heroIdx=-2,heroRaf=0,heroFlash=0;
+var heroOn=false,heroStarting=false,heroLevel='normal',heroUseCam=true,heroUsePad=true;const heroJudge=HW.createStepJudge();let heroIdx=-2,heroRaf=0,heroFlash=0;
 function heroPeriod(id){try{return aiEx[id]?MR.demoTiming(aiEx[id]).T:2.4}catch(e){return 2.4}}
 function heroStep(pad){
+  if(!heroUsePad)return;
   const r=heroJudge.press(pad,performance.now()/1000);if(!r)return;
   const cell=document.querySelector('#hero-pad [data-p="'+pad+'"]');if(cell){cell.classList.remove('hit','miss');void cell.offsetWidth;cell.classList.add(r);}
 }
@@ -5537,8 +5579,8 @@ function heroFrame(){
   if(heroIdx!==st.currentIndex){heroIdx=st.currentIndex;
     const ex=c&&c.exercise;if(ex&&ex.steps){heroJudge.setMove(ex.steps,heroPeriod(ex.id)/(ex.speed||1));$('hero-cue').textContent=ex.stepCue||'';}else heroJudge.clear();}
   if(!c&&st.queue[0]&&(st.status==='idle'||st.status==='countdown'))showTeach(st.queue[0]); // ระหว่างเปิดกล้อง/นับถอยหลัง: มาสคอตโชว์ท่าแรก
-  const ex=c&&c.exercise,combo=!!(ex&&ex.steps)&&!c.resting&&st.status==='playing';
-  $('hero-pad').hidden=!(ex&&ex.steps);
+  const ex=c&&c.exercise,combo=heroUsePad&&!!(ex&&ex.steps)&&!c.resting&&st.status==='playing';
+  $('hero-pad').hidden=!(heroUsePad&&ex&&ex.steps);
   if(ex){$('hero-phase').textContent=(c.resting?'เตรียมตัว · ':'')+ex.phaseLabel;}
   const left=st.queue.slice(Math.max(0,st.currentIndex)).reduce((a,q,i)=>a+q.durationSec+(i?q.restBeforeSec||0:0),0)-(c?c.elapsedMs/1000:0)+(c&&c.resting?c.restLeftMs/1000:0);
   const L=Math.max(0,Math.ceil(left));$('hero-total').textContent=String(Math.floor(L/60)).padStart(2,'0')+':'+String(L%60).padStart(2,'0');
@@ -5555,12 +5597,14 @@ function heroEnd(){
 $('m-hero').onclick=async()=>{
   $('hero-sum').hidden=true;
   try{E.resetGame(st)}catch(e){}
-  st.queue.length=0;HW.buildQueue(S.getCatalog(),heroLevel).forEach(q=>st.queue.push(q));
+  st.queue.length=0;HW.buildQueue(S.getCatalog(),heroLevel).forEach(q=>{q.speed=heroPeriod(q.id)/(q.stepSec||1.2);st.queue.push(q)});
   heroJudge.reset();heroIdx=-2;heroOn=true;heroStarting=true;
   $('hero-hud').hidden=false;
-  if(DPAD)DPAD.start();
+  if(DPAD&&heroUsePad)DPAD.start();
   cancelAnimationFrame(heroRaf);
+  const autoCam0=cfg.autoCam;cfg.autoCam=heroUseCam&&autoCam0!==false;
   const go=$('go').onclick(); // show('play') runs synchronously; camera start may take a while
+  cfg.autoCam=autoCam0;
   heroRaf=requestAnimationFrame(heroFrame);
   try{await go;}finally{heroStarting=false;}
 };
@@ -5576,6 +5620,42 @@ $('exit-go').onclick=()=>{
   try{E.resetGame(st)}catch(e){}
   show('home');notify('ออกจากเกมแล้ว','info',true);
 };
+
+// ---- นักเต้นเท้าไฟ ระดับร้อนแรง/ลุกเป็นไฟ: ทำท่าแขนให้กล้องนับไปพร้อมกับเหยียบแผ่น ----
+const FF_POSE_LEVELS={hot:['basic_01','basic_02','basic_03'],blaze:['basic_02','basic_01','basic_03','seated-twist']};
+const FF_POSE_CUE={basic_01:'กางแขนขึ้นระดับไหล่ทุกก้าว',basic_02:'ชูแขนขึ้นเหนือศีรษะแล้วลดลง',basic_03:'งอศอกยกมือแตะไหล่',"seated-twist":'บิดลำตัวไปทางเท้าที่เหยียบ'};
+const FF_POSE_BEATS=16,FF_POSE_POINTS=40;
+let ffPose={on:false,moves:[],idx:-1,runner:null,hits:0,base:0,raf:0};
+async function ffPoseStart(k){
+  ffPoseStop();ffPose.hits=0;$('ff-pose-hits').textContent='0';
+  const moves=FF_POSE_LEVELS[k];
+  if(!moves||!AI||!aiCam){$('ff-posebox').hidden=true;return;}
+  ffPose.moves=moves.filter(id=>aiEx[id]);ffPose.on=true;ffPose.idx=-1;$('ff-posebox').hidden=false;$('ff-pose-msg').textContent='กำลังเปิดกล้อง…';
+  ffPoseSet(0);
+  try{await aiCam.prepareModel();if(!ffPose.on)return;await aiCam.open($('ff-cam'),cfg.cameraId);if(!ffPose.on){aiCam.close();return;}$('ff-pose-msg').textContent='ยืนให้กล้องเห็นช่วงบน';ffPoseLoop();}
+  catch(e){$('ff-pose-msg').textContent='เปิดกล้องไม่ได้ — เล่นเฉพาะแผ่นได้';}
+}
+function ffPoseSet(i){
+  if(!ffPose.moves.length)return;i=i%ffPose.moves.length;if(i===ffPose.idx)return;
+  ffPose.idx=i;const id=ffPose.moves[i];vHip=null;
+  ffPose.runner=new MR.WorkoutRunner(lenientEx(aiEx[id]),{reps:999,readySec:1});ffPose.base=0;
+  $('ff-pose-name').textContent=aiEx[id].name;$('ff-pose-cue').textContent=FF_POSE_CUE[id]||'';
+}
+function ffPoseBeat(b){if(ffPose.on&&b>=0)ffPoseSet(Math.floor(b/FF_POSE_BEATS));}
+function ffPoseLoop(){
+  if(!ffPose.on)return;ffPose.raf=requestAnimationFrame(ffPoseLoop);
+  if(ffPhase!=='play'||!ffPose.runner)return;
+  const lm=aiCam.read();if(!lm)return;
+  const [w,h]=aiCam.size(),r=ffPose.runner.step(ffPose.runner.ex._upper?withVirtualHips(lm):lm,performance.now()/1000,w,h);
+  if(r.stage==='ready')$('ff-pose-msg').textContent=r.inView?'พร้อม…':'ยืนให้กล้องเห็นช่วงบน';
+  else{
+    const n=r.analysis.reps||0;
+    if(n>ffPose.base){ffPose.hits+=n-ffPose.base;ffPose.base=n;$('ff-pose-hits').textContent=ffPose.hits;beep(1046,70);
+      $('ff-posebox').classList.remove('hit');void $('ff-posebox').offsetWidth;$('ff-posebox').classList.add('hit');}
+    $('ff-pose-msg').textContent=r.inView?'+'+FF_POSE_POINTS+' แต้มต่อครั้ง':'ขยับให้กล้องเห็นตัว';
+  }
+}
+function ffPoseStop(){ffPose.on=false;cancelAnimationFrame(ffPose.raf);ffPose.runner=null;try{if(aiCam&&!aiOn&&!csOn)aiCam.close()}catch(e){}const b=$('ff-posebox');if(b)b.hidden=true;}
 if(window.MRLoading)MRLoading.ready();
 setTimeout(()=>{try{teacher3Init()}catch(e){}},1500); // โหลดมาสคอต 3D ไว้ก่อนเริ่มเล่น
 </script>
@@ -6026,7 +6106,7 @@ document.body.append(lvOv);
 lvOv.querySelector('.ph-x').onclick=()=>{lvOv.hidden=true};
 lvOv.addEventListener('click',e=>{if(e.target===lvOv)lvOv.hidden=true});
 let lastLv='normal';try{lastLv=localStorage.getItem('pose-hero-level')||'normal'}catch(e){}
-lvOv.querySelectorAll('[data-lv]').forEach(b=>b.onclick=()=>{lvOv.hidden=true;try{localStorage.setItem('pose-hero-level',b.dataset.lv)}catch(e){}heroLevel=b.dataset.lv;$('m-hero').click();});
+lvOv.querySelectorAll('[data-lv]').forEach(b=>b.onclick=()=>{lvOv.hidden=true;try{localStorage.setItem('pose-hero-level',b.dataset.lv)}catch(e){}heroLevel=b.dataset.lv;openInputSetup();});
 $('gl-start').onclick=()=>{lvOv.hidden=false;lvOv.querySelectorAll('[data-lv]').forEach(b=>b.classList.toggle('last',b.dataset.lv===lastLv));(lvOv.querySelector('.last')||lvOv.querySelector('[data-lv]')).focus();try{lastLv=localStorage.getItem('pose-hero-level')||lastLv}catch(e){}};
 wire($('home-menu'));
 
@@ -6278,4 +6358,52 @@ checkOnline().then(refreshMe);
   };
   ch.onmessage=e=>{if(e.data&&e.data.tab!==me)mine.forEach(m=>{try{if(!m.paused)m.pause()}catch(x){}})};
 })();
+
+
+// ===== Before the main mode: choose camera / dance pad / both, and set up the pad (same mapping as Fire Feet) =====
+const inOv=document.createElement('div');inOv.className='notice-ov in-ov';inOv.hidden=true;
+inOv.innerHTML='<div class="notice-card in-card" role="dialog" aria-modal="true" aria-labelledby="in-t"><button type="button" class="ph-x" aria-label="ปิด">✕</button>'+
+ '<p class="ph-kicker" id="in-lv"></p><h2 id="in-t">ตั้งค่าก่อนเริ่มเล่น</h2><p class="ph-small">เลือกสิ่งที่จะใช้เล่น เลือกอย่างเดียวหรือทั้งสองอย่างก็ได้</p>'+
+ '<div class="in-grid">'+
+  '<label class="in-opt"><input type="checkbox" id="in-cam" checked><span class="in-ic">📷</span><b>กล้อง</b><small>ตรวจท่าช่วงบนและนับครั้งให้อัตโนมัติ</small><i id="in-cam-st">ยังไม่ได้ตรวจ</i><button type="button" id="in-cam-test">ทดสอบกล้อง</button></label>'+
+  '<label class="in-opt"><input type="checkbox" id="in-pad" checked><span class="in-ic">🕹️</span><b>แผ่นเต้น</b><small>เหยียบช่องที่สว่างตามจังหวะ ไม่มีแผ่นใช้คีย์บอร์ด (ลูกศร) ได้</small><i id="in-pad-st">กำลังตรวจหาแผ่น…</i><button type="button" id="in-pad-map">ตั้งค่าแผ่น</button></label>'+
+ '</div><p class="in-hint" id="in-hint" role="status"></p>'+
+ '<div class="row"><button type="button" class="p" id="in-go">▶ เริ่มเล่น</button><button type="button" id="in-back">เปลี่ยนความยาก</button></div></div>';
+document.body.append(inOv);
+const LVTH={easy:'ง่าย',normal:'ปานกลาง',hard:'ยาก'};
+let inTimer=0,camStream=null;
+function padState(){
+  if(typeof DPAD==='undefined'||!DPAD)return{ok:false,txt:'เบราว์เซอร์นี้ไม่รองรับแผ่นเต้น — ใช้คีย์บอร์ดแทนได้'};
+  if(DPAD.mode&&DPAD.mode!=='free')return{ok:false,txt:'กำลังตั้งค่าแผ่น… เหยียบตามที่บอก'};
+  if(!DPAD.gamepad)return{ok:false,txt:'ยังไม่พบแผ่นเต้น — เสียบแผ่นแล้วเหยียบ 1 ครั้ง (หรือใช้คีย์บอร์ด)'};
+  if(!DPAD.isMapped)return{ok:false,txt:'พบแผ่นแล้ว — กด "ตั้งค่าแผ่น" (ทำครั้งเดียว ระบบจำไว้)'};
+  return{ok:true,txt:'✓ พร้อมใช้: '+(DPAD.gamepad.id.length>28?DPAD.gamepad.id.slice(0,28)+'…':DPAD.gamepad.id)};
+}
+function paintIn(){
+  const p=padState(),pe=$('in-pad-st');pe.textContent=p.txt;pe.className=p.ok?'ok':'';
+  const cam=$('in-cam').checked,pad=$('in-pad').checked;
+  $('in-cam').closest('.in-opt').classList.toggle('off',!cam);$('in-pad').closest('.in-opt').classList.toggle('off',!pad);
+  $('in-go').disabled=!cam&&!pad;
+  $('in-hint').textContent=!cam&&!pad?'เลือกอย่างน้อย 1 อย่าง':cam&&pad?'เล่นเต็มรูปแบบ: ทำท่าให้กล้องนับ + เหยียบแผ่นตามจังหวะ':cam?'โหมดกล้องอย่างเดียว: มาสคอตยังก้าวให้ดู ทำตามได้แต่ไม่นับการเหยียบ':'โหมดแผ่นเต้นอย่างเดียว: ไม่นับท่าด้วยกล้อง ใช้ปุ่ม +1 ในเมนู ⏸ นับเองได้';
+}
+function openInputSetup(){
+  $('in-lv').textContent='โหมดหลัก · ระดับ'+(LVTH[heroLevel]||'')+' · 20 นาที';
+  try{const v=JSON.parse(localStorage.getItem('pose-hero-inputs')||'{}');if(typeof v.cam==='boolean')$('in-cam').checked=v.cam;if(typeof v.pad==='boolean')$('in-pad').checked=v.pad;}catch(e){}
+  try{if(typeof DPAD!=='undefined'&&DPAD)DPAD.start()}catch(e){}
+  inOv.hidden=false;paintIn();clearInterval(inTimer);inTimer=setInterval(paintIn,400);$('in-go').focus();
+}
+function closeIn(){inOv.hidden=true;clearInterval(inTimer);if(camStream){camStream.getTracks().forEach(t=>t.stop());camStream=null}try{if(typeof DPAD!=='undefined'&&DPAD&&DPAD.mode!=='free')DPAD.cancel()}catch(e){}}
+inOv.querySelector('.ph-x').onclick=closeIn;
+$('in-back').onclick=()=>{closeIn();$('gl-start').click()};
+$('in-cam').onchange=$('in-pad').onchange=paintIn;
+$('in-cam-test').onclick=async e=>{e.preventDefault();const st=$('in-cam-st');st.textContent='กำลังขอสิทธิ์กล้อง…';st.className='';
+  try{camStream=await navigator.mediaDevices.getUserMedia({video:true});st.textContent='✓ กล้องใช้งานได้';st.className='ok';setTimeout(()=>{if(camStream){camStream.getTracks().forEach(t=>t.stop());camStream=null}},800);}
+  catch(err){st.textContent='เปิดกล้องไม่ได้ — ตรวจสิทธิ์กล้องของเบราว์เซอร์';}};
+$('in-pad-map').onclick=e=>{e.preventDefault();try{DPAD.start();DPAD.bindAll()}catch(x){}paintIn();};
+if(typeof DPAD!=='undefined'&&DPAD)DPAD.on('prompt',m=>{if(!inOv.hidden&&m&&m.text)$('in-hint').textContent=m.text;});
+$('in-go').onclick=()=>{
+  const cam=$('in-cam').checked,pad=$('in-pad').checked;if(!cam&&!pad)return;
+  try{localStorage.setItem('pose-hero-inputs',JSON.stringify({cam,pad}))}catch(e){}
+  heroUseCam=cam;heroUsePad=pad;closeIn();$('m-hero').click();
+};
 </script></body></html>
