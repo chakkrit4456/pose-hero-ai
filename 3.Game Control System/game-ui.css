@@ -389,3 +389,12 @@ html body .lobby-scene::after{z-index:3!important;background:
 #play #info{white-space:nowrap}
 @media(max-aspect-ratio:1/1){#play #info{font-size:clamp(11px,3.2vw,14px)!important;padding:3px 10px!important}#play #name{font-size:clamp(13px,3.8vw,18px)!important;line-height:1.2}}
 @media(max-height:500px) and (min-aspect-ratio:1/1){#play .pl-side .play-state,#play .pl-side #nowp{display:none!important}}
+
+/* ---- Hold timer chip ---- */
+#play .hold-chip{margin:0;padding:6px 14px;border-radius:999px;font-weight:800;font-size:clamp(12px,min(1.4vw,2.4vh),17px);background:#fff;color:#3D5A8A;box-shadow:0 4px 0 #0A3DBF44;text-align:center}
+#play .hold-chip[hidden]{display:none}
+#play .hold-chip.on{background:#14b866;color:#fff;box-shadow:0 4px 0 #0b7a43;animation:hold-pulse 1s ease-in-out infinite}
+@keyframes hold-pulse{50%{transform:scale(1.05)}}
+#play #big.holding{box-shadow:0 0 0 6px #14b86655,0 8px 0 #0A3DBF55!important}
+#play #big.holding::before{box-shadow:inset 0 0 0 4px #14b866!important}
+@media(max-aspect-ratio:1/1){#play .pl-side .hold-chip{grid-column:2;font-size:12px;padding:4px 10px}}

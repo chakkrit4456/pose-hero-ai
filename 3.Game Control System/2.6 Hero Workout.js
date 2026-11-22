@@ -11,21 +11,29 @@ const PHASES = {
   cooldown: 'ยืดเหยียดคูลดาวน์',
 };
 
-// ยืดเหยียดก่อนเล่น (โปสเตอร์ข้อ 1, 2, 3, 4, 7)
-const WARMUP = ['neck-tilt', 'shoulder-roll', 'upper-trap', 'basic_10', 'wrist-circle'];
+// ทุกท่าในโหมดหลัก = ท่าช่วงบนที่กล้องนับได้ + ก้าวบนแผ่นเต้นที่ร่างกายทำพร้อมกันได้จริง (ผู้เล่นคนเดียวทำทั้งสองอย่าง)
+// steps = ลำดับแผ่นที่ต้องเหยียบ 1 ก้าวต่อ 1 จังหวะท่า (u=บน d=ล่าง l=ซ้าย r=ขวา)
+// ตัดออก: ท่าข้อมือ (กล้องระยะเต็มตัวนับยาก) และท่าซ้ำ: ยืดบ่า (ตัวนับเดียวกับเอียงคอ), ยักไหล่ (ตัวนับเดียวกับหมุนไหล่)
+const STRETCH_SPEED = 0.7; // ช่วงยืดเหยียด: ก้าวช้า ๆ
 
-// ท่าคอมโบ: ท่าช่วงบนที่กล้องตรวจ + รูปแบบก้าวบนแผ่นที่ร่างกายทำพร้อมกันได้จริง (ท่าแอโรบิกมาตรฐาน)
-// steps = ลำดับแผ่นที่ต้องเหยียบ วนซ้ำ 1 ก้าวต่อ 1 จังหวะท่า (u=บน d=ล่าง l=ซ้าย r=ขวา)
-// ท่าคอมโบแต่ละระดับ: ท่าช่วงบนที่กล้องตรวจ + ก้าวบนแผ่นที่ร่างกายทำพร้อมกันได้จริง (u=บน d=ล่าง l=ซ้าย r=ขวา)
-// ทุกระดับใช้เวลาเท่ากัน (10 ท่า x 60 วินาที) ต่างกันที่ท่า ความเร็ว และความหนัก
+// ยืดเหยียดวอร์มอัพ
+const WARMUP = [
+  { id: 'neck-tilt', title: 'เอียงคอ + ก้าวข้าง', steps: ['l', 'r'], cue: 'เอียงศีรษะไปทางเดียวกับเท้าที่ก้าวออกด้านข้าง ช้า ๆ' },
+  { id: 'shoulder-roll', title: 'หมุนไหล่ + ย่ำเท้า', steps: ['l', 'r'], cue: 'หมุนไหล่ไปด้านหลังเป็นวง ทุกรอบย่ำเท้าซ้าย/ขวาเบา ๆ' },
+  { id: 'basic_05', title: 'เอียงลำตัว + ก้าวข้าง', steps: ['l', 'r'], cue: 'ก้าวเท้าออกข้างหนึ่ง แล้วเอียงลำตัวไปทางเดียวกัน' },
+  { id: 'seated-twist', title: 'บิดลำตัว + ก้าวข้าง', steps: ['l', 'r'], cue: 'บิดลำตัวไปทางเดียวกับเท้าที่ก้าว สะโพกนิ่ง' },
+  { id: 'basic_10', title: 'ยืดแขนเหนือศีรษะ + ก้าวแตะ', steps: ['l', 'r'], cue: 'ประสานมือเหยียดแขนขึ้นค้างไว้ เท้าก้าวแตะซ้าย-ขวาช้า ๆ' },
+];
+
+// ท่าคอมโบแต่ละระดับ: ทุกระดับ 10 ท่า x 60 วินาที ต่างกันที่ท่า ความเร็ว และความหนัก
 const LEVELS = {
   easy: {
     label: 'ง่าย', speed: 0.8, desc: 'แรงกระแทกต่ำ ท่าช้า เท้าก้าวข้างเบา ๆ เหมาะกับผู้เริ่มต้น',
     combos: [
       { id: 'basic_01', title: 'สเต็ปทัชกางแขน', steps: ['l', 'r'], cue: 'ก้าวเท้าออกด้านข้างช้า ๆ พร้อมกางแขนขึ้นระดับไหล่' },
-      { id: 'shoulder-roll', title: 'ย่ำเท้าหมุนไหล่', steps: ['l', 'r'], cue: 'หมุนไหล่ไปด้านหลังช้า ๆ ทุกรอบย่ำเท้าซ้าย/ขวาเบา ๆ' },
-      { id: 'basic_07', title: 'ก้าวหน้า-หลังยกไหล่', steps: ['u', 'd'], cue: 'ก้าวหน้า-ถอยหลังเป็นจังหวะ ยกไหล่ขึ้นทุกครั้งที่ก้าว' },
+      { id: 'basic_03', title: 'ย่ำเท้างอศอก', steps: ['l', 'r'], cue: 'งอศอกยกมือแตะไหล่ ทุกครั้งที่ย่ำเท้าซ้าย/ขวา' },
       { id: 'basic_02', title: 'ก้าวหน้าเหยียดแขนขึ้น', steps: ['u', 'd'], cue: 'ก้าวไปข้างหน้าพร้อมเหยียดแขนขึ้นเหนือศีรษะ แล้วถอยกลับพร้อมลดแขน' },
+      { id: 'shoulder-roll', title: 'ย่ำเท้าหมุนไหล่', steps: ['l', 'r'], cue: 'หมุนไหล่ไปด้านหลังช้า ๆ ทุกรอบย่ำเท้าซ้าย/ขวาเบา ๆ' },
       { id: 'seated-twist', title: 'ก้าวข้างบิดลำตัว', steps: ['l', 'r'], cue: 'บิดลำตัวเบา ๆ ไปทางเดียวกับเท้าที่ก้าว' },
     ],
   },
@@ -35,9 +43,8 @@ const LEVELS = {
       { id: 'basic_01', title: 'สเต็ปทัชกางแขน', steps: ['l', 'r'], cue: 'ก้าวเท้าออกด้านข้าง พร้อมกางแขนขึ้นระดับไหล่ แล้วลดแขนลงตอนชิดเท้า' },
       { id: 'basic_06', title: 'ย่ำเท้ายกเข่า', steps: ['l', 'r'], cue: 'ยกเข่าขึ้นสลับข้าง แล้ววางเท้าลงบนแผ่นซ้าย/ขวาตามลูกศร' },
       { id: 'basic_02', title: 'ก้าวหน้าเหยียดแขนขึ้น', steps: ['u', 'd'], cue: 'ก้าวเท้าไปข้างหน้าพร้อมเหยียดแขนขึ้นเหนือศีรษะ แล้วถอยกลับพร้อมลดแขน' },
-      // หมุนไหล่เป็นท่าที่แหล่งแนะนำออฟฟิศซินโดรมแนะนำมากที่สุด (PPTV, Post Today) — ย่ำเท้าเบา ๆ ไปพร้อมกัน
-      { id: 'shoulder-roll', title: 'ย่ำเท้าหมุนไหล่', steps: ['l', 'r'], cue: 'หมุนไหล่ไปด้านหลังเป็นวงกว้าง ทุกรอบที่หมุนให้ย่ำเท้าลงแผ่นซ้าย/ขวาสลับกัน' },
-      { id: 'seated-twist', title: 'ก้าวข้างบิดลำตัว', steps: ['l', 'r'], cue: 'ยืนตรง บิดลำตัวไปทางซ้ายพร้อมก้าวเท้าซ้าย แล้วบิดไปขวาพร้อมก้าวเท้าขวา' },
+      { id: 'basic_03', title: 'ย่ำเท้างอศอก', steps: ['l', 'r'], cue: 'งอศอกยกมือแตะไหล่ ทุกครั้งที่ย่ำเท้าซ้าย/ขวา' },
+      { id: 'seated-twist', title: 'ก้าวข้างบิดลำตัว', steps: ['l', 'r'], cue: 'บิดลำตัวไปทางซ้ายพร้อมก้าวเท้าซ้าย แล้วบิดไปขวาพร้อมก้าวเท้าขวา' },
     ],
   },
   hard: {
@@ -54,8 +61,14 @@ const LEVELS = {
 const COMBOS = LEVELS.normal.combos;
 const COMBO_ROUNDS = 2;
 
-// ยืดเหยียดปิดท้าย
-const COOLDOWN = ['basic_10', 'upper-trap', 'neck-tilt', 'shoulder-roll', 'scapular-squeeze'];
+// ยืดเหยียดคูลดาวน์ (ช้าลง หายใจลึก)
+const COOLDOWN = [
+  { id: 'basic_10', title: 'ยืดแขนเหนือศีรษะ + ก้าวแตะ', steps: ['l', 'r'], cue: 'เหยียดแขนขึ้นค้างไว้ หายใจลึก เท้าก้าวแตะซ้าย-ขวาช้า ๆ' },
+  { id: 'basic_05', title: 'เอียงลำตัว + ก้าวข้าง', steps: ['l', 'r'], cue: 'ก้าวเท้าออกข้างหนึ่ง แล้วเอียงลำตัวไปทางเดียวกันช้า ๆ' },
+  { id: 'seated-twist', title: 'บิดลำตัว + ก้าวข้าง', steps: ['l', 'r'], cue: 'บิดลำตัวช้า ๆ ไปทางเท้าที่ก้าว' },
+  { id: 'shoulder-roll', title: 'หมุนไหล่ + ย่ำเท้า', steps: ['l', 'r'], cue: 'หมุนไหล่ช้า ๆ ย่ำเท้าเบา ๆ ผ่อนคลาย' },
+  { id: 'neck-tilt', title: 'เอียงคอ + ก้าวข้าง', steps: ['l', 'r'], cue: 'เอียงศีรษะช้า ๆ ไปทางเท้าที่ก้าว ผ่อนคลายบ่า' },
+];
 
 /**
  * สร้างคิว 20 ท่า (ท่าละ 60 วินาที) จากแคตตาล็อกท่าของเกม
@@ -68,21 +81,20 @@ function buildQueue(catalog, level = 'normal') {
     if (!c) throw new Error('ไม่พบท่า ' + id);
     return c;
   };
-  const item = (id, phase, extra, first) => {
-    const c = byId(id);
-    return Object.assign({
-      id: c.id, name: c.name, target: c.target,
+  const item = (m, phase, speed, first) => {
+    const c = byId(m.id);
+    return {
+      id: c.id, name: m.title + (/ค้าง/.test(c.name) ? ' · ค้าง 15 วิ' : ''), target: c.target,
       reps: Math.max(1, Math.round((c.reps || 10) * BLOCK_SEC / Math.max(BLOCK_SEC, c.durationSec || BLOCK_SEC))),
-      durationSec: BLOCK_SEC, timeBoxed: true, hero: true, phase, phaseLabel: PHASES[phase], steps: null, speed: L.speed, level,
+      durationSec: BLOCK_SEC, timeBoxed: true, hero: true, phase, phaseLabel: PHASES[phase],
+      steps: m.steps.slice(), stepCue: m.cue, speed, level,
       restBeforeSec: first ? PHASE_GAP_SEC : 0,
-    }, extra || {});
+    };
   };
   const q = [];
-  WARMUP.forEach((id, i) => q.push(item(id, 'warmup', null, false)));
-  for (let r = 0; r < COMBO_ROUNDS; r++) {
-    L.combos.forEach((m, i) => q.push(item(m.id, 'combo', { name: m.title + ' (' + byId(m.id).name + ')', steps: m.steps.slice(), stepCue: m.cue }, r === 0 && i === 0)));
-  }
-  COOLDOWN.forEach((id, i) => q.push(item(id, 'cooldown', null, i === 0)));
+  WARMUP.forEach((m) => q.push(item(m, 'warmup', STRETCH_SPEED, false)));
+  for (let r = 0; r < COMBO_ROUNDS; r++) L.combos.forEach((m, i) => q.push(item(m, 'combo', L.speed, r === 0 && i === 0)));
+  COOLDOWN.forEach((m, i) => q.push(item(m, 'cooldown', STRETCH_SPEED, i === 0)));
   return q;
 }
 

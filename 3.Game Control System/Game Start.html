@@ -1381,6 +1381,15 @@ html body .lobby-scene::after{z-index:3!important;background:
 #play #info{white-space:nowrap}
 @media(max-aspect-ratio:1/1){#play #info{font-size:clamp(11px,3.2vw,14px)!important;padding:3px 10px!important}#play #name{font-size:clamp(13px,3.8vw,18px)!important;line-height:1.2}}
 @media(max-height:500px) and (min-aspect-ratio:1/1){#play .pl-side .play-state,#play .pl-side #nowp{display:none!important}}
+
+/* ---- Hold timer chip ---- */
+#play .hold-chip{margin:0;padding:6px 14px;border-radius:999px;font-weight:800;font-size:clamp(12px,min(1.4vw,2.4vh),17px);background:#fff;color:#3D5A8A;box-shadow:0 4px 0 #0A3DBF44;text-align:center}
+#play .hold-chip[hidden]{display:none}
+#play .hold-chip.on{background:#14b866;color:#fff;box-shadow:0 4px 0 #0b7a43;animation:hold-pulse 1s ease-in-out infinite}
+@keyframes hold-pulse{50%{transform:scale(1.05)}}
+#play #big.holding{box-shadow:0 0 0 6px #14b86655,0 8px 0 #0A3DBF55!important}
+#play #big.holding::before{box-shadow:inset 0 0 0 4px #14b866!important}
+@media(max-aspect-ratio:1/1){#play .pl-side .hold-chip{grid-column:2;font-size:12px;padding:4px 10px}}
 </style></head><body>
 <div id="app-loading" role="status" aria-live="polite" aria-busy="true"><div><div class="loading-ring" aria-hidden="true"></div><h2>POSE HERO AI</h2><p id="loading-message">กำลังเตรียมหน้าเกม…</p><p id="loading-detail">กรุณารอสักครู่</p><button id="loading-retry" type="button" hidden>ลองโหลดใหม่</button></div></div>
 <noscript><style>#app-loading{display:none}html.app-loading{overflow:auto}html.app-loading main{visibility:visible}</style><p>กรุณาเปิด JavaScript เพื่อเล่นเกมนี้</p></noscript>
@@ -1604,6 +1613,7 @@ html body .lobby-scene::after{z-index:3!important;background:
  <div class="pl-side">
   <p class="c err" id="camerr"></p>
   <p class="c aimsg" id="aimsg"></p>
+  <p id="hold-chip" class="hold-chip" hidden></p>
   <div class="big" id="big">3</div>
   <p class="c" id="name" style="font-size:20px;font-weight:600"></p>
   <p class="c" id="info"></p>
@@ -1750,21 +1760,29 @@ const PHASES = {
   cooldown: 'ยืดเหยียดคูลดาวน์',
 };
 
-// ยืดเหยียดก่อนเล่น (โปสเตอร์ข้อ 1, 2, 3, 4, 7)
-const WARMUP = ['neck-tilt', 'shoulder-roll', 'upper-trap', 'basic_10', 'wrist-circle'];
+// ทุกท่าในโหมดหลัก = ท่าช่วงบนที่กล้องนับได้ + ก้าวบนแผ่นเต้นที่ร่างกายทำพร้อมกันได้จริง (ผู้เล่นคนเดียวทำทั้งสองอย่าง)
+// steps = ลำดับแผ่นที่ต้องเหยียบ 1 ก้าวต่อ 1 จังหวะท่า (u=บน d=ล่าง l=ซ้าย r=ขวา)
+// ตัดออก: ท่าข้อมือ (กล้องระยะเต็มตัวนับยาก) และท่าซ้ำ: ยืดบ่า (ตัวนับเดียวกับเอียงคอ), ยักไหล่ (ตัวนับเดียวกับหมุนไหล่)
+const STRETCH_SPEED = 0.7; // ช่วงยืดเหยียด: ก้าวช้า ๆ
 
-// ท่าคอมโบ: ท่าช่วงบนที่กล้องตรวจ + รูปแบบก้าวบนแผ่นที่ร่างกายทำพร้อมกันได้จริง (ท่าแอโรบิกมาตรฐาน)
-// steps = ลำดับแผ่นที่ต้องเหยียบ วนซ้ำ 1 ก้าวต่อ 1 จังหวะท่า (u=บน d=ล่าง l=ซ้าย r=ขวา)
-// ท่าคอมโบแต่ละระดับ: ท่าช่วงบนที่กล้องตรวจ + ก้าวบนแผ่นที่ร่างกายทำพร้อมกันได้จริง (u=บน d=ล่าง l=ซ้าย r=ขวา)
-// ทุกระดับใช้เวลาเท่ากัน (10 ท่า x 60 วินาที) ต่างกันที่ท่า ความเร็ว และความหนัก
+// ยืดเหยียดวอร์มอัพ
+const WARMUP = [
+  { id: 'neck-tilt', title: 'เอียงคอ + ก้าวข้าง', steps: ['l', 'r'], cue: 'เอียงศีรษะไปทางเดียวกับเท้าที่ก้าวออกด้านข้าง ช้า ๆ' },
+  { id: 'shoulder-roll', title: 'หมุนไหล่ + ย่ำเท้า', steps: ['l', 'r'], cue: 'หมุนไหล่ไปด้านหลังเป็นวง ทุกรอบย่ำเท้าซ้าย/ขวาเบา ๆ' },
+  { id: 'basic_05', title: 'เอียงลำตัว + ก้าวข้าง', steps: ['l', 'r'], cue: 'ก้าวเท้าออกข้างหนึ่ง แล้วเอียงลำตัวไปทางเดียวกัน' },
+  { id: 'seated-twist', title: 'บิดลำตัว + ก้าวข้าง', steps: ['l', 'r'], cue: 'บิดลำตัวไปทางเดียวกับเท้าที่ก้าว สะโพกนิ่ง' },
+  { id: 'basic_10', title: 'ยืดแขนเหนือศีรษะ + ก้าวแตะ', steps: ['l', 'r'], cue: 'ประสานมือเหยียดแขนขึ้นค้างไว้ เท้าก้าวแตะซ้าย-ขวาช้า ๆ' },
+];
+
+// ท่าคอมโบแต่ละระดับ: ทุกระดับ 10 ท่า x 60 วินาที ต่างกันที่ท่า ความเร็ว และความหนัก
 const LEVELS = {
   easy: {
     label: 'ง่าย', speed: 0.8, desc: 'แรงกระแทกต่ำ ท่าช้า เท้าก้าวข้างเบา ๆ เหมาะกับผู้เริ่มต้น',
     combos: [
       { id: 'basic_01', title: 'สเต็ปทัชกางแขน', steps: ['l', 'r'], cue: 'ก้าวเท้าออกด้านข้างช้า ๆ พร้อมกางแขนขึ้นระดับไหล่' },
-      { id: 'shoulder-roll', title: 'ย่ำเท้าหมุนไหล่', steps: ['l', 'r'], cue: 'หมุนไหล่ไปด้านหลังช้า ๆ ทุกรอบย่ำเท้าซ้าย/ขวาเบา ๆ' },
-      { id: 'basic_07', title: 'ก้าวหน้า-หลังยกไหล่', steps: ['u', 'd'], cue: 'ก้าวหน้า-ถอยหลังเป็นจังหวะ ยกไหล่ขึ้นทุกครั้งที่ก้าว' },
+      { id: 'basic_03', title: 'ย่ำเท้างอศอก', steps: ['l', 'r'], cue: 'งอศอกยกมือแตะไหล่ ทุกครั้งที่ย่ำเท้าซ้าย/ขวา' },
       { id: 'basic_02', title: 'ก้าวหน้าเหยียดแขนขึ้น', steps: ['u', 'd'], cue: 'ก้าวไปข้างหน้าพร้อมเหยียดแขนขึ้นเหนือศีรษะ แล้วถอยกลับพร้อมลดแขน' },
+      { id: 'shoulder-roll', title: 'ย่ำเท้าหมุนไหล่', steps: ['l', 'r'], cue: 'หมุนไหล่ไปด้านหลังช้า ๆ ทุกรอบย่ำเท้าซ้าย/ขวาเบา ๆ' },
       { id: 'seated-twist', title: 'ก้าวข้างบิดลำตัว', steps: ['l', 'r'], cue: 'บิดลำตัวเบา ๆ ไปทางเดียวกับเท้าที่ก้าว' },
     ],
   },
@@ -1774,9 +1792,8 @@ const LEVELS = {
       { id: 'basic_01', title: 'สเต็ปทัชกางแขน', steps: ['l', 'r'], cue: 'ก้าวเท้าออกด้านข้าง พร้อมกางแขนขึ้นระดับไหล่ แล้วลดแขนลงตอนชิดเท้า' },
       { id: 'basic_06', title: 'ย่ำเท้ายกเข่า', steps: ['l', 'r'], cue: 'ยกเข่าขึ้นสลับข้าง แล้ววางเท้าลงบนแผ่นซ้าย/ขวาตามลูกศร' },
       { id: 'basic_02', title: 'ก้าวหน้าเหยียดแขนขึ้น', steps: ['u', 'd'], cue: 'ก้าวเท้าไปข้างหน้าพร้อมเหยียดแขนขึ้นเหนือศีรษะ แล้วถอยกลับพร้อมลดแขน' },
-      // หมุนไหล่เป็นท่าที่แหล่งแนะนำออฟฟิศซินโดรมแนะนำมากที่สุด (PPTV, Post Today) — ย่ำเท้าเบา ๆ ไปพร้อมกัน
-      { id: 'shoulder-roll', title: 'ย่ำเท้าหมุนไหล่', steps: ['l', 'r'], cue: 'หมุนไหล่ไปด้านหลังเป็นวงกว้าง ทุกรอบที่หมุนให้ย่ำเท้าลงแผ่นซ้าย/ขวาสลับกัน' },
-      { id: 'seated-twist', title: 'ก้าวข้างบิดลำตัว', steps: ['l', 'r'], cue: 'ยืนตรง บิดลำตัวไปทางซ้ายพร้อมก้าวเท้าซ้าย แล้วบิดไปขวาพร้อมก้าวเท้าขวา' },
+      { id: 'basic_03', title: 'ย่ำเท้างอศอก', steps: ['l', 'r'], cue: 'งอศอกยกมือแตะไหล่ ทุกครั้งที่ย่ำเท้าซ้าย/ขวา' },
+      { id: 'seated-twist', title: 'ก้าวข้างบิดลำตัว', steps: ['l', 'r'], cue: 'บิดลำตัวไปทางซ้ายพร้อมก้าวเท้าซ้าย แล้วบิดไปขวาพร้อมก้าวเท้าขวา' },
     ],
   },
   hard: {
@@ -1793,8 +1810,14 @@ const LEVELS = {
 const COMBOS = LEVELS.normal.combos;
 const COMBO_ROUNDS = 2;
 
-// ยืดเหยียดปิดท้าย
-const COOLDOWN = ['basic_10', 'upper-trap', 'neck-tilt', 'shoulder-roll', 'scapular-squeeze'];
+// ยืดเหยียดคูลดาวน์ (ช้าลง หายใจลึก)
+const COOLDOWN = [
+  { id: 'basic_10', title: 'ยืดแขนเหนือศีรษะ + ก้าวแตะ', steps: ['l', 'r'], cue: 'เหยียดแขนขึ้นค้างไว้ หายใจลึก เท้าก้าวแตะซ้าย-ขวาช้า ๆ' },
+  { id: 'basic_05', title: 'เอียงลำตัว + ก้าวข้าง', steps: ['l', 'r'], cue: 'ก้าวเท้าออกข้างหนึ่ง แล้วเอียงลำตัวไปทางเดียวกันช้า ๆ' },
+  { id: 'seated-twist', title: 'บิดลำตัว + ก้าวข้าง', steps: ['l', 'r'], cue: 'บิดลำตัวช้า ๆ ไปทางเท้าที่ก้าว' },
+  { id: 'shoulder-roll', title: 'หมุนไหล่ + ย่ำเท้า', steps: ['l', 'r'], cue: 'หมุนไหล่ช้า ๆ ย่ำเท้าเบา ๆ ผ่อนคลาย' },
+  { id: 'neck-tilt', title: 'เอียงคอ + ก้าวข้าง', steps: ['l', 'r'], cue: 'เอียงศีรษะช้า ๆ ไปทางเท้าที่ก้าว ผ่อนคลายบ่า' },
+];
 
 /**
  * สร้างคิว 20 ท่า (ท่าละ 60 วินาที) จากแคตตาล็อกท่าของเกม
@@ -1807,21 +1830,20 @@ function buildQueue(catalog, level = 'normal') {
     if (!c) throw new Error('ไม่พบท่า ' + id);
     return c;
   };
-  const item = (id, phase, extra, first) => {
-    const c = byId(id);
-    return Object.assign({
-      id: c.id, name: c.name, target: c.target,
+  const item = (m, phase, speed, first) => {
+    const c = byId(m.id);
+    return {
+      id: c.id, name: m.title + (/ค้าง/.test(c.name) ? ' · ค้าง 15 วิ' : ''), target: c.target,
       reps: Math.max(1, Math.round((c.reps || 10) * BLOCK_SEC / Math.max(BLOCK_SEC, c.durationSec || BLOCK_SEC))),
-      durationSec: BLOCK_SEC, timeBoxed: true, hero: true, phase, phaseLabel: PHASES[phase], steps: null, speed: L.speed, level,
+      durationSec: BLOCK_SEC, timeBoxed: true, hero: true, phase, phaseLabel: PHASES[phase],
+      steps: m.steps.slice(), stepCue: m.cue, speed, level,
       restBeforeSec: first ? PHASE_GAP_SEC : 0,
-    }, extra || {});
+    };
   };
   const q = [];
-  WARMUP.forEach((id, i) => q.push(item(id, 'warmup', null, false)));
-  for (let r = 0; r < COMBO_ROUNDS; r++) {
-    L.combos.forEach((m, i) => q.push(item(m.id, 'combo', { name: m.title + ' (' + byId(m.id).name + ')', steps: m.steps.slice(), stepCue: m.cue }, r === 0 && i === 0)));
-  }
-  COOLDOWN.forEach((id, i) => q.push(item(id, 'cooldown', null, i === 0)));
+  WARMUP.forEach((m) => q.push(item(m, 'warmup', STRETCH_SPEED, false)));
+  for (let r = 0; r < COMBO_ROUNDS; r++) L.combos.forEach((m, i) => q.push(item(m, 'combo', L.speed, r === 0 && i === 0)));
+  COOLDOWN.forEach((m, i) => q.push(item(m, 'cooldown', STRETCH_SPEED, i === 0)));
   return q;
 }
 
@@ -4432,7 +4454,10 @@ function render(){
   if(window.MRBeginner)MRBeginner.playStatus(p);
   if(st.status==='countdown'){$('big').textContent=p.countdownLeftSec;$('name').textContent='เตรียมตัว '+st.playerName+'...';$('info').textContent='';return;}
   if(!p.exercise)return;
-  $('big').textContent=p.resting?p.restLeftSec:p.repsDone+'/'+p.exercise.reps;
+  const hs=!p.resting&&holdState.id===p.exercise.id&&holdState.need?holdState:null;
+  $('big').textContent=p.resting?p.restLeftSec:hs?Math.floor(hs.t)+'/'+hs.need+' วิ':p.repsDone+'/'+p.exercise.reps;
+  $('big').classList.toggle('holding',!!(hs&&hs.on));
+  const hc=$('hold-chip');if(hc){hc.hidden=!hs;if(hs){hc.className='hold-chip'+(hs.on?' on':'');hc.textContent=hs.t>=hs.need-0.05?'✓ ครบ '+hs.need+' วินาทีแล้ว! ทำซ้ำได้อีก':hs.on?'✓ ท่าถูกแล้ว กำลังนับเวลา…':'ยืดให้ถึงท่าเพื่อเริ่มนับเวลา';}}
   $('name').textContent=(p.resting?'พัก — ถัดไป: ':'')+p.exercise.name+` (${p.index+1}/${p.total})`;
   $('info').textContent=st.status==='paused'?'หยุดชั่วคราว':`เหลือเวลา ${p.timeLeftSec} วินาที`;
 }
@@ -4581,10 +4606,12 @@ function s2Landmarks(J){
 // ท่าช่วงบน (คอ ไหล่ แขน ข้อมือ บิดตัว) ไม่ต้องเห็นสะโพก/ขา: นั่งใกล้กล้องก็นับได้
 const LOWER_COUNTERS=['left_knee','right_knee','legs','torso_bend'];
 const LOWER_JOINT=/(hip|knee|ankle|heel|foot)/;
+let holdState={id:null,on:false,t:0,need:0};
 function lenientEx(e){
   if(!e||e._lenient)return e;
   const c=Object.assign({},e.counter,{reach_ratio:0.65,return_ratio:0.3,rearm_ratio:0.5,hold_ratio:0.6,rep_dwell_sec:0.15});
   const ang=[].concat(e.counter.angle),upper=!ang.some(a=>LOWER_COUNTERS.includes(a))&&e.id!=='basic_05';
+  if(e.id==='shoulder-roll')Object.assign(c,{reach_ratio:0.3,return_ratio:0.15,rearm_ratio:0.25,rep_dwell_sec:0.1}); // หมุนไหล่: ขยับไหล่นิดเดียวก็นับ
   const out=Object.assign({},e,{counter:c,_lenient:true,_upper:upper});
   if(upper){
     const base=e.tracked_joints&&e.tracked_joints.length?e.tracked_joints:[].concat(...Object.values(e.angles));
@@ -4708,6 +4735,13 @@ function aiFrame(now){
   MR.drawPlayerSkeleton(g,r.joints,r.required,Math.max(1,w/640));
   if(r.summary&&r.summary.average!=null){formScores[id]=r.summary.average;adviceById[id]=r.summary.advice||[];scoresById[id]=r.summary.scores||[];}
   const a=r.analysis;
+  // ท่าค้าง: เก็บสถานะเวลาที่ค้างได้ ให้วงแหวนและป้ายบอกผู้เล่นว่ากำลังนับอยู่หรือไม่
+  if(runner.ex&&runner.ex.counter&&runner.ex.counter.mode==='hold'){
+    const need=+runner.ex.counter.hold_sec||15,t=Math.min(need,a.hold_time||0),on=!!a.holding&&r.stage==='run';
+    if(on&&!holdState.on){beep(880,90);if(window.PHCoach)PHCoach('ดีมาก! ค้างไว้นะครับ')}
+    if(holdState.t<need&&t>=need-0.05)setTimeout(()=>beep(1175,220),0);
+    holdState={id,on,t,need};
+  }else holdState={id:null,on:false,t:0,need:0};
   const ang=$('angles');ang.hidden=!cfg.showAngles;
   if(cfg.showAngles){const cn=aiEx[id].counter;ang.textContent='เป้าหมาย: เริ่ม '+cn.start_angle+'° → ถึง '+cn.target_angle+'° · เฟส: '+(a.phase||'-')+'\n'+(a.angles?Object.keys(a.angles).map(k=>k+': '+(a.angles[k]==null?'-':a.angles[k].toFixed(1)+'°')).join('\n'):'');}
   $('mfill').style.width=Math.round((a.valid?a.progress:0)*100)+'%';
@@ -6007,7 +6041,8 @@ const SCENES={
   dance:['d-map','d-skip','d-reset','dr-ex','dr-menu','dr-home','dr-share','dr-save','dr-copy'],
   fire:['ff-map','ff-skip','fr-ex','fr-menu','fr-home','fr-save','fr-copy'],
   play:['rep','skip','camtog','mnext','end'],
-  combo:['ต่อไปใช้แผ่นเต้นด้วยนะครับ! เหยียบช่องที่สว่าง','ได้เวลาออกกำลังกายพร้อมแผ่นเต้นแล้วครับ!'],
+  warmup:['เหยียบแผ่นช่องที่สว่างพร้อมทำท่าไปด้วยนะครับ!','วอร์มอัพกัน ก้าวตามแผ่นพร้อมยืดตัวครับ'],
+  combo:['ได้เวลาออกกำลังกายแล้ว! เร่งจังหวะกันครับ','เข้าช่วงออกกำลังกาย ก้าวตามแผ่นให้ทันนะครับ!'],
   cooldown:['ยืดเหยียดผ่อนคลายกันครับ','เก่งมาก! มาคูลดาวน์กันครับ'],
   done:['weak','tohome','dl','prt','share-go','share-save','share-copy'],
   level:[],manage:[]
@@ -6059,6 +6094,7 @@ const L={
   done:['สุดยอด! จบแล้ว เก่งมากครับ!','เยี่ยมมาก! วันนี้ทำได้ดีมากครับ']
 };
 let hideT=0,lastSay=0;
+window.PHCoach=t=>pop(t,true);
 function pop(text,force){
   const now=Date.now();if(!force&&now-lastSay<4500)return;lastSay=now;
   say.textContent=text;box.hidden=false;box.classList.remove('coach-in');void box.offsetWidth;box.classList.add('coach-in');

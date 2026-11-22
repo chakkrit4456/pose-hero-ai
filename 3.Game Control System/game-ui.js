@@ -43,7 +43,8 @@ const SCENES={
   dance:['d-map','d-skip','d-reset','dr-ex','dr-menu','dr-home','dr-share','dr-save','dr-copy'],
   fire:['ff-map','ff-skip','fr-ex','fr-menu','fr-home','fr-save','fr-copy'],
   play:['rep','skip','camtog','mnext','end'],
-  combo:['ต่อไปใช้แผ่นเต้นด้วยนะครับ! เหยียบช่องที่สว่าง','ได้เวลาออกกำลังกายพร้อมแผ่นเต้นแล้วครับ!'],
+  warmup:['เหยียบแผ่นช่องที่สว่างพร้อมทำท่าไปด้วยนะครับ!','วอร์มอัพกัน ก้าวตามแผ่นพร้อมยืดตัวครับ'],
+  combo:['ได้เวลาออกกำลังกายแล้ว! เร่งจังหวะกันครับ','เข้าช่วงออกกำลังกาย ก้าวตามแผ่นให้ทันนะครับ!'],
   cooldown:['ยืดเหยียดผ่อนคลายกันครับ','เก่งมาก! มาคูลดาวน์กันครับ'],
   done:['weak','tohome','dl','prt','share-go','share-save','share-copy'],
   level:[],manage:[]
@@ -95,6 +96,7 @@ const L={
   done:['สุดยอด! จบแล้ว เก่งมากครับ!','เยี่ยมมาก! วันนี้ทำได้ดีมากครับ']
 };
 let hideT=0,lastSay=0;
+window.PHCoach=t=>pop(t,true);
 function pop(text,force){
   const now=Date.now();if(!force&&now-lastSay<4500)return;lastSay=now;
   say.textContent=text;box.hidden=false;box.classList.remove('coach-in');void box.offsetWidth;box.classList.add('coach-in');

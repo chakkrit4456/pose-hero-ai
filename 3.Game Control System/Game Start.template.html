@@ -921,6 +921,7 @@ main:has(#done:not([hidden])){max-width:820px}
  <div class="pl-side">
   <p class="c err" id="camerr"></p>
   <p class="c aimsg" id="aimsg"></p>
+  <p id="hold-chip" class="hold-chip" hidden></p>
   <div class="big" id="big">3</div>
   <p class="c" id="name" style="font-size:20px;font-weight:600"></p>
   <p class="c" id="info"></p>
@@ -1358,7 +1359,10 @@ function render(){
   if(window.MRBeginner)MRBeginner.playStatus(p);
   if(st.status==='countdown'){$('big').textContent=p.countdownLeftSec;$('name').textContent='เตรียมตัว '+st.playerName+'...';$('info').textContent='';return;}
   if(!p.exercise)return;
-  $('big').textContent=p.resting?p.restLeftSec:p.repsDone+'/'+p.exercise.reps;
+  const hs=!p.resting&&holdState.id===p.exercise.id&&holdState.need?holdState:null;
+  $('big').textContent=p.resting?p.restLeftSec:hs?Math.floor(hs.t)+'/'+hs.need+' วิ':p.repsDone+'/'+p.exercise.reps;
+  $('big').classList.toggle('holding',!!(hs&&hs.on));
+  const hc=$('hold-chip');if(hc){hc.hidden=!hs;if(hs){hc.className='hold-chip'+(hs.on?' on':'');hc.textContent=hs.t>=hs.need-0.05?'✓ ครบ '+hs.need+' วินาทีแล้ว! ทำซ้ำได้อีก':hs.on?'✓ ท่าถูกแล้ว กำลังนับเวลา…':'ยืดให้ถึงท่าเพื่อเริ่มนับเวลา';}}
   $('name').textContent=(p.resting?'พัก — ถัดไป: ':'')+p.exercise.name+` (${p.index+1}/${p.total})`;
   $('info').textContent=st.status==='paused'?'หยุดชั่วคราว':`เหลือเวลา ${p.timeLeftSec} วินาที`;
 }
@@ -1507,10 +1511,12 @@ function s2Landmarks(J){
 // ท่าช่วงบน (คอ ไหล่ แขน ข้อมือ บิดตัว) ไม่ต้องเห็นสะโพก/ขา: นั่งใกล้กล้องก็นับได้
 const LOWER_COUNTERS=['left_knee','right_knee','legs','torso_bend'];
 const LOWER_JOINT=/(hip|knee|ankle|heel|foot)/;
+let holdState={id:null,on:false,t:0,need:0};
 function lenientEx(e){
   if(!e||e._lenient)return e;
   const c=Object.assign({},e.counter,{reach_ratio:0.65,return_ratio:0.3,rearm_ratio:0.5,hold_ratio:0.6,rep_dwell_sec:0.15});
   const ang=[].concat(e.counter.angle),upper=!ang.some(a=>LOWER_COUNTERS.includes(a))&&e.id!=='basic_05';
+  if(e.id==='shoulder-roll')Object.assign(c,{reach_ratio:0.3,return_ratio:0.15,rearm_ratio:0.25,rep_dwell_sec:0.1}); // หมุนไหล่: ขยับไหล่นิดเดียวก็นับ
   const out=Object.assign({},e,{counter:c,_lenient:true,_upper:upper});
   if(upper){
     const base=e.tracked_joints&&e.tracked_joints.length?e.tracked_joints:[].concat(...Object.values(e.angles));
@@ -1634,6 +1640,13 @@ function aiFrame(now){
   MR.drawPlayerSkeleton(g,r.joints,r.required,Math.max(1,w/640));
   if(r.summary&&r.summary.average!=null){formScores[id]=r.summary.average;adviceById[id]=r.summary.advice||[];scoresById[id]=r.summary.scores||[];}
   const a=r.analysis;
+  // ท่าค้าง: เก็บสถานะเวลาที่ค้างได้ ให้วงแหวนและป้ายบอกผู้เล่นว่ากำลังนับอยู่หรือไม่
+  if(runner.ex&&runner.ex.counter&&runner.ex.counter.mode==='hold'){
+    const need=+runner.ex.counter.hold_sec||15,t=Math.min(need,a.hold_time||0),on=!!a.holding&&r.stage==='run';
+    if(on&&!holdState.on){beep(880,90);if(window.PHCoach)PHCoach('ดีมาก! ค้างไว้นะครับ')}
+    if(holdState.t<need&&t>=need-0.05)setTimeout(()=>beep(1175,220),0);
+    holdState={id,on,t,need};
+  }else holdState={id:null,on:false,t:0,need:0};
   const ang=$('angles');ang.hidden=!cfg.showAngles;
   if(cfg.showAngles){const cn=aiEx[id].counter;ang.textContent='เป้าหมาย: เริ่ม '+cn.start_angle+'° → ถึง '+cn.target_angle+'° · เฟส: '+(a.phase||'-')+'\n'+(a.angles?Object.keys(a.angles).map(k=>k+': '+(a.angles[k]==null?'-':a.angles[k].toFixed(1)+'°')).join('\n'):'');}
   $('mfill').style.width=Math.round((a.valid?a.progress:0)*100)+'%';
