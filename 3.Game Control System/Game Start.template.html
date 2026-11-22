@@ -962,7 +962,7 @@ main:has(#done:not([hidden])){max-width:820px}
 <script src="dance/dancepad.js"></script>
 <script>
 /*__MODULES__*/
-const HW=require('./2.6'),G=require('./2.1'),S=require('./2.2'),P=require('./2.3'),E=require('./2.4'),C=require('./2.5'),Sm=require('./7.4'),H=require('./7.5'),Sc=require('./7.6'),St=require('./7.7'),DC=require('./8.1'),DJ=require('./8.2'),DR=require('./8.3'),WN=require('./9.1'),WR=require('./9.2'),WB=require('./9.3'),WP=require('./9.4'),WM=require('./9.5'),WK=require('./9.6'),FF=require('./8.5'),SL=require('./8.6'),N1=require('./6.1'),N2=require('./6.2'),N3=require('./6.3'),N4=require('./6.4');
+const HW=require('./2.6'),MM=require('./2.7'),G=require('./2.1'),S=require('./2.2'),P=require('./2.3'),E=require('./2.4'),C=require('./2.5'),Sm=require('./7.4'),H=require('./7.5'),Sc=require('./7.6'),St=require('./7.7'),DC=require('./8.1'),DJ=require('./8.2'),DR=require('./8.3'),WN=require('./9.1'),WR=require('./9.2'),WB=require('./9.3'),WP=require('./9.4'),WM=require('./9.5'),WK=require('./9.6'),FF=require('./8.5'),SL=require('./8.6'),N1=require('./6.1'),N2=require('./6.2'),N3=require('./6.3'),N4=require('./6.4');
 var toastT=0,dActive=false,csOn=false,nxTimer=0,chain={pending:false,active:false,counted:false,plan:null};
 const $=id=>document.getElementById(id);
 const PAGES=['home','level','settings','setup','play','done','manage','stats','dance','fire','routines','camsetup','next'];
@@ -1488,7 +1488,7 @@ function teacher3Draw(lm,t){
 function s2Landmarks(J){
   const k=0.68,fy=0.784,X=x=>0.5+(x-0.5)*k,Y=y=>fy+(y-0.9388)*k,P=(a)=>({x:X(a[0]),y:Y(a[1]),z:0,visibility:1});
   const up=[J.neck[0]-J.hip[0],J.neck[1]-J.hip[1]],len=Math.hypot(up[0],up[1])||1,u=[up[0]/len,up[1]/len];
-  const head=[J.neck[0]+u[0]*0.09,J.neck[1]+u[1]*0.09],side=s=>[head[0]+s*0.02,head[1]];
+  const head=[J.neck[0]+u[0]*0.067,J.neck[1]+u[1]*0.067],side=s=>[head[0]+s*0.02,head[1]];
   const map={nose:head,left_eye_inner:side(-.4),left_eye:side(-.6),left_eye_outer:side(-.8),right_eye_inner:side(.4),right_eye:side(.6),right_eye_outer:side(.8),
     left_ear:side(-1.2),right_ear:side(1.2),mouth_left:[head[0]-0.01,head[1]+0.02],mouth_right:[head[0]+0.01,head[1]+0.02]};
   ['l','r'].forEach(sd=>{const n=sd==='l'?'left_':'right_';
@@ -1498,6 +1498,11 @@ function s2Landmarks(J){
 }
 // ท่าทางของมาสคอตสำหรับท่าใดก็ได้ (ท่า AI, ท่าออฟฟิศ, ท่าของฉัน) เป็นจุด landmark ที่เวลา t
 function teachLandmarks(ex,t){
+  const lm=teachBase(ex,t);if(!lm)return lm;
+  let T=4.8;try{if(AI&&aiEx[ex.id])T=MR.demoTiming(aiEx[ex.id]).T}catch(e){}
+  return MM.mascotPose(ex.id,lm,t,T,MR.LANDMARK_NAMES,ex.steps||null); // ขยับให้เห็นชัดทุกท่า + ขาก้าวตามแผ่นในท่าคอมโบ
+}
+function teachBase(ex,t){
   const id=ex.id;
   if(AI&&aiEx[id])return MR.teachPose(aiEx[id],t);
   if(!window.S2)return null;
@@ -1539,6 +1544,7 @@ function showDemo(on,ex,pause,leftMs){
 // เรียกทุกเฟรม: คืน true เมื่อต้องหยุดเวลาเกมเพื่อโชว์ท่าตัวอย่าง (ช่วงพักแสดงท่าถัดไปโดยไม่หยุดนาฬิกา)
 function demoTick(d){
   const c=st.current;
+  if(!c&&st.status==='countdown'&&st.queue[0]){showDemo(false);showTeach(st.queue[0]);return false;} // นับถอยหลัง: มาสคอตโชว์ท่าแรก
   if(st.status==='finished'||!c){if(st.status!=='paused'){showDemo(false);showTeach(null);closeBn();}return false;}
   if(st.status!=='playing')return false;
   const idx=st.currentIndex;
@@ -2383,6 +2389,7 @@ function heroFrame(){
   const c=st.current,t=performance.now()/1000;
   if(heroIdx!==st.currentIndex){heroIdx=st.currentIndex;
     const ex=c&&c.exercise;if(ex&&ex.steps){heroJudge.setMove(ex.steps,heroPeriod(ex.id));$('hero-cue').textContent=ex.stepCue||'';}else heroJudge.clear();}
+  if(!c&&st.queue[0]&&(st.status==='idle'||st.status==='countdown'))showTeach(st.queue[0]); // ระหว่างเปิดกล้อง/นับถอยหลัง: มาสคอตโชว์ท่าแรก
   const ex=c&&c.exercise,combo=!!(ex&&ex.steps)&&!c.resting&&st.status==='playing';
   $('hero-pad').hidden=!(ex&&ex.steps);
   if(ex){$('hero-phase').textContent=(c.resting?'เตรียมตัว · ':'')+ex.phaseLabel;}

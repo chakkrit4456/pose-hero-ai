@@ -99,7 +99,7 @@
     const g=cv.getContext('2d'),W=cv.width,H=cv.height;
     if(!AI||!aiEx[ex.id]){skeleton=false;const l2=window.teachLandmarks&&teachLandmarks(ex,t);if(l2&&cardTeacher&&cfg.teacher3d!==false){try{cardTeacher.render(l2,null,MR.LANDMARK_NAMES);g.fillStyle='#101418';g.fillRect(0,0,W,H);g.drawImage(teacherCanvas,0,0,W,H);return;}catch(err){}}mascotStill(g,W,H);return;}
     const e=aiEx[ex.id];skeleton=false;
-    const lm=previewMode==='start'&&dialogKind==='pose'?MR.poseFromAngles(MR.teachAngles(e,0),[]):previewMode==='end'&&dialogKind==='pose'?MR.poseFromAngles(MR.teachAngles(e,1),[]):MR.teachPose(e,t);
+    const lm=previewMode==='start'&&dialogKind==='pose'?MR.poseFromAngles(MR.teachAngles(e,0),[]):previewMode==='end'&&dialogKind==='pose'?MR.poseFromAngles(MR.teachAngles(e,1),[]):(window.teachLandmarks?teachLandmarks(ex,t):MR.teachPose(e,t));
     if(!skeleton&&cardTeacher&&cfg.teacher3d!==false){try{cardTeacher.render(lm,null,MR.LANDMARK_NAMES);g.fillStyle='#101418';g.fillRect(0,0,W,H);g.drawImage(teacherCanvas,0,0,W,H);return;}catch(e){cardTeacher=null;}}
     mascotStill(g,W,H);return; // มาสคอต 3D ยังโหลดไม่เสร็จ: แสดงรูปมาสคอต ไม่ใช้โครงกระดูก
     const joints=MR.ghostJoints(lm,MR.SIM_W,MR.SIM_H);

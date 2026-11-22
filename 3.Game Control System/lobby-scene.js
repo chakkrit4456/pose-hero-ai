@@ -100,7 +100,7 @@ function draw(){
  const base=phone.matches?Math.max(5.6,1.25/(2*Math.tan(Math.PI/18)*camera.aspect)+.95):mobile?5.6:5.25;
  const angle=(-35+70*p)*Math.PI/180,distance=base-.95*Math.sin(Math.PI*p);
  camera.position.set(Math.sin(angle)*distance,.28+.12*Math.sin(Math.PI*p),Math.cos(angle)*distance);
- camera.lookAt(mobile?0:-.58,-.03,0);
+ camera.lookAt(0,-.03,0); // มาสคอตอยู่กึ่งกลางจอทุกขนาด
  // Keep dancing while idle; scrolling blends the dance phase without moving the camera on its own.
  const beat=danceTime*Math.PI*1.5;
  const step=Math.sin(beat+p*Math.PI*2.5),bend=18+7*(1-Math.cos(beat*2))+5*Math.sin(p*Math.PI);

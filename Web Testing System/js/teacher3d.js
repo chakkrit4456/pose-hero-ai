@@ -23,10 +23,15 @@
     dirs.spine = dirs.chest = dir3(midHip, midSh, LEN.spine, 1); // ก้มตัว: ไหล่ลงมาใกล้สะโพก = โน้มเข้าหากล้อง
     dirs.neck = dirs.head = dir3(midSh, P("nose"), LEN.neck, 0); // ยกไหล่ทำให้คอดูสั้นลงในภาพ ไม่ได้แปลว่าก้มหัว จึงไม่คิดความลึก
     const width = Math.hypot(RS[0] - LS[0], RS[1] - LS[1]);
+    // ยักไหล่: ไหล่ทั้งสองขยับขึ้นพร้อมกัน จุดกึ่งกลางไหล่จึงขยับตาม ทำให้กระดูกไหปลาร้าไม่เอียง
+    // ใช้ระยะจมูก-ไหล่ (ไม่เปลี่ยนเมื่อเอียงคอ) เทียบกับความกว้างสะโพก: ไหล่เข้าใกล้หัวเท่าไร ไหปลาร้าก็ชี้ขึ้นเท่านั้น
+    const hipW = Math.hypot(RH[0] - LH[0], RH[1] - LH[1]), nose = P("nose");
+    const shrug = Math.max(0, Math.min(0.32 * hipW, 0.378 * hipW - Math.hypot(nose[0] - midSh[0], nose[1] - midSh[1])));
+    const clavBase = [midSh[0], midSh[1] + shrug];
     const yaw = Math.acos(Math.max(-1, Math.min(1, width / (2 * LEN.clavicle))));
     [["L", "left", 1], ["R", "right", -1]].forEach(([s, n, twist]) => {
       const S = P(n + "_shoulder"), E = P(n + "_elbow"), W = P(n + "_wrist"), I = P(n + "_index"), H = P(n + "_hip"), Kn = P(n + "_knee"), A = P(n + "_ankle");
-      dirs["clavicle" + s] = dir3(midSh, S, LEN.clavicle, twist); // บิดตัว: ไหล่แคบลงในภาพ ข้างหนึ่งออกหน้า อีกข้างไปหลัง
+      dirs["clavicle" + s] = dir3(clavBase, S, LEN.clavicle, twist); // บิดตัว: ไหล่แคบลงในภาพ ข้างหนึ่งออกหน้า อีกข้างไปหลัง
       dirs["upperarm" + s] = dir3(S, E, LEN.upperarm, 1);
       dirs["forearm" + s] = dir3(E, W, LEN.forearm, 1);
       dirs["hand" + s] = dir3(W, I, LEN.hand, 1);

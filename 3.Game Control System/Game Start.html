@@ -1140,6 +1140,87 @@ html body .lobby-scene::after{display:block!important;background:linear-gradient
   #hero-pad{display:none!important}
 }
 @media(max-aspect-ratio:1/1) and (max-width:760px){#play #hero-pad:not([hidden]){display:block!important;left:auto;right:12px;bottom:calc(2vh + 32vw*.75 + 12px);width:30vw}#play .hp-grid i{font-size:14px}}
+
+/* =====================================================================
+   THEME: sky blue / white / red  (bright console-fitness look, original design)
+   ===================================================================== */
+:root:root:root:root:root,:root:root:root:root:root[data-theme=dark]{
+  --gb:#1E9BFF;--gb-deep:#0A3DBF;--gb-ink:#0B1F4D;--gw:#FFFFFF;--gr:#FF3448;--gr-deep:#C8102E;--gb-soft:#E6F3FF;
+  --background:#E6F3FF;--surface:#FFFFFF;--surface-secondary:#F2F8FF;--primary:#FF3448;--primary-hover:#E52238;--on-primary:#FFFFFF;--primary-soft:#FFE3E7;
+  --secondary:#1E9BFF;--accent:#1E9BFF;--text-primary:#0B1F4D;--text-secondary:#3D5A8A;--border:#B9DCFF;
+  --bg:#E6F3FF;--card:#FFFFFF;--ink:#0B1F4D;--mut:#3D5A8A;--acc:#1E9BFF;--acc2:#FF3448;--sun:#FF3448;--line:#B9DCFF;--edge:#B9DCFF;--field:#F2F8FF;--chip:#E6F3FF;--nav:#FFFFFF;--hover:#E6F3FF;
+  color-scheme:light}
+body{background:linear-gradient(160deg,#1E9BFF,#0A3DBF)!important;color:#0B1F4D}
+main>section.card:not(#home):not(#play){background:linear-gradient(180deg,#1E9BFF 0,#0A3DBF 118px,#E6F3FF 118px)!important;color:#0B1F4D}
+main>section.card:not(#home):not(#play) :is(.grp,.guide-box,.settings-group,fieldset,.xc,.chainbox,.painbox,.dsel,.rt-card){background:#fff!important;border:0!important;border-radius:20px!important;box-shadow:0 6px 0 #0A3DBF33,0 12px 30px #0A3DBF22!important;color:#0B1F4D}
+main>section.card:not(#home):not(#play)>h2{color:#fff!important;font:900 clamp(24px,3vw,36px)/1.2 Prompt,system-ui,sans-serif;text-shadow:0 3px 0 #0A3DBF;letter-spacing:.02em}
+main>section.card:not(#home):not(#play)>h2::before{display:none!important}
+main>section.card:not(#home):not(#play)>:is(p,.page-intro,.mut){color:#3D5A8A!important}
+main>section.card:not(#home):not(#play)>h2{min-height:54px;margin:0 0 34px!important}
+button.p,#go,#again,#s-save,#nx-go,#dr-again,#fr-again{background:#FF3448!important;color:#fff!important;border:0!important;border-radius:999px!important;box-shadow:0 5px 0 #C8102E!important;font-weight:800!important}
+button.p:active,#go:active{transform:translateY(4px);box-shadow:0 1px 0 #C8102E!important}
+
+/* ---- Lobby ---- */
+html body .lobby-scene{background:linear-gradient(#1E9BFF,#0A3DBF)!important}
+html body .lobby-scene::after{background:radial-gradient(ellipse at 50% 55%,transparent 0 30%,#0A3DBF99 78%),linear-gradient(180deg,#1E9BFFcc 0%,#1E9BFF40 30%,transparent 55%,#0A3DBFd9 100%)!important}
+html body .lobby-scene::before{content:"";position:absolute;inset:-25%;z-index:1;pointer-events:none;opacity:.1;
+  background:repeating-conic-gradient(from 0deg at 50% 45%,#fff 0 6deg,transparent 6deg 18deg);animation:gl-rays 60s linear infinite}
+@keyframes gl-rays{to{transform:rotate(360deg)}}
+@media(prefers-reduced-motion:reduce){html body .lobby-scene::before{animation:none}}
+.gl-title{color:#fff!important;text-shadow:0 5px 0 #C8102E,0 10px 30px #0A3DBF99!important}
+.gl-title span{color:#fff!important;background:#FF3448;border-radius:14px;padding:0 .18em;text-shadow:none;box-shadow:0 5px 0 #C8102E}
+.gl-sub{color:#fff!important;font-weight:700;background:#0A3DBFcc;display:inline-block;padding:4px 16px;border-radius:999px;margin-top:14px!important}
+.gl-start{background:linear-gradient(180deg,#FF5A6B,#FF3448 60%,#E52238)!important;color:#fff!important;border:4px solid #fff!important;box-shadow:0 8px 0 #C8102E,0 14px 40px #FF344880!important;letter-spacing:.04em}
+.gl-start:active{box-shadow:0 2px 0 #C8102E!important}
+.gl-mode{background:#fff!important;color:#0A3DBF!important;border:0!important;font-weight:700}
+.gl-hud{background:#fff;border-radius:999px;padding:6px 16px 6px 6px;box-shadow:0 5px 0 #0A3DBF55}
+.gl-logo{border:0!important;border-radius:999px!important;height:44px;width:auto!important}
+#home #hello{color:#0B1F4D!important}
+#home #lvnow{color:#FF3448!important;font-weight:700}
+
+/* ---- Menus ---- */
+.gm-toggle,.gm-back{background:#fff!important;color:#0A3DBF!important;border:0!important;border-radius:999px!important;box-shadow:0 5px 0 #0A3DBF66!important}
+.gm-panel{background:#fff!important;border:0!important;box-shadow:0 18px 50px #0A3DBF66!important;border-radius:22px!important}
+.gm-panel button{color:#0B1F4D!important;background:#F2F8FF!important;border:2px solid transparent!important;border-radius:14px!important}
+.gm-panel button:hover{border-color:#1E9BFF!important;background:#E6F3FF!important}
+.gm-panel button small{color:#3D5A8A!important}
+.gm-label{color:#FF3448!important}
+.gm-panel .lobby-audio,.gm-panel .lobby-audio *{color:#0B1F4D!important}
+
+/* ---- Play stage ---- */
+#play{background:radial-gradient(ellipse at 30% 35%,#5CC2FF 0,transparent 55%),linear-gradient(160deg,#1E9BFF,#0A3DBF)!important;color:#fff}
+#play #demo{background:radial-gradient(ellipse at 50% 88%,#B9DCFF 0,transparent 45%),#fff!important;border:0!important;box-shadow:0 8px 0 #0A3DBF55,0 20px 50px #0A3DBF44!important}
+#play #demo-cap{color:#0A3DBF!important;text-shadow:none!important}
+#play .camwrap{border:5px solid #fff!important;box-shadow:0 8px 0 #0A3DBF55!important}
+#play .camwrap::before{content:"\25CF  LIVE";position:absolute;top:8px;left:10px;z-index:3;font:800 11px/1 system-ui;color:#fff;background:#FF3448;padding:4px 8px;border-radius:999px}
+#play .camwrap:not(:has(#cam:not([hidden])))::before{display:none}
+#play .camwrap:not(:has(#cam:not([hidden])))::after{color:#fff!important}
+#play .mbar{background:#ffffff55!important}
+#play .mbar i{background:#FF3448!important}
+#play #big{color:#0A3DBF!important;background:conic-gradient(#FF3448 var(--blk,0%),#fff 0)!important;box-shadow:0 8px 0 #0A3DBF55!important}
+#play #big::before{background:#fff!important;box-shadow:inset 0 0 0 4px #E6F3FF}
+#play #name{color:#fff!important;text-shadow:0 3px 0 #0A3DBF}
+#play #info{color:#fff!important;background:#FF3448;border-radius:999px;padding:4px 14px;box-shadow:0 4px 0 #C8102E}
+#play #nowp{background:#ffffff26!important;color:#fff!important}
+#play .play-state{color:#E6F3FF!important}
+#play #aimsg,#play #camerr{color:#0B1F4D!important;background:#fff!important;border:0!important;border-radius:999px!important;padding:6px 14px!important;box-shadow:0 4px 0 #0A3DBF44}
+#hero-hud{background:#fff!important;border:0!important;color:#0B1F4D!important;box-shadow:0 5px 0 #0A3DBF55!important}
+#hero-total{color:#FF3448!important}
+#hero-acc{color:#0A3DBF!important;font-weight:700}
+#hero-pad{background:#fff!important;border:0!important;box-shadow:0 6px 0 #0A3DBF55!important}
+#hero-cue{color:#3D5A8A!important}
+.hp-grid i{background:#E6F3FF!important;border:2px solid #B9DCFF!important;color:#1E9BFF!important}
+.hp-grid i.hp-c{background:transparent!important}
+.hp-grid i.soon{background:#B9DCFF!important;border-color:#1E9BFF!important;color:#0A3DBF!important}
+.hp-grid i.on{background:#FF3448!important;border-color:#C8102E!important;color:#fff!important;box-shadow:0 0 18px #FF344899!important}
+@keyframes hp-hit{50%{background:#1E9BFF;color:#fff;transform:scale(1.15)}}
+
+/* ---- Coach, toasts, loading ---- */
+.coach-say{border-color:#1E9BFF!important;color:#0B1F4D!important;box-shadow:0 6px 0 #0A3DBF55!important}
+.toast{background:#fff!important;color:#0B1F4D!important;border:3px solid #1E9BFF!important;border-radius:18px!important;box-shadow:0 6px 0 #0A3DBF55!important}
+.toast.warn{border-color:#FF3448!important}
+#app-loading{background:linear-gradient(160deg,#1E9BFF,#0A3DBF)!important}
+#app-loading h2{color:#fff!important}
 </style></head><body>
 <div id="app-loading" role="status" aria-live="polite" aria-busy="true"><div><div class="loading-ring" aria-hidden="true"></div><h2>POSE HERO AI</h2><p id="loading-message">กำลังเตรียมหน้าเกม…</p><p id="loading-detail">กรุณารอสักครู่</p><button id="loading-retry" type="button" hidden>ลองโหลดใหม่</button></div></div>
 <noscript><style>#app-loading{display:none}html.app-loading{overflow:auto}html.app-loading main{visibility:visible}</style><p>กรุณาเปิด JavaScript เพื่อเล่นเกมนี้</p></noscript>
@@ -1588,6 +1669,143 @@ function createStepJudge({ windowSec = 0.6 } = {}) {
 }
 
 module.exports = { BLOCK_SEC, PHASES, WARMUP, COMBOS, COOLDOWN, buildQueue, createStepJudge };
+
+};
+__src['2.7']=function(module,exports,require){// 2.7 ท่าสาธิตของมาสคอต — ทำให้มาสคอตขยับให้เห็นชัดในทุกท่า (ใช้แสดงผลเท่านั้น ไม่กระทบการนับของ AI)
+// บางท่า เช่น เอียงคอ หมุนไหล่ หมุนข้อมือ มุมเป้าหมายของตัวตรวจท่าเล็กมาก มาสคอตจึงดูเหมือนยืนนิ่ง
+// โมดูลนี้ปรับจุด landmark ให้ทำท่าจริงตามขั้นตอนของท่านั้นในระยะที่มองเห็นได้
+'use strict';
+
+const TAU = Math.PI * 2;
+const ease = (x) => 0.5 - 0.5 * Math.cos(Math.PI * Math.max(0, Math.min(1, x)));
+const wave = (t, T) => Math.sin((TAU * t) / T);
+
+const HEAD = ['nose', 'left_eye_inner', 'left_eye', 'left_eye_outer', 'right_eye_inner', 'right_eye', 'right_eye_outer', 'left_ear', 'right_ear', 'mouth_left', 'mouth_right'];
+const ARM = (s) => [s + '_elbow', s + '_wrist', s + '_pinky', s + '_index', s + '_thumb'];
+const HAND = (s) => [s + '_pinky', s + '_index', s + '_thumb'];
+const LEG = (s) => [s + '_knee', s + '_ankle', s + '_heel', s + '_foot_index'];
+
+function make(lm, names) {
+  const out = lm.map((q) => Object.assign({}, q));
+  const at = (n) => out[names.indexOf(n)];
+  const move = (list, dx, dy) => list.forEach((n) => { const q = at(n); if (q) { q.x += dx; q.y += dy; } });
+  const rotate = (list, cx, cy, a) => {
+    // หมุนในพื้นที่ภาพ 1280x720 เพื่อไม่ให้รูปร่างบิดเบี้ยว
+    const c = Math.cos(a), s = Math.sin(a);
+    list.forEach((n) => {
+      const q = at(n); if (!q) return;
+      const x = (q.x - cx) * 1280, y = (q.y - cy) * 720;
+      q.x = cx + (x * c - y * s) / 1280; q.y = cy + (x * s + y * c) / 720;
+    });
+  };
+  const set = (n, x, y) => { const q = at(n); if (q) { q.x = x; q.y = y; } };
+  return { out, at, move, rotate, set };
+}
+
+// แต่ละท่า: (ตัวช่วย, t วินาที, T คาบของ 1 ครั้ง) — อ้างอิงขั้นตอนในข้อมูลท่าของเกม
+const MOVES = {
+  // เอียงศีรษะไปซ้ายช้า ๆ ค้าง แล้วเอียงไปขวา
+  'neck-tilt'(h, t, T) {
+    const ls = h.at('left_shoulder'), rs = h.at('right_shoulder');
+    const p = ((t / T) % 2) / 2, side = p < 0.5 ? -1 : 1, k = ease(Math.min(1, Math.sin(Math.PI * ((p * 2) % 1)) * 1.6));
+    h.rotate(HEAD, (ls.x + rs.x) / 2, (ls.y + rs.y) / 2, side * 0.55 * k);
+  },
+  // เอียงศีรษะค้างไว้ข้างหนึ่ง มือข้างตรงข้ามเหยียดลงเพื่อยืดบ่า แล้วสลับข้าง
+  'upper-trap'(h, t) {
+    const ls = h.at('left_shoulder'), rs = h.at('right_shoulder');
+    const seg = 7, u = t % (seg * 2), side = u < seg ? -1 : 1, v = u % seg;
+    const k = ease(Math.min(v / 1.4, (seg - v) / 1.4, 1));
+    h.rotate(HEAD, (ls.x + rs.x) / 2, (ls.y + rs.y) / 2, side * 0.55 * k);
+    const arm = side < 0 ? 'right' : 'left';
+    h.move(ARM(arm), 0, 0.03 * k);
+    h.move([arm + '_shoulder'], 0, 0.018 * k);
+  },
+  // ยกไหล่ขึ้น หมุนไปด้านหลังเป็นวงกลม (สลับซ้าย-ขวาเพื่อให้เห็นวงหมุนชัด)
+  'shoulder-roll'(h, t, T) {
+    const a = (TAU * t) / T;
+    let mx = 0, my = 0;
+    ['left', 'right'].forEach((s, i) => {
+      const ph = a + i * Math.PI, dy = -0.032 * (0.5 + 0.5 * Math.sin(ph)), dx = 0.012 * Math.cos(ph) * (s === 'left' ? -1 : 1);
+      h.move([s + '_shoulder'].concat(ARM(s)), dx, dy); mx += dx / 2; my += dy / 2;
+    });
+    h.move(HEAD, mx, my);
+  },
+  // ยกไหล่ทั้งสองขึ้นเข้าหาหู ค้าง แล้วปล่อยลงช้า ๆ
+  basic_07(h, t, T) {
+    const p = (t % T) / T, k = p < 0.35 ? ease(p / 0.35) : p < 0.6 ? 1 : 1 - ease((p - 0.6) / 0.35);
+    ['left', 'right'].forEach((s) => h.move([s + '_shoulder'].concat(ARM(s)), 0, -0.024 * k));
+  },
+  // ไขว้แขนไว้หน้าอก บิดลำตัวไปซ้าย-ขวา สะโพกอยู่กับที่
+  'seated-twist'(h, t, T) {
+    const ls = h.at('left_shoulder'), rs = h.at('right_shoulder'), cx = (ls.x + rs.x) / 2, y = ls.y, hw = (rs.x - ls.x) / 2;
+    const yaw = 0.8 * wave(t, T * 2), c = Math.cos(yaw), shift = Math.sin(yaw) * hw * 0.35;
+    h.set('left_shoulder', cx - hw * c + shift, y); h.set('right_shoulder', cx + hw * c + shift, y);
+    // แขนไขว้ที่หน้าอก
+    const L = h.at('left_shoulder'), R = h.at('right_shoulder');
+    h.set('left_elbow', L.x + 0.012, y + 0.075); h.set('right_elbow', R.x - 0.012, y + 0.075);
+    ['wrist', 'pinky', 'index', 'thumb'].forEach((n, i) => {
+      h.set('left_' + n, R.x - 0.004 + i * 0.003, y + 0.03); h.set('right_' + n, L.x + 0.004 - i * 0.003, y + 0.03);
+    });
+    h.move(HEAD, shift * 0.6, 0);
+  },
+  // กางแขนระดับไหล่ งอข้อมือให้ปลายนิ้วชี้ขึ้น ค้าง แล้วผ่อน
+  'wrist-stretch'(h, t, T) {
+    const p = (t % T) / T, k = p < 0.3 ? ease(p / 0.3) : p < 0.7 ? 1 : 1 - ease((p - 0.7) / 0.3);
+    ['left', 'right'].forEach((s) => {
+      const sh = h.at(s + '_shoulder'), d = s === 'left' ? -1 : 1;
+      h.set(s + '_elbow', sh.x + d * 0.075, sh.y); h.set(s + '_wrist', sh.x + d * 0.14, sh.y - 0.04 * k);
+      const w = h.at(s + '_wrist'), ang = (1 - k) * 0 + k * (Math.PI / 2);
+      HAND(s).forEach((n) => h.set(n, w.x + d * 0.03 * Math.cos(ang), w.y - 0.06 * Math.sin(ang)));
+    });
+  },
+  // งอศอกยกมือขึ้นหน้าอก กำมือหมุนข้อมือเป็นวงกลม
+  'wrist-circle'(h, t, T) {
+    const a = (TAU * t) / T;
+    ['left', 'right'].forEach((s) => {
+      const sh = h.at(s + '_shoulder'), d = s === 'left' ? -1 : 1;
+      const ph = a * d;
+      h.set(s + '_elbow', sh.x + d * 0.03, sh.y + 0.12); h.set(s + '_wrist', sh.x + d * 0.01 + 0.015 * Math.cos(ph), sh.y + 0.02 + 0.02 * Math.sin(ph));
+      const w = h.at(s + '_wrist');
+      HAND(s).forEach((n) => h.set(n, w.x + 0.022 * Math.cos(ph), w.y - 0.025 + 0.035 * Math.sin(ph)));
+    });
+  },
+};
+
+// ขาในท่าคอมโบ (กล้อง + แผ่นเต้น): มาสคอตก้าวตามแผ่นที่ต้องเหยียบ
+function stepLegs(h, steps, t, T) {
+  const k = Math.floor(t / T + 0.5), pad = steps[((k % steps.length) + steps.length) % steps.length];
+  const ph = t / T + 0.5 - k; // 0..1 ภายในจังหวะ, จังหวะเหยียบอยู่กลางช่วง
+  const lift = ph < 0.5 ? Math.sin(TAU * ph) : 0; // ยกเท้าขึ้นแล้ววางลงตรงจังหวะเหยียบ (กลางช่วง)
+  const side = pad === 'l' || pad === 'u' ? 'left' : 'right';
+  if (pad === 'l' || pad === 'r') {
+    const d = pad === 'l' ? -1 : 1;
+    h.move(LEG(side), d * 0.045 * ease(ph * 2), -0.035 * lift);
+  } else {
+    // ก้าวหน้า/หลัง: ยกเข่าขึ้นแล้ววางเท้า
+    h.move([side + '_knee'], 0, -0.06 * lift);
+    h.move(LEG(side).slice(1), 0, -0.07 * lift);
+  }
+}
+
+/**
+ * ปรับท่าของมาสคอตให้ขยับชัด
+ * @param {string} id รหัสท่า
+ * @param {Array} lm จุด landmark จาก teachPose
+ * @param {number} t เวลา (วินาที)
+ * @param {number} T คาบของ 1 ครั้ง (วินาที)
+ * @param {Array} names ชื่อจุด landmark
+ * @param {Array|null} steps แผ่นที่ต้องเหยียบ (ท่าคอมโบ) หรือ null
+ */
+function mascotPose(id, lm, t, T, names, steps) {
+  const fn = MOVES[id];
+  if (!fn && !steps) return lm;
+  const h = make(lm, names);
+  if (fn) fn(h, t, T || 3);
+  if (steps && id !== 'basic_06') stepLegs(h, steps, t, T || 3); // ยกเข่าสลับข้าง: ขาขยับเองอยู่แล้ว
+  return h.out;
+}
+
+module.exports = { mascotPose, MOVES };
 
 };
 __src['2.2']=function(module,exports,require){// 2.2 ระบบเลือกท่าบริหาร — เลือก/ยกเลิก/จัดลำดับท่า และกำหนดจำนวนครั้ง/เวลาต่อท่า
@@ -3629,7 +3847,7 @@ module.exports = { describeEvent, attachStatusNotifier };
 
 };
 
-const HW=require('./2.6'),G=require('./2.1'),S=require('./2.2'),P=require('./2.3'),E=require('./2.4'),C=require('./2.5'),Sm=require('./7.4'),H=require('./7.5'),Sc=require('./7.6'),St=require('./7.7'),DC=require('./8.1'),DJ=require('./8.2'),DR=require('./8.3'),WN=require('./9.1'),WR=require('./9.2'),WB=require('./9.3'),WP=require('./9.4'),WM=require('./9.5'),WK=require('./9.6'),FF=require('./8.5'),SL=require('./8.6'),N1=require('./6.1'),N2=require('./6.2'),N3=require('./6.3'),N4=require('./6.4');
+const HW=require('./2.6'),MM=require('./2.7'),G=require('./2.1'),S=require('./2.2'),P=require('./2.3'),E=require('./2.4'),C=require('./2.5'),Sm=require('./7.4'),H=require('./7.5'),Sc=require('./7.6'),St=require('./7.7'),DC=require('./8.1'),DJ=require('./8.2'),DR=require('./8.3'),WN=require('./9.1'),WR=require('./9.2'),WB=require('./9.3'),WP=require('./9.4'),WM=require('./9.5'),WK=require('./9.6'),FF=require('./8.5'),SL=require('./8.6'),N1=require('./6.1'),N2=require('./6.2'),N3=require('./6.3'),N4=require('./6.4');
 var toastT=0,dActive=false,csOn=false,nxTimer=0,chain={pending:false,active:false,counted:false,plan:null};
 const $=id=>document.getElementById(id);
 const PAGES=['home','level','settings','setup','play','done','manage','stats','dance','fire','routines','camsetup','next'];
@@ -4155,7 +4373,7 @@ function teacher3Draw(lm,t){
 function s2Landmarks(J){
   const k=0.68,fy=0.784,X=x=>0.5+(x-0.5)*k,Y=y=>fy+(y-0.9388)*k,P=(a)=>({x:X(a[0]),y:Y(a[1]),z:0,visibility:1});
   const up=[J.neck[0]-J.hip[0],J.neck[1]-J.hip[1]],len=Math.hypot(up[0],up[1])||1,u=[up[0]/len,up[1]/len];
-  const head=[J.neck[0]+u[0]*0.09,J.neck[1]+u[1]*0.09],side=s=>[head[0]+s*0.02,head[1]];
+  const head=[J.neck[0]+u[0]*0.067,J.neck[1]+u[1]*0.067],side=s=>[head[0]+s*0.02,head[1]];
   const map={nose:head,left_eye_inner:side(-.4),left_eye:side(-.6),left_eye_outer:side(-.8),right_eye_inner:side(.4),right_eye:side(.6),right_eye_outer:side(.8),
     left_ear:side(-1.2),right_ear:side(1.2),mouth_left:[head[0]-0.01,head[1]+0.02],mouth_right:[head[0]+0.01,head[1]+0.02]};
   ['l','r'].forEach(sd=>{const n=sd==='l'?'left_':'right_';
@@ -4165,6 +4383,11 @@ function s2Landmarks(J){
 }
 // ท่าทางของมาสคอตสำหรับท่าใดก็ได้ (ท่า AI, ท่าออฟฟิศ, ท่าของฉัน) เป็นจุด landmark ที่เวลา t
 function teachLandmarks(ex,t){
+  const lm=teachBase(ex,t);if(!lm)return lm;
+  let T=4.8;try{if(AI&&aiEx[ex.id])T=MR.demoTiming(aiEx[ex.id]).T}catch(e){}
+  return MM.mascotPose(ex.id,lm,t,T,MR.LANDMARK_NAMES,ex.steps||null); // ขยับให้เห็นชัดทุกท่า + ขาก้าวตามแผ่นในท่าคอมโบ
+}
+function teachBase(ex,t){
   const id=ex.id;
   if(AI&&aiEx[id])return MR.teachPose(aiEx[id],t);
   if(!window.S2)return null;
@@ -4206,6 +4429,7 @@ function showDemo(on,ex,pause,leftMs){
 // เรียกทุกเฟรม: คืน true เมื่อต้องหยุดเวลาเกมเพื่อโชว์ท่าตัวอย่าง (ช่วงพักแสดงท่าถัดไปโดยไม่หยุดนาฬิกา)
 function demoTick(d){
   const c=st.current;
+  if(!c&&st.status==='countdown'&&st.queue[0]){showDemo(false);showTeach(st.queue[0]);return false;} // นับถอยหลัง: มาสคอตโชว์ท่าแรก
   if(st.status==='finished'||!c){if(st.status!=='paused'){showDemo(false);showTeach(null);closeBn();}return false;}
   if(st.status!=='playing')return false;
   const idx=st.currentIndex;
@@ -5050,6 +5274,7 @@ function heroFrame(){
   const c=st.current,t=performance.now()/1000;
   if(heroIdx!==st.currentIndex){heroIdx=st.currentIndex;
     const ex=c&&c.exercise;if(ex&&ex.steps){heroJudge.setMove(ex.steps,heroPeriod(ex.id));$('hero-cue').textContent=ex.stepCue||'';}else heroJudge.clear();}
+  if(!c&&st.queue[0]&&(st.status==='idle'||st.status==='countdown'))showTeach(st.queue[0]); // ระหว่างเปิดกล้อง/นับถอยหลัง: มาสคอตโชว์ท่าแรก
   const ex=c&&c.exercise,combo=!!(ex&&ex.steps)&&!c.resting&&st.status==='playing';
   $('hero-pad').hidden=!(ex&&ex.steps);
   if(ex){$('hero-phase').textContent=(c.resting?'เตรียมตัว · ':'')+ex.phaseLabel;}
@@ -5181,7 +5406,7 @@ setTimeout(()=>{try{teacher3Init()}catch(e){}},1500); // โหลดมาส�
     const g=cv.getContext('2d'),W=cv.width,H=cv.height;
     if(!AI||!aiEx[ex.id]){skeleton=false;const l2=window.teachLandmarks&&teachLandmarks(ex,t);if(l2&&cardTeacher&&cfg.teacher3d!==false){try{cardTeacher.render(l2,null,MR.LANDMARK_NAMES);g.fillStyle='#101418';g.fillRect(0,0,W,H);g.drawImage(teacherCanvas,0,0,W,H);return;}catch(err){}}mascotStill(g,W,H);return;}
     const e=aiEx[ex.id];skeleton=false;
-    const lm=previewMode==='start'&&dialogKind==='pose'?MR.poseFromAngles(MR.teachAngles(e,0),[]):previewMode==='end'&&dialogKind==='pose'?MR.poseFromAngles(MR.teachAngles(e,1),[]):MR.teachPose(e,t);
+    const lm=previewMode==='start'&&dialogKind==='pose'?MR.poseFromAngles(MR.teachAngles(e,0),[]):previewMode==='end'&&dialogKind==='pose'?MR.poseFromAngles(MR.teachAngles(e,1),[]):(window.teachLandmarks?teachLandmarks(ex,t):MR.teachPose(e,t));
     if(!skeleton&&cardTeacher&&cfg.teacher3d!==false){try{cardTeacher.render(lm,null,MR.LANDMARK_NAMES);g.fillStyle='#101418';g.fillRect(0,0,W,H);g.drawImage(teacherCanvas,0,0,W,H);return;}catch(e){cardTeacher=null;}}
     mascotStill(g,W,H);return; // มาสคอต 3D ยังโหลดไม่เสร็จ: แสดงรูปมาสคอต ไม่ใช้โครงกระดูก
     const joints=MR.ghostJoints(lm,MR.SIM_W,MR.SIM_H);
@@ -5347,7 +5572,7 @@ function draw(){
  const base=phone.matches?Math.max(5.6,1.25/(2*Math.tan(Math.PI/18)*camera.aspect)+.95):mobile?5.6:5.25;
  const angle=(-35+70*p)*Math.PI/180,distance=base-.95*Math.sin(Math.PI*p);
  camera.position.set(Math.sin(angle)*distance,.28+.12*Math.sin(Math.PI*p),Math.cos(angle)*distance);
- camera.lookAt(mobile?0:-.58,-.03,0);
+ camera.lookAt(0,-.03,0); // มาสคอตอยู่กึ่งกลางจอทุกขนาด
  // Keep dancing while idle; scrolling blends the dance phase without moving the camera on its own.
  const beat=danceTime*Math.PI*1.5;
  const step=Math.sin(beat+p*Math.PI*2.5),bend=18+7*(1-Math.cos(beat*2))+5*Math.sin(p*Math.PI);
