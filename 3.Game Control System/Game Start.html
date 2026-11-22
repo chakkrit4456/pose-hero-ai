@@ -4578,10 +4578,34 @@ function s2Landmarks(J){
 // ท่าทางของมาสคอตสำหรับท่าใดก็ได้ (ท่า AI, ท่าออฟฟิศ, ท่าของฉัน) เป็นจุด landmark ที่เวลา t
 // นับครั้งแบบผ่อนปรน: ขยับถูกส่วนและได้ราว 80% ของท่าก็นับ (ผู้เล่นบางคนขยับได้ไม่สุด)
 // reach 0.65 (หลังกรองสัญญาณ) = ขยับได้ราว 80% ของท่าก็นับ แต่ขยับครึ่งเดียว (60%) ไม่นับ — ทดสอบด้วยท่าจำลองแล้ว · ret/rearm = ไม่ต้องกลับสุดก็นับครั้งถัดไปได้ · hold_ratio = ค้างได้แม้หย่อนลงเล็กน้อย
+// ท่าช่วงบน (คอ ไหล่ แขน ข้อมือ บิดตัว) ไม่ต้องเห็นสะโพก/ขา: นั่งใกล้กล้องก็นับได้
+const LOWER_COUNTERS=['left_knee','right_knee','legs','torso_bend'];
+const LOWER_JOINT=/(hip|knee|ankle|heel|foot)/;
 function lenientEx(e){
   if(!e||e._lenient)return e;
   const c=Object.assign({},e.counter,{reach_ratio:0.65,return_ratio:0.3,rearm_ratio:0.5,hold_ratio:0.6,rep_dwell_sec:0.15});
-  return Object.assign({},e,{counter:c,_lenient:true});
+  const ang=[].concat(e.counter.angle),upper=!ang.some(a=>LOWER_COUNTERS.includes(a))&&e.id!=='basic_05';
+  const out=Object.assign({},e,{counter:c,_lenient:true,_upper:upper});
+  if(upper){
+    const base=e.tracked_joints&&e.tracked_joints.length?e.tracked_joints:[].concat(...Object.values(e.angles));
+    out.tracked_joints=base.filter(n=>!LOWER_JOINT.test(n)&&!/^mid_hip|below_mid_hip/.test(n));
+  }
+  return out;
+}
+// สะโพกนอกกล้อง: ประมาณตำแหน่งสะโพกตรงลงมาจากไหล่ (ใช้เป็นแนวลำตัวสำหรับวัดมุมคอ/ไหล่เท่านั้น)
+let vHip=null;
+function withVirtualHips(lm){
+  const N=MR.LANDMARK_NAMES,g=n=>lm[N.indexOf(n)],ls=g('left_shoulder'),rs=g('right_shoulder');
+  if(!ls||!rs)return lm;
+  const hipOk=n=>{const q=g(n);return q&&(q.visibility==null||q.visibility>=0.5)&&q.y>=0&&q.y<=1};
+  if(hipOk('left_hip')&&hipOk('right_hip'))return lm;
+  // ยึดสะโพกไว้ที่ท่าปกติ (ไหล่กว้างสุดที่เคยเห็น) เพื่อให้บิดตัวแล้วสะโพกไม่บิดตาม
+  const wpx=Math.hypot((rs.x-ls.x)*1280,(rs.y-ls.y)*720)||120,mx=(ls.x+rs.x)/2,my=(ls.y+rs.y)/2;
+  if(!vHip||wpx>=vHip.w*0.97)vHip={w:Math.max(wpx,vHip?vHip.w:0),x:mx,y:my};
+  const drop=1.06*vHip.w/720,half=vHip.w/2/1280; // ไหล่-สะโพก ≈ 1.06 เท่าความกว้างไหล่ (สัดส่วนคนจำลองของระบบ)
+  const out=lm.slice();
+  [['left_hip',ls,-1],['right_hip',rs,1]].forEach(([n,s,d])=>{out[N.indexOf(n)]=Object.assign({},s,{x:vHip.x+d*half*0.8,y:vHip.y+drop,visibility:1});});
+  return out;
 }
 function teachLandmarks(ex,t){
   t*=ex.speed||1; // ระดับความยาก: มาสคอตและจังหวะก้าวเร็ว/ช้าตามระดับ
@@ -4676,11 +4700,11 @@ function aiPreview(){
 function aiFrame(now){
   const c=st.current,active=st.status==='playing'&&c&&!c.resting;
   if(!active||!aiEx[c.exercise.id]){runner=null;runnerIdx=-2;$('mfill').style.width='0';aiPreview();if(active)$('aimsg').textContent='ท่านี้ไม่มี AI ตรวจ — ใช้ปุ่ม +1 ครั้ง';return;}
-  if(runnerIdx!==st.currentIndex){runner=new MR.WorkoutRunner(lenientEx(aiEx[c.exercise.id]),{reps:c.exercise.timeBoxed?999:c.exercise.reps});runnerIdx=st.currentIndex;poseAlert.reset();}
+  if(runnerIdx!==st.currentIndex){vHip=null;runner=new MR.WorkoutRunner(lenientEx(aiEx[c.exercise.id]),{reps:c.exercise.timeBoxed?999:c.exercise.reps});runnerIdx=st.currentIndex;poseAlert.reset();}
   const lm=aiCam.read();if(lm===undefined)return;
   const [w,h]=aiCam.size(),o=$('ov');if(o.width!==w||o.height!==h){o.width=w;o.height=h;}
   const g=o.getContext('2d');g.clearRect(0,0,w,h);
-  const id=c.exercise.id,r=runner.step(lm,now/1000,w,h);
+  const id=c.exercise.id,r=runner.step(lm&&runner.ex&&runner.ex._upper?withVirtualHips(lm):lm,now/1000,w,h);
   MR.drawPlayerSkeleton(g,r.joints,r.required,Math.max(1,w/640));
   if(r.summary&&r.summary.average!=null){formScores[id]=r.summary.average;adviceById[id]=r.summary.advice||[];scoresById[id]=r.summary.scores||[];}
   const a=r.analysis;
