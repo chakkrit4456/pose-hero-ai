@@ -1502,7 +1502,15 @@ function s2Landmarks(J){
   return MR.LANDMARK_NAMES.map(n=>P(map[n]||J.neck));
 }
 // ท่าทางของมาสคอตสำหรับท่าใดก็ได้ (ท่า AI, ท่าออฟฟิศ, ท่าของฉัน) เป็นจุด landmark ที่เวลา t
+// นับครั้งแบบผ่อนปรน: ขยับถูกส่วนและได้ราว 80% ของท่าก็นับ (ผู้เล่นบางคนขยับได้ไม่สุด)
+// reach 0.65 (หลังกรองสัญญาณ) = ขยับได้ราว 80% ของท่าก็นับ แต่ขยับครึ่งเดียว (60%) ไม่นับ — ทดสอบด้วยท่าจำลองแล้ว · ret/rearm = ไม่ต้องกลับสุดก็นับครั้งถัดไปได้ · hold_ratio = ค้างได้แม้หย่อนลงเล็กน้อย
+function lenientEx(e){
+  if(!e||e._lenient)return e;
+  const c=Object.assign({},e.counter,{reach_ratio:0.65,return_ratio:0.3,rearm_ratio:0.5,hold_ratio:0.6,rep_dwell_sec:0.15});
+  return Object.assign({},e,{counter:c,_lenient:true});
+}
 function teachLandmarks(ex,t){
+  t*=ex.speed||1; // ระดับความยาก: มาสคอตและจังหวะก้าวเร็ว/ช้าตามระดับ
   const lm=teachBase(ex,t);if(!lm)return lm;
   let T=4.8;try{if(AI&&aiEx[ex.id])T=MR.demoTiming(aiEx[ex.id]).T}catch(e){}
   return MM.mascotPose(ex.id,lm,t,T,MR.LANDMARK_NAMES,ex.steps||null); // ขยับให้เห็นชัดทุกท่า + ขาก้าวตามแผ่นในท่าคอมโบ
@@ -1594,7 +1602,7 @@ function aiPreview(){
 function aiFrame(now){
   const c=st.current,active=st.status==='playing'&&c&&!c.resting;
   if(!active||!aiEx[c.exercise.id]){runner=null;runnerIdx=-2;$('mfill').style.width='0';aiPreview();if(active)$('aimsg').textContent='ท่านี้ไม่มี AI ตรวจ — ใช้ปุ่ม +1 ครั้ง';return;}
-  if(runnerIdx!==st.currentIndex){runner=new MR.WorkoutRunner(aiEx[c.exercise.id],{reps:c.exercise.timeBoxed?999:c.exercise.reps});runnerIdx=st.currentIndex;poseAlert.reset();}
+  if(runnerIdx!==st.currentIndex){runner=new MR.WorkoutRunner(lenientEx(aiEx[c.exercise.id]),{reps:c.exercise.timeBoxed?999:c.exercise.reps});runnerIdx=st.currentIndex;poseAlert.reset();}
   const lm=aiCam.read();if(lm===undefined)return;
   const [w,h]=aiCam.size(),o=$('ov');if(o.width!==w||o.height!==h){o.width=w;o.height=h;}
   const g=o.getContext('2d');g.clearRect(0,0,w,h);
@@ -2385,7 +2393,7 @@ renderHome();show('home');
 if(location.hash.startsWith('#manage')&&!$('m-manage').disabled){$('m-manage').click();const t=location.hash.split(':')[1];if(t)mgTab(t);}
 
 // ---- โหมดหลัก ฮีโร่เวิร์กเอาต์ 20 นาที (2.6): ยืดเหยียด → ท่าช่วงบน (กล้อง) + เหยียบแผ่นเต้น → ยืดเหยียด ----
-var heroOn=false,heroStarting=false;const heroJudge=HW.createStepJudge();let heroIdx=-2,heroRaf=0,heroFlash=0;
+var heroOn=false,heroStarting=false,heroLevel='normal';const heroJudge=HW.createStepJudge();let heroIdx=-2,heroRaf=0,heroFlash=0;
 function heroPeriod(id){try{return aiEx[id]?MR.demoTiming(aiEx[id]).T:2.4}catch(e){return 2.4}}
 function heroStep(pad){
   const r=heroJudge.press(pad,performance.now()/1000);if(!r)return;
@@ -2395,7 +2403,7 @@ function heroFrame(){
   if(!heroOn)return;if($('play').hidden){heroOn=false;$('hero-hud').hidden=true;$('hero-pad').hidden=true;if(DPAD&&!dActive&&!ffActive)DPAD.stop();return;}heroRaf=requestAnimationFrame(heroFrame);
   const c=st.current,t=performance.now()/1000;
   if(heroIdx!==st.currentIndex){heroIdx=st.currentIndex;
-    const ex=c&&c.exercise;if(ex&&ex.steps){heroJudge.setMove(ex.steps,heroPeriod(ex.id));$('hero-cue').textContent=ex.stepCue||'';}else heroJudge.clear();}
+    const ex=c&&c.exercise;if(ex&&ex.steps){heroJudge.setMove(ex.steps,heroPeriod(ex.id)/(ex.speed||1));$('hero-cue').textContent=ex.stepCue||'';}else heroJudge.clear();}
   if(!c&&st.queue[0]&&(st.status==='idle'||st.status==='countdown'))showTeach(st.queue[0]); // ระหว่างเปิดกล้อง/นับถอยหลัง: มาสคอตโชว์ท่าแรก
   const ex=c&&c.exercise,combo=!!(ex&&ex.steps)&&!c.resting&&st.status==='playing';
   $('hero-pad').hidden=!(ex&&ex.steps);
@@ -2415,7 +2423,7 @@ function heroEnd(){
 $('m-hero').onclick=async()=>{
   $('hero-sum').hidden=true;
   try{E.resetGame(st)}catch(e){}
-  st.queue.length=0;HW.buildQueue(S.getCatalog()).forEach(q=>st.queue.push(q));
+  st.queue.length=0;HW.buildQueue(S.getCatalog(),heroLevel).forEach(q=>st.queue.push(q));
   heroJudge.reset();heroIdx=-2;heroOn=true;heroStarting=true;
   $('hero-hud').hidden=false;
   if(DPAD)DPAD.start();

@@ -18,7 +18,18 @@ document.addEventListener('keydown',e=>{if(e.key==='Escape')menus.forEach(m=>m.c
 // START always opens the main 20-minute mode; other modes launch straight from ☰.
 document.querySelectorAll('#home-menu [data-mode]').forEach(b=>{b.removeAttribute('role');b.addEventListener('click',()=>$(b.dataset.mode).click())});
 $('gl-mode').textContent='โหมดหลัก · ยืดเหยียด + ออกกำลังกาย 20 นาที';
-$('gl-start').onclick=()=>$('m-hero').click();
+// START -> choose difficulty (all 20 minutes) -> main mode
+const LV=[['easy','ง่าย','🌱','ท่าเบา ช้า ก้าวข้างเบา ๆ','ช้า'],['normal','ปานกลาง','🔥','จังหวะปกติ มียกเข่า','ปกติ'],['hard','ยาก','⚡','เร็ว ยกเข่า ย่อเข่า ก้าว 4 ทิศ','เร็ว']];
+const lvOv=document.createElement('div');lvOv.className='notice-ov lv-ov';lvOv.hidden=true;
+lvOv.innerHTML='<div class="notice-card lv-card" role="dialog" aria-modal="true" aria-labelledby="lv-t"><button type="button" class="ph-x" aria-label="ปิด">✕</button><p class="ph-kicker">โหมดหลัก · 20 นาที</p><h2 id="lv-t">เลือกระดับความยาก</h2><div class="lv-grid">'+
+  LV.map(l=>'<button type="button" class="lv-opt lv-'+l[0]+'" data-lv="'+l[0]+'"><span class="lv-ic">'+l[2]+'</span><b>'+l[1]+'</b><small>'+l[3]+'</small><i>ความเร็ว: '+l[4]+' · 20 นาที</i></button>').join('')+
+  '</div><p class="ph-small">ทุกระดับ: ยืดเหยียด 5 นาที → ออกกำลังกาย + แผ่นเต้น 10 นาที → ยืดเหยียด 5 นาที</p></div>';
+document.body.append(lvOv);
+lvOv.querySelector('.ph-x').onclick=()=>{lvOv.hidden=true};
+lvOv.addEventListener('click',e=>{if(e.target===lvOv)lvOv.hidden=true});
+let lastLv='normal';try{lastLv=localStorage.getItem('pose-hero-level')||'normal'}catch(e){}
+lvOv.querySelectorAll('[data-lv]').forEach(b=>b.onclick=()=>{lvOv.hidden=true;try{localStorage.setItem('pose-hero-level',b.dataset.lv)}catch(e){}heroLevel=b.dataset.lv;$('m-hero').click();});
+$('gl-start').onclick=()=>{lvOv.hidden=false;lvOv.querySelectorAll('[data-lv]').forEach(b=>b.classList.toggle('last',b.dataset.lv===lastLv));(lvOv.querySelector('.last')||lvOv.querySelector('[data-lv]')).focus();try{lastLv=localStorage.getItem('pose-hero-level')||lastLv}catch(e){}};
 wire($('home-menu'));
 
 // ----- Other scenes: move secondary buttons into a menu, replace "back" with an icon -----

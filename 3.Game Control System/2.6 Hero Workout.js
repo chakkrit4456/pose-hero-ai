@@ -16,14 +16,42 @@ const WARMUP = ['neck-tilt', 'shoulder-roll', 'upper-trap', 'basic_10', 'wrist-c
 
 // ท่าคอมโบ: ท่าช่วงบนที่กล้องตรวจ + รูปแบบก้าวบนแผ่นที่ร่างกายทำพร้อมกันได้จริง (ท่าแอโรบิกมาตรฐาน)
 // steps = ลำดับแผ่นที่ต้องเหยียบ วนซ้ำ 1 ก้าวต่อ 1 จังหวะท่า (u=บน d=ล่าง l=ซ้าย r=ขวา)
-const COMBOS = [
-  { id: 'basic_01', title: 'สเต็ปทัชกางแขน', steps: ['l', 'r'], cue: 'ก้าวเท้าออกด้านข้าง พร้อมกางแขนขึ้นระดับไหล่ แล้วลดแขนลงตอนชิดเท้า' },
-  { id: 'basic_06', title: 'ย่ำเท้ายกเข่า', steps: ['l', 'r'], cue: 'ยกเข่าขึ้นสลับข้าง แล้ววางเท้าลงบนแผ่นซ้าย/ขวาตามลูกศร' },
-  { id: 'basic_02', title: 'ก้าวหน้าเหยียดแขนขึ้น', steps: ['u', 'd'], cue: 'ก้าวเท้าไปข้างหน้าพร้อมเหยียดแขนขึ้นเหนือศีรษะ แล้วถอยกลับพร้อมลดแขน' },
-  // หมุนไหล่เป็นท่าที่แหล่งแนะนำออฟฟิศซินโดรมแนะนำมากที่สุด (PPTV, Post Today) — ย่ำเท้าเบา ๆ ไปพร้อมกัน
-  { id: 'shoulder-roll', title: 'ย่ำเท้าหมุนไหล่', steps: ['l', 'r'], cue: 'หมุนไหล่ไปด้านหลังเป็นวงกว้าง ทุกรอบที่หมุนให้ย่ำเท้าลงแผ่นซ้าย/ขวาสลับกัน' },
-  { id: 'seated-twist', title: 'ก้าวข้างบิดลำตัว', steps: ['l', 'r'], cue: 'ยืนตรง บิดลำตัวไปทางซ้ายพร้อมก้าวเท้าซ้าย แล้วบิดไปขวาพร้อมก้าวเท้าขวา' },
-];
+// ท่าคอมโบแต่ละระดับ: ท่าช่วงบนที่กล้องตรวจ + ก้าวบนแผ่นที่ร่างกายทำพร้อมกันได้จริง (u=บน d=ล่าง l=ซ้าย r=ขวา)
+// ทุกระดับใช้เวลาเท่ากัน (10 ท่า x 60 วินาที) ต่างกันที่ท่า ความเร็ว และความหนัก
+const LEVELS = {
+  easy: {
+    label: 'ง่าย', speed: 0.8, desc: 'แรงกระแทกต่ำ ท่าช้า เท้าก้าวข้างเบา ๆ เหมาะกับผู้เริ่มต้น',
+    combos: [
+      { id: 'basic_01', title: 'สเต็ปทัชกางแขน', steps: ['l', 'r'], cue: 'ก้าวเท้าออกด้านข้างช้า ๆ พร้อมกางแขนขึ้นระดับไหล่' },
+      { id: 'shoulder-roll', title: 'ย่ำเท้าหมุนไหล่', steps: ['l', 'r'], cue: 'หมุนไหล่ไปด้านหลังช้า ๆ ทุกรอบย่ำเท้าซ้าย/ขวาเบา ๆ' },
+      { id: 'basic_07', title: 'ก้าวหน้า-หลังยกไหล่', steps: ['u', 'd'], cue: 'ก้าวหน้า-ถอยหลังเป็นจังหวะ ยกไหล่ขึ้นทุกครั้งที่ก้าว' },
+      { id: 'basic_02', title: 'ก้าวหน้าเหยียดแขนขึ้น', steps: ['u', 'd'], cue: 'ก้าวไปข้างหน้าพร้อมเหยียดแขนขึ้นเหนือศีรษะ แล้วถอยกลับพร้อมลดแขน' },
+      { id: 'seated-twist', title: 'ก้าวข้างบิดลำตัว', steps: ['l', 'r'], cue: 'บิดลำตัวเบา ๆ ไปทางเดียวกับเท้าที่ก้าว' },
+    ],
+  },
+  normal: {
+    label: 'ปานกลาง', speed: 1, desc: 'จังหวะปกติ มียกเข่า ออกแรงทั้งตัว',
+    combos: [
+      { id: 'basic_01', title: 'สเต็ปทัชกางแขน', steps: ['l', 'r'], cue: 'ก้าวเท้าออกด้านข้าง พร้อมกางแขนขึ้นระดับไหล่ แล้วลดแขนลงตอนชิดเท้า' },
+      { id: 'basic_06', title: 'ย่ำเท้ายกเข่า', steps: ['l', 'r'], cue: 'ยกเข่าขึ้นสลับข้าง แล้ววางเท้าลงบนแผ่นซ้าย/ขวาตามลูกศร' },
+      { id: 'basic_02', title: 'ก้าวหน้าเหยียดแขนขึ้น', steps: ['u', 'd'], cue: 'ก้าวเท้าไปข้างหน้าพร้อมเหยียดแขนขึ้นเหนือศีรษะ แล้วถอยกลับพร้อมลดแขน' },
+      // หมุนไหล่เป็นท่าที่แหล่งแนะนำออฟฟิศซินโดรมแนะนำมากที่สุด (PPTV, Post Today) — ย่ำเท้าเบา ๆ ไปพร้อมกัน
+      { id: 'shoulder-roll', title: 'ย่ำเท้าหมุนไหล่', steps: ['l', 'r'], cue: 'หมุนไหล่ไปด้านหลังเป็นวงกว้าง ทุกรอบที่หมุนให้ย่ำเท้าลงแผ่นซ้าย/ขวาสลับกัน' },
+      { id: 'seated-twist', title: 'ก้าวข้างบิดลำตัว', steps: ['l', 'r'], cue: 'ยืนตรง บิดลำตัวไปทางซ้ายพร้อมก้าวเท้าซ้าย แล้วบิดไปขวาพร้อมก้าวเท้าขวา' },
+    ],
+  },
+  hard: {
+    label: 'ยาก', speed: 1.25, desc: 'จังหวะเร็ว ยกเข่า ย่อเข่า ก้าว 4 ทิศ ออกแรงมากขึ้น',
+    combos: [
+      { id: 'basic_06', title: 'วิ่งยกเข่าเร็ว', steps: ['l', 'r'], cue: 'ยกเข่าสูงสลับข้างเร็ว ๆ วางเท้าลงแผ่นซ้าย/ขวาตามจังหวะ' },
+      { id: 'basic_04', title: 'ก้าวกว้างย่อเข่า', steps: ['l', 'r'], cue: 'ก้าวเท้าออกด้านข้างกว้าง แล้วย่อเข่าลงหลังตรง ดันตัวขึ้นแล้วก้าวอีกข้าง' },
+      { id: 'basic_01', title: 'สเต็ป 4 ทิศกางแขน', steps: ['l', 'u', 'r', 'd'], cue: 'ก้าวซ้าย-หน้า-ขวา-หลัง กางแขนขึ้นระดับไหล่ทุกก้าว' },
+      { id: 'basic_02', title: 'ก้าวหน้าชูแขนเร็ว', steps: ['u', 'd'], cue: 'ก้าวหน้าพร้อมชูแขนสุด ถอยกลับพร้อมลดแขน เร็วตามจังหวะ' },
+      { id: 'seated-twist', title: 'ก้าวข้างบิดลำตัวเร็ว', steps: ['l', 'r'], cue: 'บิดลำตัวไปทางเท้าที่ก้าว ให้ไหล่หมุนตามสุด ๆ' },
+    ],
+  },
+};
+const COMBOS = LEVELS.normal.combos;
 const COMBO_ROUNDS = 2;
 
 // ยืดเหยียดปิดท้าย
@@ -33,7 +61,8 @@ const COOLDOWN = ['basic_10', 'upper-trap', 'neck-tilt', 'shoulder-roll', 'scapu
  * สร้างคิว 20 ท่า (ท่าละ 60 วินาที) จากแคตตาล็อกท่าของเกม
  * @param {Array} catalog รายการจาก getCatalog() — ใช้ชื่อ/จำนวนครั้งเดิมของท่า
  */
-function buildQueue(catalog) {
+function buildQueue(catalog, level = 'normal') {
+  const L = LEVELS[level] || LEVELS.normal;
   const byId = (id) => {
     const c = catalog.find((x) => x.id === id);
     if (!c) throw new Error('ไม่พบท่า ' + id);
@@ -44,14 +73,14 @@ function buildQueue(catalog) {
     return Object.assign({
       id: c.id, name: c.name, target: c.target,
       reps: Math.max(1, Math.round((c.reps || 10) * BLOCK_SEC / Math.max(BLOCK_SEC, c.durationSec || BLOCK_SEC))),
-      durationSec: BLOCK_SEC, timeBoxed: true, hero: true, phase, phaseLabel: PHASES[phase], steps: null,
+      durationSec: BLOCK_SEC, timeBoxed: true, hero: true, phase, phaseLabel: PHASES[phase], steps: null, speed: L.speed, level,
       restBeforeSec: first ? PHASE_GAP_SEC : 0,
     }, extra || {});
   };
   const q = [];
   WARMUP.forEach((id, i) => q.push(item(id, 'warmup', null, false)));
   for (let r = 0; r < COMBO_ROUNDS; r++) {
-    COMBOS.forEach((m, i) => q.push(item(m.id, 'combo', { name: m.title + ' (' + byId(m.id).name + ')', steps: m.steps.slice(), stepCue: m.cue }, r === 0 && i === 0)));
+    L.combos.forEach((m, i) => q.push(item(m.id, 'combo', { name: m.title + ' (' + byId(m.id).name + ')', steps: m.steps.slice(), stepCue: m.cue }, r === 0 && i === 0)));
   }
   COOLDOWN.forEach((id, i) => q.push(item(id, 'cooldown', null, i === 0)));
   return q;
@@ -92,4 +121,4 @@ function createStepJudge({ windowSec = 0.6 } = {}) {
   };
 }
 
-module.exports = { BLOCK_SEC, PHASES, WARMUP, COMBOS, COOLDOWN, buildQueue, createStepJudge };
+module.exports = { BLOCK_SEC, PHASES, LEVELS, WARMUP, COMBOS, COOLDOWN, buildQueue, createStepJudge };
