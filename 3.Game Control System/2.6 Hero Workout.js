@@ -100,38 +100,56 @@ function buildQueue(catalog, level = 'normal') {
   return q;
 }
 
-/** ตัดสินการเหยียบ: คิวก้าวทุก T วินาที ตามจังหวะเดียวกับมาสคอตสาธิต */
+/** ตัดสินการเหยียบแบบเกมจังหวะ: PERFECT / GREAT / GOOD / MISS + คอมโบ + คะแนน (คิวก้าวทุก T วินาที ตามจังหวะมาสคอต) */
+const GRADE_POINTS = { perfect: 300, great: 200, good: 100, miss: 0 };
 function createStepJudge({ windowSec = 0.6 } = {}) {
-  let hits = 0, misses = 0, lastJudged = -1, steps = null, T = 2;
+  let steps = null, T = 2, win = windowSec, lastJudged = -1;
+  let combo = 0, maxCombo = 0, score = 0;
+  const counts = { perfect: 0, great: 0, good: 0, miss: 0 };
+  const grade = (dt) => (dt <= Math.min(0.09, win * 0.3) ? 'perfect' : dt <= Math.min(0.18, win * 0.6) ? 'great' : 'good');
+  const add = (g) => {
+    counts[g]++;
+    if (g === 'miss') combo = 0; else { combo++; maxCombo = Math.max(maxCombo, combo); }
+    score += Math.round(GRADE_POINTS[g] * (1 + Math.min(combo, 50) / 50)); // คอมโบยิ่งยาว คะแนนต่อก้าวยิ่งมาก (สูงสุด x2)
+  };
   return {
-    setMove(stepList, periodSec) { steps = stepList; T = Math.max(0.8, periodSec || 2); lastJudged = -1; },
+    setMove(stepList, periodSec) { steps = stepList; T = Math.max(0.5, periodSec || 2); win = Math.min(windowSec, T * 0.45); lastJudged = -1; },
     clear() { steps = null; },
+    get period() { return T; },
     /** ช่องที่ต้องเหยียบตอนนี้ และเวลาที่เหลือถึงจังหวะ (วินาที) */
     cue(t) {
       if (!steps) return null;
       const k = Math.floor(t / T + 0.5);
       return { pad: steps[((k % steps.length) + steps.length) % steps.length], index: k, inSec: k * T - t };
     },
-    /** เรียกทุกเฟรม: นับพลาดเมื่อจังหวะผ่านไปแล้วไม่ได้เหยียบ */
+    /** ทุกเฟรม: จังหวะที่ผ่านไปโดยไม่เหยียบ = MISS — คืนจำนวน MISS ใหม่ */
     tick(t) {
-      if (!steps) return;
-      const k = Math.floor((t - windowSec) / T);
-      if (lastJudged < 0) { lastJudged = k; return; }
-      while (lastJudged < k) { lastJudged++; misses++; }
+      if (!steps) return 0;
+      const k = Math.floor((t - win) / T);
+      if (lastJudged < 0) { lastJudged = k; return 0; }
+      let n = 0;
+      while (lastJudged < k) { lastJudged++; add('miss'); n++; }
+      return n;
     },
-    /** เรียกเมื่อเหยียบแผ่น คืน 'hit' | 'miss' | null */
+    /** เหยียบแผ่น: คืน { grade, early } หรือ null ถ้ายังไม่ถึงจังหวะ */
     press(pad, t) {
       if (!steps) return null;
       const k = Math.round(t / T);
-      if (k <= lastJudged) return null; // จังหวะนี้ตัดสินไปแล้ว
-      if (Math.abs(t - k * T) > windowSec) return null; // ยังไม่ถึงจังหวะ — ไม่นับ
+      if (k <= lastJudged) return null;
+      const dt = t - k * T;
+      if (Math.abs(dt) > win) return null;
       const want = steps[((k % steps.length) + steps.length) % steps.length];
       lastJudged = k;
-      if (pad === want) { hits++; return 'hit'; }
-      misses++; return 'miss';
+      const g = pad === want ? grade(Math.abs(dt)) : 'miss';
+      add(g);
+      return { grade: g, early: dt < 0, combo };
     },
-    stats() { const n = hits + misses; return { hits, misses, accuracy: n ? Math.round((hits / n) * 100) : 0 }; },
-    reset() { hits = 0; misses = 0; lastJudged = -1; steps = null; },
+    stats() {
+      const hits = counts.perfect + counts.great + counts.good, n = hits + counts.miss;
+      return { hits, misses: counts.miss, accuracy: n ? Math.round(((counts.perfect + counts.great * 0.8 + counts.good * 0.5) / n) * 100) : 0,
+        combo, maxCombo, score, counts: Object.assign({}, counts) };
+    },
+    reset() { steps = null; lastJudged = -1; combo = 0; maxCombo = 0; score = 0; Object.keys(counts).forEach((k) => (counts[k] = 0)); },
   };
 }
 

@@ -911,6 +911,8 @@ main:has(#done:not([hidden])){max-width:820px}
 <section id="play" class="card" hidden>
  <button id="pl-exit" class="pl-exit" type="button" aria-label="ออกจากเกม">✕ ออก</button>
  <div id="hero-hud" hidden><span id="hero-phase"></span><b id="hero-total"></b><span id="hero-acc"></span></div>
+ <div id="hero-rhythm" hidden><div class="hero-judge" id="hero-judge"></div><div class="hero-judge-sub" id="hero-judge-sub"></div><div class="hero-combo" id="hero-combo" hidden><b id="hero-combo-n">0</b><span>COMBO</span></div><div class="hero-score"><span>SCORE</span><b id="hero-score">0</b></div></div>
+ <div id="hero-flash" class="hero-flash"></div><div id="hero-fx" class="hero-fx" aria-hidden="true"></div>
  <div id="hero-pad" hidden aria-label="แผ่นเต้น: เหยียบช่องที่สว่าง"><p id="hero-cue"></p><div class="hp-grid"><i data-p="x"></i><i data-p="u">↑</i><i data-p="o"></i><i data-p="l">←</i><i class="hp-c"></i><i data-p="r">→</i><i data-p="tri"></i><i data-p="d">↓</i><i data-p="sq"></i></div></div>
  <div class="pl-cam">
   <div class="camwrap"><video id="cam" class="cam" hidden></video><canvas id="ov"></canvas></div>
@@ -2436,10 +2438,37 @@ if(location.hash.startsWith('#manage')&&!$('m-manage').disabled){$('m-manage').c
 // ---- โหมดหลัก ฮีโร่เวิร์กเอาต์ 20 นาที (2.6): ยืดเหยียด → ท่าช่วงบน (กล้อง) + เหยียบแผ่นเต้น → ยืดเหยียด ----
 var heroOn=false,heroStarting=false,heroLevel='normal',heroUseCam=true,heroUsePad=true;const heroJudge=HW.createStepJudge();let heroIdx=-2,heroRaf=0,heroFlash=0;
 function heroPeriod(id){try{return aiEx[id]?MR.demoTiming(aiEx[id]).T:2.4}catch(e){return 2.4}}
+// ---- ระบบเกมจังหวะของโหมดหลัก: ตัดสิน PERFECT/GREAT/GOOD/MISS คอมโบ และเอฟเฟกต์ ----
+const HJ_TH={perfect:'PERFECT',great:'GREAT',good:'GOOD',miss:'MISS'};
+function heroJudgeShow(g,early){
+  const el=$('hero-judge');el.className='hero-judge j-'+g;el.textContent=HJ_TH[g];
+  const sub=$('hero-judge-sub');sub.textContent=g==='miss'?'':g==='perfect'?'ตรงจังหวะเป๊ะ!':early?'เร็วไปนิด':'ช้าไปนิด';
+  void el.offsetWidth;el.classList.add('pop');
+  const s=heroJudge.stats(),cb=$('hero-combo');
+  cb.hidden=s.combo<2;$('hero-combo-n').textContent=s.combo;cb.classList.remove('bump');void cb.offsetWidth;cb.classList.add('bump');
+  $('hero-score').textContent=s.score.toLocaleString();
+  if(g==='miss'){$('play').classList.remove('hj-shake');void $('play').offsetWidth;$('play').classList.add('hj-shake');beep(196,120,'sawtooth');}
+  else{beep(g==='perfect'?1318:g==='great'?1046:784,70);}
+  if(g!=='miss'&&s.combo&&s.combo%10===0){ // ทุก 10 คอมโบ: แสงวาบ + ข้อความ
+    const f=$('hero-flash');f.textContent=s.combo+' COMBO!';f.classList.remove('go');void f.offsetWidth;f.classList.add('go');
+    [784,1046,1318].forEach((h,i)=>setTimeout(()=>beep(h,80),i*70));
+  }
+}
+function heroBurst(cell,g){
+  if(!cell)return;const r=cell.getBoundingClientRect(),fx=$('hero-fx');
+  const n=g==='perfect'?14:g==='great'?10:6,col=g==='perfect'?['#fff','#FF3448','#FFD23F']:g==='great'?['#fff','#1E9BFF']:['#B9DCFF'];
+  for(let i=0;i<n;i++){const p=document.createElement('i');const a=Math.random()*Math.PI*2,d=30+Math.random()*50;
+    p.style.cssText='left:'+(r.left+r.width/2)+'px;top:'+(r.top+r.height/2)+'px;--dx:'+(Math.cos(a)*d).toFixed(0)+'px;--dy:'+(Math.sin(a)*d).toFixed(0)+'px;background:'+col[i%col.length];
+    fx.append(p);setTimeout(()=>p.remove(),600);}
+  const ring=document.createElement('b');ring.className='hj-ring j-'+g;ring.style.cssText='left:'+(r.left+r.width/2)+'px;top:'+(r.top+r.height/2)+'px;width:'+r.width+'px;height:'+r.height+'px';fx.append(ring);setTimeout(()=>ring.remove(),500);
+}
 function heroStep(pad){
   if(!heroUsePad)return;
   const r=heroJudge.press(pad,performance.now()/1000);if(!r)return;
-  const cell=document.querySelector('#hero-pad [data-p="'+pad+'"]');if(cell){cell.classList.remove('hit','miss');void cell.offsetWidth;cell.classList.add(r);}
+  const cell=document.querySelector('#hero-pad [data-p="'+pad+'"]');
+  if(cell){cell.classList.remove('hit','miss','j-perfect','j-great','j-good');void cell.offsetWidth;cell.classList.add(r.grade==='miss'?'miss':'hit','j-'+r.grade);}
+  if(r.grade!=='miss')heroBurst(cell,r.grade);
+  heroJudgeShow(r.grade,r.early);
 }
 function heroFrame(){
   if(!heroOn)return;if($('play').hidden){heroOn=false;$('hero-hud').hidden=true;$('hero-pad').hidden=true;if(DPAD&&!dActive&&!ffActive)DPAD.stop();return;}heroRaf=requestAnimationFrame(heroFrame);
@@ -2453,20 +2482,24 @@ function heroFrame(){
   const left=st.queue.slice(Math.max(0,st.currentIndex)).reduce((a,q,i)=>a+q.durationSec+(i?q.restBeforeSec||0:0),0)-(c?c.elapsedMs/1000:0)+(c&&c.resting?c.restLeftMs/1000:0);
   const L=Math.max(0,Math.ceil(left));$('hero-total').textContent=String(Math.floor(L/60)).padStart(2,'0')+':'+String(L%60).padStart(2,'0');
   const s=heroJudge.stats();$('hero-acc').textContent=s.hits+s.misses?'ก้าวตรง '+s.accuracy+'%':'';
-  document.querySelectorAll('#hero-pad [data-p]').forEach(el=>el.classList.remove('on','soon'));
-  if(combo){heroJudge.tick(t);const q=heroJudge.cue(t);if(q){const el=document.querySelector('#hero-pad [data-p="'+q.pad+'"]');if(el)el.classList.add(Math.abs(q.inSec)<0.6?'on':'soon');}}
+  document.querySelectorAll('#hero-pad [data-p]').forEach(el=>el.classList.remove('on','soon','next'));
+  $('hero-rhythm').hidden=!combo;
+  if(combo){if(heroJudge.tick(t))heroJudgeShow('miss');const q=heroJudge.cue(t);
+    if(q){const el=document.querySelector('#hero-pad [data-p="'+q.pad+'"]');
+      if(el){el.classList.add(Math.abs(q.inSec)<0.15?'on':'soon');el.style.setProperty('--ap',Math.max(0,Math.min(1,q.inSec/heroJudge.period)).toFixed(3));} // วงแหวนหดเข้าหาช่องตามจังหวะ
+      const nx=heroJudge.cue(t+heroJudge.period);if(nx&&nx.pad!==q.pad){const e2=document.querySelector('#hero-pad [data-p="'+nx.pad+'"]');if(e2)e2.classList.add('next');}}}
 }
 function heroEnd(){
   heroOn=false;cancelAnimationFrame(heroRaf);$('hero-hud').hidden=true;$('hero-pad').hidden=true;
   if(DPAD&&!dActive&&!ffActive)DPAD.stop();
-  const s=heroJudge.stats();$('hero-sum').hidden=false;
-  $('hero-sum').textContent='ฮีโร่เวิร์กเอาต์ · เหยียบแผ่นตรงจังหวะ '+s.hits+' ครั้ง จาก '+(s.hits+s.misses)+' ครั้ง ('+s.accuracy+'%)';
+  const s=heroJudge.stats();$('hero-sum').hidden=false;$('hero-rhythm').hidden=true;
+  $('hero-sum').textContent=s.hits+s.misses?'ฮีโร่เวิร์กเอาต์ · คะแนนจังหวะ '+s.score.toLocaleString()+' · คอมโบสูงสุด '+s.maxCombo+' · PERFECT '+s.counts.perfect+' / GREAT '+s.counts.great+' / GOOD '+s.counts.good+' / MISS '+s.counts.miss+' · แม่นยำ '+s.accuracy+'%':'ฮีโร่เวิร์กเอาต์ · ไม่ได้ใช้แผ่นเต้นรอบนี้';
 }
 $('m-hero').onclick=async()=>{
   $('hero-sum').hidden=true;
   try{E.resetGame(st)}catch(e){}
   st.queue.length=0;HW.buildQueue(S.getCatalog(),heroLevel).forEach(q=>{q.speed=heroPeriod(q.id)/(q.stepSec||1.2);st.queue.push(q)});
-  heroJudge.reset();heroIdx=-2;heroOn=true;heroStarting=true;
+  heroJudge.reset();heroIdx=-2;heroOn=true;heroStarting=true;$('hero-score').textContent='0';$('hero-combo').hidden=true;$('hero-judge').textContent='';$('hero-judge-sub').textContent='';
   $('hero-hud').hidden=false;
   if(DPAD&&heroUsePad)DPAD.start();
   cancelAnimationFrame(heroRaf);
