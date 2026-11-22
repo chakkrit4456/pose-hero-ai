@@ -6206,4 +6206,16 @@ checkOnline().then(refreshMe);
   place();setTimeout(place,1500);setTimeout(place,5000);
   const sync=()=>{fx.hidden=home.hidden};new MutationObserver(sync).observe(home,{attributes:true,attributeFilter:['hidden']});
 })();
+
+// Only one tab plays music: when this tab starts any sound, other open tabs of the game pause theirs.
+(function(){
+  if(!('BroadcastChannel' in window))return;
+  const ch=new BroadcastChannel('pose-hero-audio'),me=Math.random().toString(36).slice(2),mine=new Set();
+  const play=HTMLMediaElement.prototype.play;
+  HTMLMediaElement.prototype.play=function(){
+    if(!this.muted){mine.add(this);try{ch.postMessage({tab:me})}catch(e){}}
+    return play.apply(this,arguments);
+  };
+  ch.onmessage=e=>{if(e.data&&e.data.tab!==me)mine.forEach(m=>{try{if(!m.paused)m.pause()}catch(x){}})};
+})();
 </script></body></html>
