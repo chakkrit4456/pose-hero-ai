@@ -9,6 +9,7 @@
   const urls=(window.MR_MUSIC||[]).map(t=>typeof t==='string'?t:t.u).filter(Boolean),bad=new Set();
   let current='',blocked=false,playing=false,attempt=0,loadingDone=null,timer=0;
   const gain=()=>Math.max(0,Math.min(100,Number(cfg.lobbyMusicVolume)||0));
+  // เพลงหน้าหลักเล่นเฉพาะตอนอยู่หน้าหลัก และไม่มีหน้าต่าง/โหมดอื่นกำลังเปิดเสียงอยู่
   const allowed=()=>!home.hidden&&!document.hidden&&cfg.lobbyMusicEnabled!==false&&!cfg.muted&&Number(cfg.volume)>0&&gain()>0;
   function stopLoading(){clearTimeout(timer);if(loadingDone){loadingDone();loadingDone=null;}}
   function paint(){

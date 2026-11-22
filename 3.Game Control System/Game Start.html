@@ -3955,7 +3955,8 @@ const mascotVid2=document.getElementById('mascot-play');
 if(mascotVid2&&mascotStill){mascotVid2.removeAttribute('src');mascotVid2.load();}
 function mascotPlay2(on){if(!mascotVid2||mascotStill)return;if(on){const p=mascotVid2.play();if(p&&p.catch)p.catch(()=>{})}else mascotVid2.pause();}
 function mascotPlay(on){if(!mascotVid||mascotStill)return;if(on){const p=mascotVid.play();if(p&&p.catch)p.catch(()=>{})}else mascotVid.pause();}
-const show=n=>{if(n!=='manage'&&!$('manage').hidden&&window.S2&&S2.confirmLeaveEditor&&!S2.confirmLeaveEditor())return false;if(n!=='next')nxClear();if(n==='home'){chain.active=false;chain.pending=false;chainUiReset()}if(n!=='camsetup'&&csOn)csStop();if(n!=='dance'&&dActive)danceLeave();if(n!=='fire'&&ffActive)ffLeave();PAGES.forEach(k=>$(k).hidden=k!==n);$('mascot').hidden=n!=='home';mascotPlay(n==='home');mascotPlay2(n==='play');if(window.MRBeginner)MRBeginner.pageChanged(n);};
+const show=n=>{if(n!=='manage'&&!$('manage').hidden&&window.S2&&S2.confirmLeaveEditor&&!S2.confirmLeaveEditor())return false;if(n!=='next')nxClear();if(n==='home'){chain.active=false;chain.pending=false;chainUiReset()}if(n!=='camsetup'&&csOn)csStop();if(n!=='dance'&&dActive)danceLeave();if(n!=='fire'&&ffActive)ffLeave();if(n==='home')musicStop(); // กลับหน้าหลัก: หยุดเพลงในเกมก่อน ให้เพลงหน้าหลักเล่นแทน
+  PAGES.forEach(k=>$(k).hidden=k!==n);$('mascot').hidden=n!=='home';mascotPlay(n==='home');mascotPlay2(n==='play');if(window.MRBeginner)MRBeginner.pageChanged(n);};
 function go(page){
   if(page==='setup')renderList();
   if(page==='level')renderLevels();
@@ -4087,13 +4088,14 @@ function applyMusicVol(){
   },40);
 }
 function musicPlay(){
+  if(!$('home').hidden){try{mAudio&&mAudio.pause()}catch(e){}return} // หน้าหลักมีเพลงของตัวเอง: เพลงในเกมห้ามเล่นซ้อน
   if(!mCur){nowPlaying();return}
   mAudio.volume=musicTarget();
   const pr=mAudio.play();
   if(pr&&pr.catch)pr.catch(e=>{
     if(!e||e.name!=='NotAllowedError')return; // เบราว์เซอร์กันเสียงอัตโนมัติ: แจ้งผู้เล่น แล้วเล่นต่อเมื่อคลิก/แตะครั้งถัดไป
     notify('เบราว์เซอร์กันเสียงไว้ — คลิกที่หน้าเกม 1 ครั้งเพื่อเปิดเพลง','warn',true);
-    document.addEventListener('pointerdown',()=>{if(mAudio&&mAudio.paused&&mCur&&musicOn())musicPlay()},{once:true});
+    document.addEventListener('pointerdown',()=>{if(mAudio&&mAudio.paused&&mCur&&musicOn()&&$('home').hidden)musicPlay()},{once:true});
   });
   nowPlaying();
 }
@@ -5780,6 +5782,7 @@ if(preferred2d)fallback(true);else sync();
   const urls=(window.MR_MUSIC||[]).map(t=>typeof t==='string'?t:t.u).filter(Boolean),bad=new Set();
   let current='',blocked=false,playing=false,attempt=0,loadingDone=null,timer=0;
   const gain=()=>Math.max(0,Math.min(100,Number(cfg.lobbyMusicVolume)||0));
+  // เพลงหน้าหลักเล่นเฉพาะตอนอยู่หน้าหลัก และไม่มีหน้าต่าง/โหมดอื่นกำลังเปิดเสียงอยู่
   const allowed=()=>!home.hidden&&!document.hidden&&cfg.lobbyMusicEnabled!==false&&!cfg.muted&&Number(cfg.volume)>0&&gain()>0;
   function stopLoading(){clearTimeout(timer);if(loadingDone){loadingDone();loadingDone=null;}}
   function paint(){
