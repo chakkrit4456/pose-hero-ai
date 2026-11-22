@@ -433,3 +433,24 @@ html body .lobby-scene::after{z-index:3!important;background:
 .in-card #in-back{border-radius:999px!important;border:2px solid #1E9BFF!important;background:#fff!important;color:#0A3DBF!important}
 .in-card #in-go:disabled{opacity:.5}
 @media(max-width:560px){.in-grid{grid-template-columns:1fr}}
+
+/* ---- Pad setup inside the main-mode setup card ---- */
+.in-padset{display:flex;flex-direction:column;align-items:center;gap:8px;width:100%}
+.pad-badge{display:flex;flex-direction:column;align-items:center;gap:2px;padding:8px 14px;border-radius:16px;background:#fff;border:2px solid #B9DCFF;width:100%;box-sizing:border-box}
+.pad-badge i{width:12px;height:12px;border-radius:50%;background:#9aa8c0;box-shadow:0 0 0 3px #9aa8c033}
+.pad-badge b{font-size:14px;color:#3D5A8A}
+.pad-badge small{font-size:11px;color:#6b7fa3;word-break:break-all}
+.pad-badge.on{border-color:#FFB020}.pad-badge.on i{background:#FFB020;box-shadow:0 0 0 3px #FFB02044}.pad-badge.on b{color:#a46a00}
+.pad-badge.ready{border-color:#14b866}.pad-badge.ready i{background:#14b866;box-shadow:0 0 0 3px #14b86644,0 0 10px #14b866}.pad-badge.ready b{color:#0b7a43}
+.pad-board{display:grid;grid-template-columns:repeat(3,1fr);gap:5px;width:min(170px,60%)}
+.pad-board span{aspect-ratio:1;display:grid;place-items:center;border-radius:10px;background:#E6F3FF;border:2px solid #B9DCFF;color:#1E9BFF;font-weight:900;font-size:18px}
+.pad-board span.mid{background:transparent;border-style:dashed;color:#B9DCFF}
+.pad-board span.mapped{border-color:#14b866;color:#0b7a43}
+.pad-board span.target{background:#FF3448;border-color:#C8102E;color:#fff;animation:pad-blink .7s ease-in-out infinite}
+.pad-board span.down{background:#1E9BFF;border-color:#0A3DBF;color:#fff;transform:scale(.94)}
+@keyframes pad-blink{50%{opacity:.45}}
+.pad-prompt{margin:0;min-height:2.6em;font-size:13px;font-weight:700;color:#0A3DBF}
+.pad-btns{display:flex;flex-wrap:wrap;gap:6px;justify-content:center}
+.pad-btns button{border-radius:999px!important;border:2px solid #1E9BFF!important;background:#fff!important;color:#0A3DBF!important;padding:6px 12px!important;width:auto!important;font-size:13px!important}
+.pad-btns #in-map{background:#1E9BFF!important;color:#fff!important}
+.pad-btns button:disabled{opacity:.5}

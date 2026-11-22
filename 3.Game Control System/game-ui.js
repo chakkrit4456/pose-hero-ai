@@ -322,9 +322,46 @@ $('in-cam-test').onclick=async e=>{e.preventDefault();const st=$('in-cam-st');st
   try{camStream=await navigator.mediaDevices.getUserMedia({video:true});st.textContent='✓ กล้องใช้งานได้';st.className='ok';setTimeout(()=>{if(camStream){camStream.getTracks().forEach(t=>t.stop());camStream=null}},800);}
   catch(err){st.textContent='เปิดกล้องไม่ได้ — ตรวจสิทธิ์กล้องของเบราว์เซอร์';}};
 $('in-pad-map').onclick=e=>{e.preventDefault();try{DPAD.start();DPAD.bindAll()}catch(x){}paintIn();};
-if(typeof DPAD!=='undefined'&&DPAD)DPAD.on('prompt',m=>{if(!inOv.hidden&&m&&m.text)$('in-hint').textContent=m.text;});
+
 $('in-go').onclick=()=>{
   const cam=$('in-cam').checked,pad=$('in-pad').checked;if(!cam&&!pad)return;
   try{localStorage.setItem('pose-hero-inputs',JSON.stringify({cam,pad}))}catch(e){}
   heroUseCam=cam;heroUsePad=pad;closeIn();$('m-hero').click();
 };
+
+
+// ===== Pad setup in the main-mode setup card: same flow as Fire Feet (connection badge, 3x3 board, map / skip / reset) =====
+(function(){
+  if(typeof DPAD==='undefined'||!DPAD)return;
+  const card=document.getElementById('in-pad').closest('.in-opt');
+  const POS=['x','u','o','l',null,'r','tri','d','sq'],ARW=['↖','↑','↗','←','●','→','↙','↓','↘'];
+  const extra=document.createElement('div');extra.className='in-padset';
+  extra.innerHTML='<div class="pad-badge" id="in-badge"><i></i><b id="in-badge-t">ยังไม่เชื่อมต่อแผ่นเต้น</b><small id="in-badge-s"></small></div>'+
+    '<div class="pad-board" id="in-board">'+POS.map((p,i)=>p?'<span data-p="'+p+'">'+ARW[i]+'</span>':'<span class="mid">'+ARW[i]+'</span>').join('')+'</div>'+
+    '<p class="pad-prompt" id="in-prompt"></p>'+
+    '<div class="pad-btns"><button type="button" id="in-map">ตั้งค่าแผ่น</button><button type="button" id="in-skip" hidden>ข้ามแผ่นนี้</button><button type="button" id="in-reset">ล้างค่า</button></div>';
+  // replace the simple status + button with the full setup
+  const oldSt=document.getElementById('in-pad-st'),oldBtn=document.getElementById('in-pad-map');
+  oldSt.replaceWith(extra);oldBtn.remove();
+  extra.addEventListener('click',e=>e.preventDefault()); // clicks inside must not toggle the checkbox
+  const $=id=>document.getElementById(id);
+  let target=null,prompt='';
+  function paint(){
+    const gp=DPAD.gamepad,mapping=DPAD.mode&&DPAD.mode!=='free',mapped=DPAD.isMapped;
+    const b=$('in-badge');b.className='pad-badge'+(gp?' on':'')+(gp&&mapped?' ready':'');
+    $('in-badge-t').textContent=!gp?'ยังไม่เชื่อมต่อแผ่นเต้น':mapping?'เชื่อมต่อแล้ว · กำลังตั้งค่า':mapped?'เชื่อมต่อแล้ว · พร้อมเล่น ✓':'เชื่อมต่อแล้ว · ยังไม่ได้ตั้งค่า';
+    $('in-badge-s').textContent=gp?(gp.id.length>34?gp.id.slice(0,34)+'…':gp.id):'เสียบแผ่น USB แล้วเหยียบ 1 ครั้ง (ไม่มีแผ่นใช้คีย์บอร์ดได้)';
+    document.querySelectorAll('#in-board [data-p]').forEach(c=>{const id=c.dataset.p;
+      c.classList.toggle('mapped',!!DPAD.map[id]);c.classList.toggle('target',mapping&&target===id);c.classList.toggle('down',DPAD.isDown?DPAD.isDown(id):false);});
+    $('in-skip').hidden=!mapping;$('in-map').textContent=mapping?'ยกเลิกการตั้งค่า':mapped?'ตั้งค่าแผ่นใหม่':'ตั้งค่าแผ่น';
+    $('in-map').disabled=!gp&&!mapping;
+    $('in-prompt').textContent=mapping?prompt:!gp?'ยังไม่พบแผ่น — เสียบสาย USB แล้วเหยียบแผ่นใดก็ได้ 1 ครั้ง':!mapped?'กด "ตั้งค่าแผ่น" แล้วเหยียบตามช่องที่กะพริบบนกระดาน (ทำครั้งเดียว ระบบจำไว้)':'ลองเหยียบทดสอบ ช่องบนกระดานจะสว่างตามที่เหยียบ';
+  }
+  $('in-map').onclick=()=>{try{DPAD.start();if(DPAD.mode&&DPAD.mode!=='free')DPAD.cancel();else DPAD.bindAll();}catch(e){}paint()};
+  $('in-skip').onclick=()=>{try{DPAD.skip()}catch(e){}paint()};
+  $('in-reset').onclick=()=>{if(confirm('ล้างการตั้งค่าแผ่นเต้นทั้งหมด แล้วตั้งค่าใหม่?')){try{DPAD.resetAll()}catch(e){}paint()}};
+  DPAD.on('prompt',m=>{if(m){prompt=m.text||'';target=m.target||null;if(m.step==='done'||m.step==='cancel')target=null;}paint();});
+  DPAD.on('change',paint);DPAD.on('status',paint);DPAD.on('press',paint);DPAD.on('release',paint);
+  setInterval(()=>{if(!card.closest('.in-ov').hidden)paint()},500);
+  paint();
+})();
