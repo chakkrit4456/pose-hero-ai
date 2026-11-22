@@ -913,7 +913,7 @@ main:has(#done:not([hidden])){max-width:820px}
   <div class="camwrap"><video id="cam" class="cam" hidden></video><canvas id="ov"></canvas></div>
   <div class="mbar" id="mbar" hidden><i id="mfill"></i></div>
   <div class="pl-under">
-    <div id="demo" hidden><p id="demo-cap"></p><canvas id="demo-cv" width="960" height="720"></canvas><canvas id="demo-3d" width="720" height="540" hidden></canvas></div>
+    <div id="demo" hidden><p id="demo-cap"></p><canvas id="demo-cv" width="960" height="720" hidden></canvas><video id="demo-vid" src="vid/mascot.webm" poster="vid/mascot.png" muted loop playsinline aria-hidden="true"></video><canvas id="demo-3d" width="720" height="540" hidden></canvas></div>
   </div>
  </div>
  <div class="pl-side">
@@ -1466,7 +1466,7 @@ function speakSteps(ex,inf){
   speak(txt,0,{steps:true,rate:1});
 }
 // ---- หุ่นสอน 3D (ai/teacher3d.js): ใช้ท่าชุดเดียวกับหุ่น 2D ถ้าเครื่องไม่รองรับหรือวาดไม่ทัน จะกลับไปใช้หุ่น 2D
-let teacher3=null,teacher3Tried=false,teacher3Slow=0,teacher3Last=0;
+let teacher3=null,teacher3Tried=false,teacher3Slow=0,teacher3Last=0,teacher3Skip=0;
 function teacher3Init(){
   if(teacher3Tried||cfg.teacher3d===false||!window.MRTeacher3D||!window.MR_THREE||!window.MR_TEACHER_B64)return;
   teacher3Tried=true;
@@ -1481,7 +1481,7 @@ function teacher3Init(){
 // วาดหุ่น 3D ได้ไหม: เครื่องวาดไม่ทันติดกันนานเกิน 4 วินาที = สลับเป็นหุ่น 2D ไปตลอดรอบการใช้งาน
 function teacher3Draw(lm,t){
   const dt=teacher3Last?t-teacher3Last:null;teacher3Last=t;
-  if(dt!=null&&dt<1){teacher3Slow=dt>.05?teacher3Slow+dt:Math.max(0,teacher3Slow-dt);if(teacher3Slow>4){teacher3=null;notify('เครื่องวาดหุ่น 3D ไม่ทัน — สลับเป็นหุ่น 2D ให้แล้ว','info',true);return false}}
+  if(dt!=null&&dt<1){teacher3Slow=dt>.05?teacher3Slow+dt:Math.max(0,teacher3Slow-dt);if(teacher3Slow>4&&(teacher3Skip=(teacher3Skip+1)%2))return true} // เครื่องช้า: วาดเว้นเฟรม แต่ยังเป็นมาสคอตเสมอ
   teacher3.render(lm,dt==null||dt>=1?null:dt,MR.LANDMARK_NAMES);return true;
 }
 // แปลงโครงท่า 2D ของระบบจัดการท่า (S2) เป็นจุด landmark แบบ MediaPipe เพื่อให้มาสคอต 3D ทำท่านั้นได้
@@ -1496,42 +1496,29 @@ function s2Landmarks(J){
     map[n+'hip']=J[sd+'_hip'];map[n+'knee']=J[sd+'_knee'];['ankle','heel','foot_index'].forEach(q=>map[n+q]=J[sd+'_foot']);});
   return MR.LANDMARK_NAMES.map(n=>P(map[n]||J.neck));
 }
-function drawDemoCanvas(ex){
-  const cv=$('demo-cv'),t=performance.now()/1000,id=ex.id;
-  const use3=!!(AI&&aiEx[id]&&teacher3&&cfg.teacher3d!==false)&&teacher3Draw(MR.teachPose(aiEx[id],t),t);
-  $('demo-3d').hidden=!use3;cv.hidden=use3;
-  if(use3)return true;
-  if(AI&&aiEx[id]){
-    const e=aiEx[id];if(cv.width!==960||cv.height!==720){cv.width=960;cv.height=720;}
-    const g=cv.getContext('2d');g.fillStyle='#101418';g.fillRect(0,0,960,720);
-    g.save();g.translate(480,360);g.scale(1.2,1.2);g.translate(-MR.SIM_W/2,-305); // ขนาดนี้พอดีทั้งท่ายืนและท่าชูแขนสุด
-    // เกลี่ยตำแหน่งข้อต่อระหว่างเฟรม ให้ขยับลื่นแม้เฟรมเรตแกว่ง และเปลี่ยนไปท่าถัดไปแบบไม่กระโดด
-    const tgt=MR.ghostJoints(MR.teachPose(e,t),MR.SIM_W,MR.SIM_H),dt=t-teachT;teachT=t;
-    if(!teachJ||dt>1)teachJ=tgt;
-    else{const f=1-Math.exp(-Math.max(0,dt)/0.07);for(const n in tgt){teachJ[n].px+=(tgt[n].px-teachJ[n].px)*f;teachJ[n].py+=(tgt[n].py-teachJ[n].py)*f;}}
-    MR.drawTeacher(g,teachJ,teachMove[id]||(teachMove[id]=MR.teachMoving(e)),1);g.restore();return true;
-  }
+// ท่าทางของมาสคอตสำหรับท่าใดก็ได้ (ท่า AI, ท่าออฟฟิศ, ท่าของฉัน) เป็นจุด landmark ที่เวลา t
+function teachLandmarks(ex,t){
+  const id=ex.id;
+  if(AI&&aiEx[id])return MR.teachPose(aiEx[id],t);
+  if(!window.S2)return null;
   let joints=null;
-  if(window.S2){
-    if(id.startsWith('pose:')&&poseStore){const p=poseStore.get(id.slice(5));joints=p&&p.joints;}
-    else if(DESK[id])joints=DESK[id].j||(DESK[id].j=S2.buildPose(DESK[id].pose));
-  }
-  if(!joints&&window.S2)joints=S2.buildPose({l_arm:[-150,-170],r_arm:[150,170]}); // ท่าที่ไม่มีข้อมูลท่าทาง: มาสคอตยังขยับยืดแขนให้ดู ไม่ยืนนิ่ง
-  if(joints&&window.S2&&teacher3&&cfg.teacher3d!==false){
-    const T=1.2+1.8+1.2+0.6,u=t%T,neu=S2.neutral();let cur;
-    if(u<1.2)cur=S2.lerpPose(neu,joints,S2.ease(u/1.2));else if(u<3)cur=joints;else if(u<4.2)cur=S2.lerpPose(joints,neu,S2.ease((u-3)/1.2));else cur=neu;
-    if(teacher3Draw(s2Landmarks(cur),t)){$('demo-3d').hidden=false;cv.hidden=true;return true;}
-  }
-  if(joints){
-    if(cv.width!==900||cv.height!==900){cv.width=900;cv.height=900;}
-    const g=cv.getContext('2d'),css=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim(),neu=S2.neutral();
-    g.clearRect(0,0,900,900);g.fillStyle=css('--field')||'#fff';g.fillRect(0,0,900,900);
-    S2.drawPose(cv,joints,{color:'#c4c9d1',widthRatio:0.05});
-    const T=1.2+1.8+1.2+0.6,u=t%T;let cur;
-    if(u<1.2)cur=S2.lerpPose(neu,joints,S2.ease(u/1.2));else if(u<3)cur=joints;else if(u<4.2)cur=S2.lerpPose(joints,neu,S2.ease((u-3)/1.2));else cur=neu;
-    S2.drawPose(cv,cur,{color:css('--acc')});return true;
-  }
-  return false;
+  if(id.startsWith('pose:')&&poseStore){const p=poseStore.get(id.slice(5));joints=p&&p.joints;}
+  else if(DESK[id])joints=DESK[id].j||(DESK[id].j=S2.buildPose(DESK[id].pose));
+  if(!joints)joints=S2.buildPose({l_arm:[-150,-170],r_arm:[150,170]}); // ไม่มีข้อมูลท่า: ยืดแขนให้ดู
+  const T=1.2+1.8+1.2+0.6,u=t%T,neu=S2.neutral();let cur;
+  if(u<1.2)cur=S2.lerpPose(neu,joints,S2.ease(u/1.2));else if(u<3)cur=joints;else if(u<4.2)cur=S2.lerpPose(joints,neu,S2.ease((u-3)/1.2));else cur=neu;
+  return s2Landmarks(cur);
+}
+window.teachLandmarks=teachLandmarks;
+// ตัวอย่างท่าระหว่างเล่น: ใช้มาสคอต 3D เสมอ ไม่ใช้โครงกระดูก ระหว่างที่หุ่น 3D ยังโหลดไม่เสร็จ แสดงวิดีโอมาสคอตขยับแทน
+function drawDemoCanvas(ex){
+  const t=performance.now()/1000,lm=teachLandmarks(ex,t);
+  if(!teacher3&&!teacher3Tried)teacher3Init();
+  const use3=!!(lm&&teacher3)&&teacher3Draw(lm,t);
+  $('demo-3d').hidden=!use3;$('demo-cv').hidden=true;
+  const v=$('demo-vid');v.hidden=use3;
+  if(!use3&&v.paused){const p=v.play();if(p&&p.catch)p.catch(()=>{})}else if(use3&&!v.paused)v.pause();
+  return true;
 }
 // โครงกระดูกสอนใต้กล้อง: แสดงตลอดเวลาของท่า ซ่อนเมื่อส่ง ex ว่าง หรือท่านั้นไม่มีแอนิเมชัน
 function showTeach(ex){
@@ -2424,5 +2411,6 @@ $('m-hero').onclick=async()=>{
   try{await go;}finally{heroStarting=false;}
 };
 if(window.MRLoading)MRLoading.ready();
+setTimeout(()=>{try{teacher3Init()}catch(e){}},1500); // โหลดมาสคอต 3D ไว้ก่อนเริ่มเล่น
 </script>
 <script>/*__BEGINNER_JS__*/</script><script>/*__LOBBY_JS__*/</script><script>/*__LOBBY_AUDIO_JS__*/</script><script>/*__GAME_UI_JS__*/</script></body></html>

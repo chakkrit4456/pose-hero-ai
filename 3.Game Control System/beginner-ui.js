@@ -92,11 +92,16 @@
     const done=window.MRLoading?MRLoading.begin('กำลังเตรียมภาพตัวอย่างท่า…'):()=>{};
     try{cardTeacherPromise=MRTeacher3D.create(teacherCanvas,Uint8Array.from(atob(MR_TEACHER_B64),c=>c.charCodeAt(0))).then(t=>{cardTeacher=t;if(!byId('setup').hidden)cardsChanged();}).catch(()=>{}).finally(done);}catch(e){done();}
   }
+  const mascotImg=new Image();mascotImg.src='vid/mascot.png';mascotImg.onload=()=>{try{cardsChanged()}catch(e){}};
+  function mascotStill(g,W,H){g.fillStyle='#101418';g.fillRect(0,0,W,H);if(mascotImg.complete&&mascotImg.naturalWidth){const r=Math.min(W/mascotImg.naturalWidth,H/mascotImg.naturalHeight)*.9,w=mascotImg.naturalWidth*r,h=mascotImg.naturalHeight*r;g.drawImage(mascotImg,(W-w)/2,(H-h)/2,w,h);}}
   function poseFrame(cv,ex,t,skeleton=false){
-    if(!cv||!AI||!aiEx[ex.id]){if(cv)drawThumb(cv,ex);return;}
-    const e=aiEx[ex.id],g=cv.getContext('2d'),W=cv.width,H=cv.height;
+    if(!cv)return;
+    const g=cv.getContext('2d'),W=cv.width,H=cv.height;
+    if(!AI||!aiEx[ex.id]){skeleton=false;const l2=window.teachLandmarks&&teachLandmarks(ex,t);if(l2&&cardTeacher&&cfg.teacher3d!==false){try{cardTeacher.render(l2,null,MR.LANDMARK_NAMES);g.fillStyle='#101418';g.fillRect(0,0,W,H);g.drawImage(teacherCanvas,0,0,W,H);return;}catch(err){}}mascotStill(g,W,H);return;}
+    const e=aiEx[ex.id];skeleton=false;
     const lm=previewMode==='start'&&dialogKind==='pose'?MR.poseFromAngles(MR.teachAngles(e,0),[]):previewMode==='end'&&dialogKind==='pose'?MR.poseFromAngles(MR.teachAngles(e,1),[]):MR.teachPose(e,t);
     if(!skeleton&&cardTeacher&&cfg.teacher3d!==false){try{cardTeacher.render(lm,null,MR.LANDMARK_NAMES);g.fillStyle='#101418';g.fillRect(0,0,W,H);g.drawImage(teacherCanvas,0,0,W,H);return;}catch(e){cardTeacher=null;}}
+    mascotStill(g,W,H);return; // มาสคอต 3D ยังโหลดไม่เสร็จ: แสดงรูปมาสคอต ไม่ใช้โครงกระดูก
     const joints=MR.ghostJoints(lm,MR.SIM_W,MR.SIM_H);
     // Fit the whole character including hands and head at every pose.
     const pts=Object.values(joints).filter(p=>Number.isFinite(p.px)&&Number.isFinite(p.py));

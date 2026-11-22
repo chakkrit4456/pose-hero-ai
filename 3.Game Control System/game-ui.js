@@ -110,3 +110,7 @@ setInterval(()=>{
   if(!timeWarn&&reps<goal&&p.timeLeftSec!=null&&p.timeLeftSec<=10&&p.timeLeftSec>0&&Date.now()-lastSay>GAP){timeWarn=true;pop(pick(L.time),true)}
 },400);
 })();
+
+// Rep counter ring shows how much of the current block's time has passed.
+setInterval(()=>{try{const c=st.current,b=document.getElementById('big');if(!b)return;
+  const f=c&&!c.resting&&c.exercise?Math.min(1,c.elapsedMs/(c.exercise.durationSec*1000)):0;b.style.setProperty('--blk',(f*100).toFixed(1)+'%');}catch(e){}},200);
