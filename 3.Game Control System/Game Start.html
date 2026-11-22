@@ -1221,6 +1221,58 @@ html body .lobby-scene::before{content:"";position:absolute;inset:-25%;z-index:1
 .toast.warn{border-color:#FF3448!important}
 #app-loading{background:linear-gradient(160deg,#1E9BFF,#0A3DBF)!important}
 #app-loading h2{color:#fff!important}
+
+/* ---- Exit button + confirm ---- */
+.pl-exit{position:fixed;top:12px;left:16px;z-index:60;min-height:48px;padding:0 18px!important;border-radius:999px!important;border:0!important;
+  background:#fff!important;color:#FF3448!important;font:800 16px/1 Prompt,system-ui,sans-serif!important;box-shadow:0 5px 0 #0A3DBF66!important;cursor:pointer}
+.pl-exit:active{transform:translateY(4px);box-shadow:0 1px 0 #0A3DBF66!important}
+#exit-ov{z-index:300}
+.exit-card{text-align:center;border-radius:26px!important;border:0!important;box-shadow:0 10px 0 #0A3DBF55!important}
+.exit-card h2{color:#FF3448!important;margin-top:0}
+.exit-card .row{justify-content:center;gap:12px}
+.exit-card #exit-no{border:2px solid #1E9BFF!important;color:#0A3DBF!important;background:#fff!important;border-radius:999px!important}
+
+/* ---- Player / ranking modal ---- */
+.ph-ov{z-index:320}
+.ph-card{position:relative;width:min(520px,100%);max-height:calc(100dvh - 32px);overflow:auto;border:0!important;border-radius:26px!important;box-shadow:0 10px 0 #0A3DBF55,0 30px 60px #0A3DBF55!important;color:#0B1F4D}
+.ph-card h2{margin:0 0 8px;color:#0A3DBF;font:900 26px/1.2 Prompt,system-ui,sans-serif}
+.ph-x{position:absolute;top:12px;right:12px;width:40px!important;min-width:0!important;height:40px;margin:0!important;padding:0!important;border-radius:999px!important;border:0!important;background:#E6F3FF!important;color:#0A3DBF!important;font-size:18px!important}
+.ph-kicker{margin:0;color:#FF3448;font-weight:800;font-size:12px;letter-spacing:.14em}
+.ph-small{color:#3D5A8A;font-size:14px}
+.ph-err{color:#FF3448;font-weight:700;min-height:1.2em;margin:4px 0}
+.ph-form label{display:block;font-weight:700;margin:10px 0 4px}
+.ph-form input{display:block;width:100%;box-sizing:border-box;margin-top:4px;padding:12px 14px;border-radius:14px;border:2px solid #B9DCFF;font-size:18px;background:#F2F8FF;color:#0B1F4D}
+.ph-form input:focus{outline:3px solid #1E9BFF55;border-color:#1E9BFF}
+.ph-card .row{display:flex;flex-wrap:wrap;gap:10px;margin-top:14px}
+.ph-card .row button:not(.p),.ph-result button:not(.p){border-radius:999px!important;border:2px solid #1E9BFF!important;background:#fff!important;color:#0A3DBF!important}
+.ph-tier{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:8px 0}
+.ph-tier b{font-size:22px;color:#FF3448}
+.ph-badge{display:inline-block;padding:6px 14px;border-radius:999px;font-weight:800;color:#fff;background:#0A3DBF}
+.ph-badge.t-Bronze{background:#B86B3A}.ph-badge.t-Silver{background:#8A9BB5}.ph-badge.t-Gold{background:#E8A400}.ph-badge.t-Platinum{background:#1E9BFF}.ph-badge.t-Diamond{background:linear-gradient(90deg,#1E9BFF,#FF3448)}
+.ph-bar{height:12px;border-radius:99px;background:#E6F3FF;overflow:hidden}
+.ph-bar i{display:block;height:100%;background:linear-gradient(90deg,#1E9BFF,#FF3448);border-radius:99px}
+.ph-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px}
+.ph-stats div{background:#F2F8FF;border-radius:16px;padding:10px;text-align:center}
+.ph-stats b{display:block;font-size:22px;color:#0A3DBF}.ph-stats span{font-size:12px;color:#3D5A8A}
+.ph-tabs{display:flex;gap:8px;margin:6px 0 10px}
+.ph-tabs button{border-radius:999px!important;border:2px solid #1E9BFF!important;background:#fff!important;color:#0A3DBF!important;padding:6px 14px!important}
+.ph-tabs button.on{background:#1E9BFF!important;color:#fff!important}
+.ph-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
+.ph-list li{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:16px;background:#F2F8FF}
+.ph-list li.me{background:#FFE3E7;outline:2px solid #FF3448}
+.ph-list li b{margin-left:auto;font-size:20px;color:#0A3DBF}
+.ph-nm{display:flex;flex-direction:column;font-weight:800;min-width:0}
+.ph-nm small{font-weight:400;font-size:12px;color:#3D5A8A}
+.ph-rk{flex:none;width:34px;height:34px;border-radius:50%;display:grid;place-items:center;font-weight:900;background:#fff;color:#0A3DBF;border:2px solid #B9DCFF}
+.ph-rk.r1{background:#E8A400;color:#fff;border-color:#E8A400}.ph-rk.r2{background:#8A9BB5;color:#fff;border-color:#8A9BB5}.ph-rk.r3{background:#B86B3A;color:#fff;border-color:#B86B3A}
+.ph-empty{justify-content:center;color:#3D5A8A}
+#online-sum{margin:10px auto;max-width:520px}
+.ph-result{background:#fff;border-radius:22px;padding:16px;text-align:center;box-shadow:0 6px 0 #0A3DBF33}
+.ph-result>b{font:900 40px/1.1 Prompt,system-ui,sans-serif;color:#FF3448}
+.ph-result .ph-tier{justify-content:center}
+.ph-up{font-weight:800;color:#FF3448}
+.gl-hud:focus-visible{outline:3px solid #fff;outline-offset:3px}
+.ph-card button{width:auto}.ph-card .row button{flex:1 1 180px}
 </style></head><body>
 <div id="app-loading" role="status" aria-live="polite" aria-busy="true"><div><div class="loading-ring" aria-hidden="true"></div><h2>POSE HERO AI</h2><p id="loading-message">กำลังเตรียมหน้าเกม…</p><p id="loading-detail">กรุณารอสักครู่</p><button id="loading-retry" type="button" hidden>ลองโหลดใหม่</button></div></div>
 <noscript><style>#app-loading{display:none}html.app-loading{overflow:auto}html.app-loading main{visibility:visible}</style><p>กรุณาเปิด JavaScript เพื่อเล่นเกมนี้</p></noscript>
@@ -1427,9 +1479,11 @@ html body .lobby-scene::before{content:"";position:absolute;inset:-25%;z-index:1
 <div id="bn-ov" class="notice-ov" role="dialog" aria-modal="true" aria-labelledby="bn-title" hidden>
   <div class="notice-card bn-card"><p class="bn-kicker">ก่อนเริ่มท่านี้</p><h2 id="bn-title"></h2><div id="bn-rows"></div><p class="notice-priv" id="bn-warn" hidden></p><p class="bn-foot" id="bn-foot"></p><button id="bn-ok" class="p" type="button">เข้าใจแล้ว เริ่มท่าเลย</button><button id="bn-off" type="button">ไม่ต้องแสดงอีก</button></div>
 </div>
+<div id="exit-ov" class="notice-ov" hidden><div class="notice-card exit-card" role="dialog" aria-modal="true" aria-labelledby="exit-t"><h2 id="exit-t">ออกจากเกม?</h2><p>ความคืบหน้ารอบนี้จะไม่ถูกบันทึกและไม่นับแรงค์</p><div class="row"><button id="exit-go" type="button" class="p">ออกเลย</button><button id="exit-no" type="button">เล่นต่อ</button></div></div></div>
 <div id="remind" class="remind" role="alert" hidden><b>ถึงเวลาพักแล้ว</b><span id="remind-msg"></span><div class="row"><button id="rem-go" class="p" type="button">ชุดท่าด่วน</button><button id="rem-snz" type="button">เลื่อน 10 นาที</button><button id="rem-off" type="button">ปิดวันนี้</button></div></div>
 <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
 <section id="play" class="card" hidden>
+ <button id="pl-exit" class="pl-exit" type="button" aria-label="ออกจากเกม">✕ ออก</button>
  <div id="hero-hud" hidden><span id="hero-phase"></span><b id="hero-total"></b><span id="hero-acc"></span></div>
  <div id="hero-pad" hidden aria-label="แผ่นเต้น: เหยียบช่องที่สว่าง"><p id="hero-cue"></p><div class="hp-grid"><i data-p="x"></i><i data-p="u">↑</i><i data-p="o"></i><i data-p="l">←</i><i class="hp-c"></i><i data-p="r">→</i><i data-p="tri"></i><i data-p="d">↓</i><i data-p="sq"></i></div></div>
  <div class="pl-cam">
@@ -1458,6 +1512,7 @@ html body .lobby-scene::before{content:"";position:absolute;inset:-25%;z-index:1
 <section id="done" class="card" hidden>
   <h2>ผลการบริหารร่างกาย</h2>
   <p id="hero-sum" class="c" hidden></p>
+  <div id="online-sum" hidden></div>
   <div class="chainbox" id="done-next" hidden><b>ต่อด้วยโหมดเหยียบ</b><span id="dn-stage"></span><button id="dn-go" class="p" type="button">ไปเลย</button></div>
   <div id="sum"></div>
   <div class="row" style="margin-top:12px"><button id="again" class="p">เล่นอีกครั้ง</button><button id="weak" hidden>ฝึกท่าที่อ่อนอีกรอบ</button><button id="tohome">หน้าหลัก</button></div>
@@ -4506,7 +4561,7 @@ async function startPlayCam(){
   }catch(e){aiOn=false;$('camerr').textContent=(e.message||'เปิดกล้องไม่ได้')+' — ใช้ปุ่มกดนับแทนได้';$('camtog').textContent='ลองเปิดกล้องอีกครั้ง';}finally{loadingDone();}
 }
 $('camtog').onclick=()=>{if(aiOn||C.isCameraOn())stopCam();else startPlayCam()};
-function finish(){if(heroOn)heroEnd();
+function finish(){const wasHero=heroOn,heroAcc=heroOn?heroJudge.stats():null;if(heroOn)heroEnd();
   cancelAnimationFrame(raf);stopCam();showDemo(false);showTeach(null);stopSpeech();const s=E.getEndSummary(st);wellnessFinish();
   $('sum').innerHTML=`<p>${st.playerName} ทำสำเร็จ ${s.completedExercises}/${s.totalExercises} ท่า · รวม ${s.totalReps} ครั้ง · ${s.totalTimeSec} วินาที</p>`+
    (()=>{
@@ -4520,7 +4575,8 @@ function finish(){if(heroOn)heroEnd();
      const tips=r.tips.length?`<div class="sumlist"><b>วิธีแก้รายท่า</b>`+r.tips.map(t=>`<div>• <b>${esc(t.name)}</b>: ${t.advice.map(esc).join(' / ')}</div>`).join('')+'</div>':'';
      return (hist.length?`<div class="sumlist" style="text-align:center">${hist.map(esc).join('<br>')}</div>`:'')+r.html+li('จุดเด่น',a.strengths)+li('ควรปรับปรุง',a.improvements)+tips+li('คำแนะนำ',a.advice);
    })();
-  if(chainEligible(lastSummary))showNext(lastSummary);else{chain.pending=false;show('done');updateDoneNext()}
+  try{if(window.PHOnline&&lastSummary)PHOnline.roundFinished({mode:wasHero?'hero':'camera',summary:lastSummary,stepAcc:heroAcc&&heroAcc.hits+heroAcc.misses?heroAcc.accuracy:null,durationSec:Math.round(st.totalElapsedMs/1000)})}catch(e){console.warn(e)}
+  if(!wasHero&&chainEligible(lastSummary))showNext(lastSummary); // โหมดหลักมีแผ่นเต้นในตัวแล้ว ไม่ต้องต่อโหมดเหยียบelse{chain.pending=false;show('done');updateDoneNext()}
 }
 $('go').onclick=async()=>{
   if(!heroStarting)heroOn=false;
@@ -4532,6 +4588,7 @@ $('go').onclick=async()=>{
     musicStop();mLoaded=null;musicStart(); // เริ่มเพลงทันทีที่กดเริ่ม ไม่ต้องรอโหลดกล้องและนับถอยหลัง
     $('camtog').textContent='เปิดกล้อง';
     if(cfg.autoCam)await startPlayCam();
+    if($('play').hidden){stopCam();return;} // ผู้เล่นกดออกระหว่างเปิดกล้อง: ไม่เริ่มเกม
     G.startGame(st);$('pause').textContent='หยุด';last=performance.now();raf=requestAnimationFrame(loop);
   }catch(e){musicStop();show('setup');$('err').textContent=e.message}
 };
@@ -5302,6 +5359,18 @@ $('m-hero').onclick=async()=>{
   heroRaf=requestAnimationFrame(heroFrame);
   try{await go;}finally{heroStarting=false;}
 };
+// ---- ปุ่มออกระหว่างเล่น: ยืนยันก่อน แล้วกลับหน้าหลัก ไม่บันทึกคะแนน ----
+let exitResume=false;
+$('pl-exit').onclick=()=>{exitResume=st.status==='playing'||st.status==='countdown';if(exitResume){E.pauseGame(st);$('pause').textContent='เล่นต่อ'}$('exit-ov').hidden=false;$('exit-no').focus()};
+$('exit-no').onclick=()=>{$('exit-ov').hidden=true;if(exitResume&&st.status==='paused'){E.resumeGame(st);$('pause').textContent='หยุด'}};
+$('exit-go').onclick=()=>{
+  $('exit-ov').hidden=true;
+  try{E.endGame(st,'quit')}catch(e){}
+  cancelAnimationFrame(raf);stopCam();showDemo(false);showTeach(null);stopSpeech();musicStop();closeBn();
+  if(heroOn){heroOn=false;cancelAnimationFrame(heroRaf);$('hero-hud').hidden=true;$('hero-pad').hidden=true;if(DPAD&&!dActive&&!ffActive)DPAD.stop();}
+  try{E.resetGame(st)}catch(e){}
+  show('home');notify('ออกจากเกมแล้ว','info',true);
+};
 if(window.MRLoading)MRLoading.ready();
 setTimeout(()=>{try{teacher3Init()}catch(e){}},1500); // โหลดมาสคอต 3D ไว้ก่อนเริ่มเล่น
 </script>
@@ -5832,4 +5901,133 @@ setInterval(()=>{
 // Rep counter ring shows how much of the current block's time has passed.
 setInterval(()=>{try{const c=st.current,b=document.getElementById('big');if(!b)return;
   const f=c&&!c.resting&&c.exercise?Math.min(1,c.elapsedMs/(c.exercise.durationSec*1000)):0;b.style.setProperty('--blk',(f*100).toFixed(1)+'%');}catch(e){}},200);
+
+
+// ===== Online players, scores and ranking (server/app.py) =====
+(function(){
+const $=id=>document.getElementById(id);
+const TOKEN='pose-hero-token';
+const TIER_TH={Bronze:'บรอนซ์',Silver:'ซิลเวอร์',Gold:'โกลด์',Platinum:'แพลทินัม',Diamond:'ไดมอนด์'};
+const TIER_ICON={Bronze:'🥉',Silver:'🥈',Gold:'🥇',Platinum:'💠',Diamond:'💎'};
+const esc=x=>String(x).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+let token=null,me=null,online=null;
+try{token=localStorage.getItem(TOKEN)}catch(e){}
+
+async function api(method,path,body){
+  const r=await fetch('/api'+path,{method,headers:Object.assign({'Content-Type':'application/json'},token?{Authorization:'Bearer '+token}:{}),body:body?JSON.stringify(body):undefined});
+  let data={};try{data=await r.json()}catch(e){}
+  if(!r.ok)throw Object.assign(new Error(data.error||('HTTP '+r.status)),{status:r.status});
+  return data;
+}
+async function checkOnline(){
+  if(location.protocol==='file:'){online=false;return false}
+  try{await api('GET','/health');online=true}catch(e){online=false}
+  return online;
+}
+function setToken(t){token=t;try{t?localStorage.setItem(TOKEN,t):localStorage.removeItem(TOKEN)}catch(e){}}
+
+// ---- lobby chip ----
+function paintChip(){
+  const hello=$('hello'),lv=$('lvnow');if(!hello)return;
+  if(me){
+    hello.textContent=me.name;
+    lv.textContent=TIER_ICON[me.tier]+' '+TIER_TH[me.tier]+' · '+me.points+' แต้ม'+(me.rank?' · อันดับ #'+me.rank:'');
+    try{if(typeof cfg!=='undefined'&&cfg.playerName!==me.name){cfg.playerName=me.name;st.playerName=me.name}}catch(e){}
+  }else if(online===false){lv.textContent='โหมดออฟไลน์ — คะแนนไม่ขึ้นแรงค์'}
+  else{hello.textContent='แตะเพื่อเข้าสู่ระบบ';lv.textContent='เข้าสู่ระบบเพื่อเก็บคะแนนและแรงค์'}
+}
+async function refreshMe(){
+  if(!token||!online){me=null;paintChip();return}
+  try{me=await api('GET','/players/me')}catch(e){if(e.status===401)setToken(null);me=null}
+  paintChip();
+}
+
+// ---- modal ----
+const ov=document.createElement('div');ov.className='notice-ov ph-ov';ov.hidden=true;
+ov.innerHTML='<div class="notice-card ph-card" role="dialog" aria-modal="true"><button type="button" class="ph-x" aria-label="ปิด">✕</button><div class="ph-body"></div></div>';
+document.body.append(ov);
+const body=ov.querySelector('.ph-body');
+ov.querySelector('.ph-x').onclick=()=>{ov.hidden=true};
+ov.addEventListener('click',e=>{if(e.target===ov)ov.hidden=true});
+document.addEventListener('keydown',e=>{if(e.key==='Escape')ov.hidden=true});
+function open(html){body.innerHTML=html;ov.hidden=false}
+
+function playerCard(){
+  if(online===false)return open('<h2>โหมดออฟไลน์</h2><p>เชื่อมต่อเซิร์ฟเวอร์เกมไม่ได้ ตอนนี้เล่นได้ตามปกติ แต่คะแนนจะไม่ขึ้นตารางแรงค์</p>');
+  if(me){
+    const nt=me.next,pct=nt?Math.min(100,Math.round(me.points/nt.at*100)):100;
+    open(`<p class="ph-kicker">ผู้เล่น</p><h2>${esc(me.name)}</h2>
+      <div class="ph-tier"><span class="ph-badge t-${me.tier}">${TIER_ICON[me.tier]} ${TIER_TH[me.tier]}</span><b>${me.points}</b> แต้ม</div>
+      <div class="ph-bar"><i style="width:${pct}%"></i></div><p class="ph-small">${nt?'อีก '+(nt.at-me.points)+' แต้ม ถึง '+TIER_TH[nt.name]:'แรงค์สูงสุดแล้ว!'}</p>
+      <div class="ph-stats"><div><b>${me.rank?'#'+me.rank:'-'}</b><span>อันดับ</span></div><div><b>${me.best}</b><span>คะแนนสูงสุด</span></div><div><b>${me.rounds}</b><span>รอบที่เล่น</span></div></div>
+      <div class="row"><button type="button" class="p" data-a="rank">🏆 ดูตารางอันดับ</button><button type="button" data-a="out">ออกจากระบบ / เปลี่ยนผู้เล่น</button></div>`);
+    body.querySelector('[data-a=rank]').onclick=()=>leaderboard('all');
+    body.querySelector('[data-a=out]').onclick=()=>{setToken(null);me=null;paintChip();playerCard()};
+    return;
+  }
+  open(`<p class="ph-kicker">ผู้เล่น</p><h2>เข้าสู่ระบบ</h2><p class="ph-small">ใช้ชื่อผู้เล่นของคุณ + PIN 4 หลัก เพื่อเก็บคะแนนและแรงค์แยกของแต่ละคน</p>
+    <form class="ph-form"><label>ชื่อผู้เล่น<input name="name" maxlength="20" autocomplete="nickname" required></label>
+    <label>PIN 4 หลัก<input name="pin" inputmode="numeric" pattern="\\d{4}" maxlength="4" autocomplete="off" required></label>
+    <p class="ph-err" role="alert"></p>
+    <div class="row"><button type="submit" class="p" data-a="login">เข้าสู่ระบบ</button><button type="button" data-a="new">สร้างผู้เล่นใหม่</button></div></form>`);
+  const f=body.querySelector('form'),err=body.querySelector('.ph-err');
+  const go=async path=>{
+    err.textContent='';const name=f.name.value.trim(),pin=f.pin.value.trim();
+    if(name.length<2){err.textContent='กรอกชื่ออย่างน้อย 2 ตัวอักษร';return}
+    if(!/^\d{4}$/.test(pin)){err.textContent='PIN ต้องเป็นตัวเลข 4 หลัก';return}
+    try{const r=await api('POST',path,{name,pin});setToken(r.token);me=r.player;paintChip();playerCard()}catch(e){err.textContent=e.message}
+  };
+  f.onsubmit=e=>{e.preventDefault();go('/login')};
+  body.querySelector('[data-a=new]').onclick=()=>go('/players');
+  f.name.focus();
+}
+
+async function leaderboard(period){
+  if(online===false)return playerCard();
+  open('<p class="ph-kicker">ตารางอันดับ</p><h2>🏆 อันดับผู้เล่น</h2><p class="ph-small">กำลังโหลด…</p>');
+  let rows=[];try{rows=(await api('GET','/leaderboard?period='+period)).rows}catch(e){body.querySelector('.ph-small').textContent=e.message;return}
+  const list=rows.length?rows.map(r=>`<li class="${me&&r.id===me.id?'me':''}"><span class="ph-rk r${r.rank}">${r.rank}</span><span class="ph-nm">${esc(r.name)}<small>${TIER_ICON[r.tier]} ${TIER_TH[r.tier]} · ${r.rounds} รอบ · สูงสุด ${r.best}</small></span><b>${r.points}</b></li>`).join(''):'<li class="ph-empty">ยังไม่มีคะแนน เล่นจบรอบแรกเพื่อขึ้นตาราง!</li>';
+  open(`<p class="ph-kicker">ตารางอันดับ</p><h2>🏆 อันดับผู้เล่น</h2>
+    <div class="ph-tabs"><button type="button" data-p="all" class="${period==='all'?'on':''}">ตลอดกาล</button><button type="button" data-p="week" class="${period==='week'?'on':''}">7 วันล่าสุด</button></div>
+    <ol class="ph-list">${list}</ol>${me?'':'<p class="ph-small"><button type="button" data-a="login" class="p">เข้าสู่ระบบเพื่อร่วมแข่ง</button></p>'}`);
+  body.querySelectorAll('[data-p]').forEach(b=>b.onclick=()=>leaderboard(b.dataset.p));
+  const l=body.querySelector('[data-a=login]');if(l)l.onclick=playerCard;
+}
+
+// ---- hooks into the lobby ----
+const chip=document.querySelector('.gl-hud');
+if(chip){chip.setAttribute('role','button');chip.tabIndex=0;chip.style.cursor='pointer';chip.onclick=playerCard;chip.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();playerCard()}};}
+const panel=document.querySelector('#home-menu .gm-panel');
+if(panel){
+  const lab=document.createElement('p');lab.className='gm-label';lab.textContent='แข่งขัน';
+  const b1=document.createElement('button');b1.type='button';b1.innerHTML='🏆 ตารางอันดับ <small>ดูแรงค์ผู้เล่นทุกคน</small>';b1.onclick=()=>leaderboard('all');
+  const b2=document.createElement('button');b2.type='button';b2.innerHTML='👤 ผู้เล่น <small>เข้าสู่ระบบ / เปลี่ยนผู้เล่น</small>';b2.onclick=playerCard;
+  panel.prepend(lab,b1,b2);
+}
+
+// ---- after a finished round ----
+window.PHOnline={
+  get player(){return me},
+  async roundFinished({mode,summary,stepAcc,durationSec}){
+    const box=$('online-sum');if(!box)return;
+    const a=summary.assessment||{},base=summary.scores?summary.scores.totalScore:0;
+    const score=Math.round(stepAcc==null?base:base*0.7+stepAcc*0.3);
+    box.hidden=false;
+    if(a.quit){box.innerHTML='<p class="ph-small">ออกก่อนจบรอบ — ไม่นับแรงค์</p>';return}
+    if(!online){box.innerHTML='<p class="ph-small">โหมดออฟไลน์ — คะแนน '+score+' ไม่ขึ้นแรงค์</p>';return}
+    if(!me){box.innerHTML='<div class="ph-result"><b>'+score+'</b> แต้ม<p class="ph-small">เข้าสู่ระบบเพื่อบันทึกคะแนนและแรงค์</p><button type="button" class="p" data-a="login">เข้าสู่ระบบ</button></div>';box.querySelector('[data-a=login]').onclick=playerCard;return}
+    const prevTier=me.tier;
+    try{
+      const r=await api('POST','/scores',{mode,score,reps:summary.stats?summary.stats.totalReps||0:0,stepAccuracy:stepAcc,durationSec:Math.max(30,Math.min(1500,durationSec)),completed:true});
+      me=r.player;paintChip();
+      box.innerHTML=`<div class="ph-result"><p class="ph-kicker">บันทึกคะแนนแล้ว</p><b>+${score}</b> แต้ม
+        <div class="ph-tier"><span class="ph-badge t-${me.tier}">${TIER_ICON[me.tier]} ${TIER_TH[me.tier]}</span> ${me.points} แต้ม · อันดับ #${me.rank}</div>
+        ${prevTier!==me.tier?'<p class="ph-up">🎉 เลื่อนแรงค์เป็น '+TIER_TH[me.tier]+'!</p>':''}
+        <button type="button" data-a="rank">🏆 ดูตารางอันดับ</button></div>`;
+      box.querySelector('[data-a=rank]').onclick=()=>leaderboard('week');
+    }catch(e){box.innerHTML='<p class="ph-small">บันทึกคะแนนไม่สำเร็จ: '+esc(e.message)+'</p>'}
+  }
+};
+checkOnline().then(refreshMe);
+})();
 </script></body></html>
